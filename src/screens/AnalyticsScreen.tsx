@@ -1,0 +1,1000 @@
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { PieChart } from "react-native-chart-kit";
+import { getThemeColors } from "../utils/getThemeColors";
+import { useTranslation } from "react-i18next";
+import {
+   getExpenses,
+   getIncomes,
+   getCategorySpendingByDateRange,
+   getMonthlyExpensesByDateRange,
+   getMonthlyIncomesByDateRange,
+} from "../services/api";
+import SideDrawer from "../../components/SideDrawer";
+import { BarChart, LineChart } from "react-native-gifted-charts";
+import DateTimePicker from "@react-native-community/datetimepicker";
+
+interface AnalyticsScreenProps {
+   isDarkMode: boolean;
+   onToggleTheme: () => void;
+   navigation: any;
+}
+
+// Add this near the top of your file with other interfaces
+interface BarChartDataItem {
+   value: number;
+   label?: string;
+   frontColor?: string;
+   spacing?: number;
+   labelTextStyle?: any;
+   showXAxisIndex?: boolean;
+   rightLabelComponent?: () => React.ReactNode;
+   leftShift?: number;
+   barWidth?: number;
+}
+
+const screenWidth = Dimensions.get("window").width;
+
+const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigation }) => {
+   const themeColors = getThemeColors(isDarkMode);
+   const { t } = useTranslation();
+   const [isLoading, setIsLoading] = useState(false);
+   const [expenseData, setExpenseData] = useState<any[]>([]);
+   const [incomeData, setIncomeData] = useState<{ incomeByMonth: number[]; expenseByMonth: number[]; months: string[] }>({
+      incomeByMonth: [],
+      expenseByMonth: [],
+      months: [],
+   });
+   const [monthlyExpenseData, setMonthlyExpenseData] = useState<{ months: string[]; expenseByMonth: number[] }>({
+      months: [],
+      expenseByMonth: [],
+   });
+   const [dateRange, setDateRange] = useState("month"); // "week", "month", "year"
+   const [selectedDate, setSelectedDate] = useState(new Date());
+   const [showDatePicker, setShowDatePicker] = useState(false);
+   const [startDate, setStartDate] = useState(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)); // Default: 7 days ago
+   const [endDate, setEndDate] = useState(new Date()); // Default: today
+   const [isSelectingStartDate, setIsSelectingStartDate] = useState(true);
+
+   // Fetch data when component mounts or date range changes
+   useEffect(() => {
+      fetchAnalyticsData();
+   }, [startDate, endDate]); // Fetch data when date range changes
+
+   const fetchAnalyticsData = async () => {
+      setIsLoading(true);
+      try {
+         // Fetch all data in parallel for better performance
+         const [categoryResult, expenseResult, incomeResult] = await Promise.all([
+            getCategorySpendingByDateRange(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]),
+            getMonthlyExpensesByDateRange(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]),
+            getMonthlyIncomesByDateRange(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]),
+         ]);
+
+         console.log("All API data fetched successfully");
+
+         // Process category data
+         if (categoryResult.categories && categoryResult.categories.length > 0) {
+            // Use proper category colors instead of generic color array
+            const expenseData = categoryResult.categories.map((item) => ({
+               name: item.categoryName,
+               value: item.totalAmount,
+               color: getCategoryColor(item.categoryName), // Use category-specific color
+               categoryId: item.categoryId,
+               legendFontColor: themeColors.card_title,
+               legendFontSize: 12,
+            }));
+
+            setExpenseData(expenseData);
+         } else {
+            setExpenseData([]);
+         }
+
+         // Process monthly data for the bar chart
+         const months = new Set<string>();
+         const expenseByMonth: Record<string, number> = {};
+         const incomeByMonth: Record<string, number> = {};
+
+         // Add expense data
+         if (expenseResult.expenses && expenseResult.expenses.length > 0) {
+            expenseResult.expenses.forEach((item) => {
+               const [year, month] = item.month.split("-");
+               const monthLabel = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", { month: "short" });
+
+               months.add(monthLabel);
+               expenseByMonth[monthLabel] = item.totalAmount;
+            });
+         }
+
+         // Add income data
+         if (incomeResult.incomes && incomeResult.incomes.length > 0) {
+            incomeResult.incomes.forEach((item) => {
+               const [year, month] = item.month.split("-");
+               const monthLabel = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", { month: "short" });
+
+               months.add(monthLabel);
+               incomeByMonth[monthLabel] = item.totalAmount;
+            });
+         }
+
+         // Create arrays for chart data
+         const monthsArray = Array.from(months);
+         const incomeArray = monthsArray.map((month) => incomeByMonth[month] || 0);
+         const expenseArray = monthsArray.map((month) => expenseByMonth[month] || 0);
+
+         // Update state with the processed data
+         setIncomeData({
+            months: monthsArray,
+            incomeByMonth: incomeArray,
+            expenseByMonth: expenseArray,
+         });
+
+         console.log("Data processing complete", {
+            categories: expenseData.length,
+            months: monthsArray.length,
+            incomes: incomeArray,
+            expenses: expenseArray,
+         });
+      } catch (error) {
+         console.error("Error fetching analytics data:", error);
+         // Use mock data as fallback only when API completely fails
+      } finally {
+         setIsLoading(false);
+      }
+   };
+
+   const fetchCategorySpendingData = async () => {
+      try {
+         const result = await getCategorySpendingByDateRange(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
+
+         console.log("Category spending API response:", result);
+
+         // Check if response is empty or doesn't have categories property
+         if (!result || !result.categories || result.categories.length === 0) {
+            console.log("No category spending data available for the selected period");
+            setExpenseData([]);
+            return;
+         }
+
+         // Map the API data to your expenseData format with colors
+         const categoryColors = ["#FFC107", "#4CAF50", "#2196F3", "#9C27B0", "#F44336", "#FF9800", "#009688", "#795548"];
+
+         const expenseData = result.categories.map((item, index) => ({
+            name: item.categoryName,
+            value: item.totalAmount,
+            color: categoryColors[index % categoryColors.length],
+            categoryId: item.categoryId,
+         }));
+
+         setExpenseData(expenseData);
+      } catch (error) {
+         console.error("Error fetching category spending data:", error);
+         // Set empty data on error
+         setExpenseData([]);
+      }
+   };
+
+   // Update fetchMonthlyExpenseData to handle empty responses
+   const fetchMonthlyExpenseData = async () => {
+      try {
+         const result = await getMonthlyExpensesByDateRange(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
+
+         console.log("Monthly expenses API response:", result);
+
+         // Check if response is empty or doesn't have expenses property
+         if (!result || !result.expenses) {
+            console.log("No expense data available for the selected period");
+            // Set empty data but maintain the structure
+            setIncomeData((prevData) => ({
+               ...prevData,
+               months: [],
+               expenseByMonth: [],
+            }));
+            return;
+         }
+
+         // Format the expense data
+         const months = result.expenses.map((item) => {
+            const [year, month] = item.month.split("-");
+            return new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", { month: "short" });
+         });
+
+         const expenseByMonth = result.expenses.map((item) => item.totalAmount);
+
+         // Merge with existing income data
+         setIncomeData((prevData) => ({
+            months: months,
+            // Keep existing income data or initialize with zeros if none exists or lengths don't match
+            incomeByMonth: prevData.incomeByMonth.length === months.length ? prevData.incomeByMonth : Array(months.length).fill(0),
+            expenseByMonth: expenseByMonth,
+         }));
+      } catch (error) {
+         console.error("Error fetching monthly expense data:", error);
+         // Don't modify state on error, just log
+      }
+   };
+
+   // Similarly update fetchMonthlyIncomeData
+   const fetchMonthlyIncomeData = async () => {
+      try {
+         const result = await getMonthlyIncomesByDateRange(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
+
+         console.log("Monthly incomes API response:", result);
+
+         // Check if response is empty or doesn't have incomes property
+         if (!result || !result.incomes) {
+            console.log("No income data available for the selected period");
+            // Set empty data but maintain the structure
+            setIncomeData((prevData) => ({
+               ...prevData,
+               months: prevData.months || [],
+               incomeByMonth: [],
+            }));
+            return;
+         }
+
+         // Format the income data
+         const months = result.incomes.map((item) => {
+            const [year, month] = item.month.split("-");
+            return new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", { month: "short" });
+         });
+
+         const incomeByMonth = result.incomes.map((item) => item.totalAmount);
+
+         // Merge with existing expense data or use empty array if no expense data
+         setIncomeData((prevData) => ({
+            months: months,
+            incomeByMonth: incomeByMonth,
+            // Keep existing expense data or initialize with zeros if none exists or lengths don't match
+            expenseByMonth: prevData.expenseByMonth.length === months.length ? prevData.expenseByMonth : Array(months.length).fill(0),
+         }));
+      } catch (error) {
+         console.error("Error fetching monthly income data:", error);
+         // Don't modify state on error, just log
+      }
+   };
+
+   const handleDateRangeChange = (range: string) => {
+      setDateRange(range);
+   };
+
+   const handleNavigate = (screen: string) => {
+      navigation.navigate(screen);
+   };
+
+   const onDateChange = (event: any, selectedDate: Date | undefined) => {
+      const currentDate = selectedDate || new Date();
+      setShowDatePicker(false);
+      setSelectedDate(currentDate);
+      // TODO: Fetch new data based on selected date
+   };
+
+   // Add this useEffect near your other hooks
+   useEffect(() => {
+      if (incomeData.months && incomeData.months.length > 0) {
+         console.log("Bar Chart Month Labels:", incomeData.months);
+      }
+   }, [incomeData.months]);
+
+   // Add this function to your AnalyticsScreen component
+   const getCategoryColor = (categoryName: string): string => {
+      const normalizedName = categoryName.toLowerCase();
+
+      switch (normalizedName) {
+         case "food":
+            return themeColors.food_category;
+         case "housing":
+            return themeColors.housing_category;
+         case "entertainment":
+            return themeColors.entertainment_category;
+         case "healthcare":
+            return themeColors.health_category;
+         case "education":
+            return themeColors.education_category;
+         case "transport":
+            return themeColors.transport_category;
+         case "shopping":
+            return themeColors.shopping_category;
+         default:
+            return themeColors.other_category;
+      }
+   };
+
+   return (
+      <View style={[styles.container, { backgroundColor: themeColors.page_background }]}>
+         {/* Header */}
+         <View style={styles.header}>
+            <SideDrawer isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="analytics" />
+         </View>
+
+         {/* Date Picker */}
+         <View style={styles.datePickerContainer}>
+            <TouchableOpacity
+               style={[styles.datePickerButton, { backgroundColor: themeColors.page_background }, { borderColor: themeColors.frame_stroke }]}
+               onPress={() => {
+                  setIsSelectingStartDate(true); // Always start with selecting start date
+                  setShowDatePicker(true);
+               }}>
+               <Text style={[styles.datePickerText, { color: themeColors.card_title }]}>
+                  {startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}
+               </Text>
+            </TouchableOpacity>
+
+            {showDatePicker && (
+               <View>
+                  <DateTimePicker
+                     value={isSelectingStartDate ? startDate : endDate}
+                     mode="date"
+                     display="default"
+                     onChange={(event, date) => {
+                        // On Android, cancel returns undefined for date
+                        // On iOS, cancel is identified by event.type being 'dismissed'
+                        const isCancel = event.type === "dismissed" || date === undefined;
+
+                        if (isCancel) {
+                           setShowDatePicker(false); // Hide picker on cancel
+                           setIsSelectingStartDate(true); // Reset to start date for next time
+                           return;
+                        }
+
+                        if (date) {
+                           if (isSelectingStartDate) {
+                              setStartDate(date);
+                              setIsSelectingStartDate(false); // Switch to end date selection
+                           } else {
+                              // Make sure end date is not before start date
+                              if (date < startDate) {
+                                 // Swap dates
+                                 const temp = startDate;
+                                 setStartDate(date);
+                                 setEndDate(temp);
+                              } else {
+                                 setEndDate(date);
+                              }
+
+                              // Calculate date range based on selected interval
+                              const diffTime = Math.abs(date.getTime() - startDate.getTime());
+                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                              if (diffDays <= 7) {
+                                 setDateRange("week");
+                              } else if (diffDays <= 30) {
+                                 setDateRange("month");
+                              } else {
+                                 setDateRange("year");
+                              }
+
+                              setShowDatePicker(false); // Hide picker after end date selection
+                              fetchAnalyticsData(); // Fetch data with new range
+                           }
+                        }
+                     }}
+                  />
+               </View>
+            )}
+         </View>
+
+         {isLoading ? (
+            <View style={styles.loadingContainer}>
+               <ActivityIndicator size="large" color={themeColors.green} />
+            </View>
+         ) : (
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+               {/* Custom legend below the pie chart */}
+               <View
+                  style={[
+                     styles.chartContainer,
+                     {
+                        backgroundColor: themeColors.page_background,
+                        borderColor: themeColors.frame_stroke,
+                     },
+                  ]}>
+                  <Text style={[styles.chartTitle, { color: themeColors.card_title }]}>{t("analytics.expenseDistribution")}</Text>
+
+                  {/* Pie Chart for Category Distribution */}
+                  {expenseData.length > 0 ? (
+                     <>
+                        <PieChart
+                           data={expenseData}
+                           width={screenWidth - 60}
+                           height={220}
+                           chartConfig={{
+                              backgroundColor: themeColors.page_background,
+                              backgroundGradientFrom: themeColors.page_background,
+                              backgroundGradientTo: themeColors.page_background,
+                              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                              labelColor: (opacity = 1) => "#000",
+                           }}
+                           accessor="value"
+                           backgroundColor="transparent"
+                           paddingLeft="80"
+                           absolute={false}
+                           hasLegend={false}
+                        />
+
+                        {/* Custom legend */}
+                        <View style={styles.customLegendContainer}>
+                           {expenseData.map((item, index) => (
+                              <View key={index} style={styles.customLegendItem}>
+                                 <View style={[styles.legendColor, { backgroundColor: item.color }]} />
+                                 <Text style={{ color: themeColors.card_title }}>{t(`categories.${item.name.toLowerCase()}`)}</Text>
+                              </View>
+                           ))}
+                        </View>
+                     </>
+                  ) : (
+                     <View style={styles.noDataContainer}>
+                        <Text style={{ color: themeColors.card_description }}>{t("analytics.noExpenseData")}</Text>
+                     </View>
+                  )}
+               </View>
+
+               {/* Income vs Expense - Pie Chart */}
+               <View
+                  style={[
+                     styles.chartContainer,
+                     {
+                        backgroundColor: themeColors.page_background,
+                        borderColor: themeColors.frame_stroke,
+                     },
+                  ]}>
+                  <Text style={[styles.chartTitle, { color: themeColors.card_title }]}>{t("analytics.incomeExpenseGraph")}</Text>
+
+                  {incomeData.incomeByMonth && incomeData.incomeByMonth.length > 0 ? (
+                     <>
+                        <PieChart
+                           data={[
+                              {
+                                 name: t("analytics.income"),
+                                 value: incomeData.incomeByMonth.reduce((sum, val) => sum + val, 0),
+                                 color: themeColors.green,
+                                 legendFontColor: themeColors.card_title,
+                                 legendFontSize: 13,
+                              },
+                              {
+                                 name: t("analytics.expenses"),
+                                 value: incomeData.expenseByMonth.reduce((sum, val) => sum + val, 0),
+                                 color: themeColors.red,
+                                 legendFontColor: themeColors.card_title,
+                                 legendFontSize: 13,
+                              },
+                           ]}
+                           width={screenWidth - 60}
+                           height={220}
+                           chartConfig={{
+                              backgroundColor: themeColors.page_background,
+                              backgroundGradientFrom: themeColors.page_background,
+                              backgroundGradientTo: themeColors.page_background,
+                              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                              labelColor: (opacity = 1) => themeColors.card_title,
+                           }}
+                           accessor="value"
+                           backgroundColor="transparent"
+                           paddingLeft="10"
+                           absolute={false}
+                           avoidFalseZero={true}
+                        />
+
+                        {/* Add a total summary below the chart */}
+                        <View style={styles.incomeSummaryContainer}>
+                           <View style={styles.summaryItem}>
+                              <Text style={[styles.summaryLabel, { color: themeColors.card_title }]}>{t("analytics.totalIncome")}:</Text>
+                              <Text style={[styles.summaryValue, { color: themeColors.green }]}>
+                                 ${incomeData.incomeByMonth.reduce((sum, val) => sum + val, 0).toFixed(2)}
+                              </Text>
+                           </View>
+                           <View style={styles.summaryItem}>
+                              <Text style={[styles.summaryLabel, { color: themeColors.card_title }]}>{t("analytics.totalExpenses")}:</Text>
+                              <Text style={[styles.summaryValue, { color: themeColors.red }]}>
+                                 ${incomeData.expenseByMonth.reduce((sum, val) => sum + val, 0).toFixed(2)}
+                              </Text>
+                           </View>
+                           <View style={styles.summaryItem}>
+                              <Text style={[styles.summaryLabel, { color: themeColors.card_title }]}>{t("analytics.balance")}:</Text>
+                              <Text
+                                 style={[
+                                    styles.summaryValue,
+                                    {
+                                       color:
+                                          incomeData.incomeByMonth.reduce((sum, val) => sum + val, 0) -
+                                             incomeData.expenseByMonth.reduce((sum, val) => sum + val, 0) >=
+                                          0
+                                             ? themeColors.green
+                                             : themeColors.red,
+                                    },
+                                 ]}>
+                                 $
+                                 {(
+                                    incomeData.incomeByMonth.reduce((sum, val) => sum + val, 0) -
+                                    incomeData.expenseByMonth.reduce((sum, val) => sum + val, 0)
+                                 ).toFixed(2)}
+                              </Text>
+                           </View>
+                        </View>
+                     </>
+                  ) : (
+                     <View style={styles.noDataContainer}>
+                        <Text style={{ color: themeColors.card_description }}>{t("analytics.noIncomeExpenseData")}</Text>
+                     </View>
+                  )}
+               </View>
+
+               {/* Category Breakdown - Gifted Horizontal Bar Chart (Smaller) 
+               <View
+                  style={[
+                     styles.chartContainer,
+                     {
+                        backgroundColor: themeColors.page_background,
+                        borderColor: themeColors.frame_stroke,
+                     },
+                  ]}>
+                  <Text style={[styles.chartTitle, { color: themeColors.card_title }]}>{t("analytics.categoryBreakdown")}</Text>
+
+                  {expenseData.length > 0 ? (
+                     <View style={styles.giftedHorizontalBarContainer}>
+                        <BarChart
+                           data={[...expenseData]
+                              .sort((a, b) => b.value - a.value)
+                              .map((item) => ({
+                                 value: item.value,
+                                 frontColor: item.color,
+                                 // Increase substring length to show more text
+                                 label: t(`categories.${item.name.toLowerCase()}`).substring(0, 20),
+                                 labelTextStyle: {
+                                    color: themeColors.card_title,
+                                    fontSize: 11, // Increased font size
+                                 },
+                                 // Keep rightLabelComponent for values
+                                 rightLabelComponent: () => (
+                                    <Text
+                                       style={[
+                                          styles.barChartValueLabel,
+                                          {
+                                             color: themeColors.card_description,
+                                             marginLeft: 6,
+                                             fontSize: 11, // Match the font size
+                                             fontWeight: "600",
+                                          },
+                                       ]}>
+                                       ${item.value}
+                                    </Text>
+                                 ),
+                                 leftShift: 15, // Reduced from 20 to make more room for label
+                                 barWidth: 14,
+                              }))}
+                           horizontal
+                           barWidth={14}
+                           width={screenWidth - 140} // Increased chart area
+                           hideRules
+                           xAxisThickness={0}
+                           yAxisThickness={0}
+                           backgroundColor={themeColors.page_background}
+                           showVerticalLines={false}
+                           showYAxisIndices={false}
+                           disableScroll={true}
+                           yAxisLabelWidth={180} // Increased from 150 to give more space for labels
+                           height={220}
+                           barBorderRadius={4}
+                           initialSpacing={10} // Slightly reduced to maximize space
+                           endSpacing={60}
+                           spacing={10} // Increased slightly for better separation
+                        />
+                     </View>
+                  ) : (
+                     <View style={styles.noDataContainer}>
+                        <Text style={{ color: themeColors.card_description }}>{t("analytics.noExpenseData")}</Text>
+                     </View>
+                  )}
+               </View>
+               */}
+
+               {/* Monthly Income vs Expense - Vertical Bar Chart */}
+               {/* Additional charts can be added here */}
+            </ScrollView>
+         )}
+      </View>
+   );
+};
+
+const styles = StyleSheet.create({
+   container: {
+      flex: 1,
+      paddingTop: 50,
+   },
+   header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      marginBottom: 10,
+   },
+   loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+   },
+   screenTitle: {
+      fontSize: 28,
+      fontWeight: "bold",
+      marginHorizontal: 20,
+      marginBottom: 20,
+   },
+   dateRangeContainer: {
+      flexDirection: "row",
+      justifyContent: "center",
+      marginBottom: 20,
+      marginTop: 50,
+   },
+   dateRangeButton: {
+      paddingHorizontal: 20,
+      paddingVertical: 8,
+      marginHorizontal: 5,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: "#ccc",
+   },
+   dateRangeText: {
+      fontWeight: "500",
+   },
+   scrollView: {
+      flex: 1,
+   },
+   scrollContent: {
+      paddingHorizontal: 20,
+      paddingBottom: 30,
+   },
+   chartContainer: {
+      marginBottom: 20,
+      padding: 15,
+      borderRadius: 15,
+      borderWidth: 1,
+      alignItems: "center",
+      width: "100%",
+      overflow: "hidden",
+   },
+   chartTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      marginBottom: 15,
+      alignSelf: "flex-start",
+   },
+   noDataContainer: {
+      height: 200,
+      justifyContent: "center",
+      alignItems: "center",
+   },
+   lineChart: {
+      marginVertical: 8,
+      borderRadius: 15,
+   },
+   barChart: {
+      marginVertical: 8,
+      borderRadius: 15,
+   },
+   legendContainer: {
+      flexDirection: "row",
+      justifyContent: "center",
+      marginTop: 10,
+   },
+   legendItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginHorizontal: 15,
+   },
+   legendColor: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginRight: 5,
+   },
+   customLegendContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      marginTop: 10,
+   },
+   customLegendItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginRight: 15,
+      marginBottom: 5,
+   },
+   customChartContainer: {
+      width: "100%",
+      height: 250,
+      marginTop: 15,
+      flexDirection: "row",
+   },
+   yAxisContainer: {
+      width: 40,
+      height: "100%",
+      justifyContent: "flex-start",
+      position: "relative",
+   },
+   lineChartArea: {
+      flex: 1,
+      height: 220,
+      position: "relative",
+   },
+   gridLine: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      height: 1,
+   },
+   axisLabel: {
+      fontSize: 10,
+      position: "absolute",
+      textAlign: "right",
+   },
+   xAxisContainer: {
+      position: "absolute",
+      bottom: -25,
+      left: 0,
+      right: 0,
+      flexDirection: "row",
+   },
+   lineContainer: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+   },
+   line: {
+      height: 2,
+      position: "absolute",
+   },
+   dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      position: "absolute",
+      marginLeft: -4,
+      marginBottom: -4,
+   },
+   customBarChartContainer: {
+      width: "100%",
+      marginTop: 15,
+   },
+   barItemContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 15,
+      width: "100%",
+   },
+   barLabelContainer: {
+      width: 100,
+   },
+   barLabel: {
+      fontSize: 13,
+   },
+   barOuterContainer: {
+      flex: 1,
+      height: 28,
+      borderRadius: 14,
+      overflow: "hidden",
+      position: "relative",
+      borderWidth: 1,
+   },
+   barFill: {
+      height: "100%",
+      borderRadius: 14,
+   },
+   barValue: {
+      position: "absolute",
+      alignSelf: "center",
+      top: 5,
+      fontWeight: "600",
+      fontSize: 12,
+   },
+   lineConnectorContainer: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      flexDirection: "row",
+      alignItems: "flex-end",
+   },
+   lineSegment: {
+      height: 2,
+      position: "absolute",
+   },
+   verticalBarChartContainer: {
+      width: "100%",
+      height: 250,
+      flexDirection: "row",
+      marginTop: 10,
+   },
+   verticalBarChartContent: {
+      flex: 1,
+      height: 220,
+      position: "relative",
+   },
+   barsContainer: {
+      flex: 1,
+      flexDirection: "row",
+      justifyContent: "space-evenly",
+      alignItems: "flex-end",
+      paddingHorizontal: 10,
+      paddingTop: 30, // Add space at top for value labels
+      marginBottom: 20, // Add space at bottom for month labels
+   },
+   monthBarGroup: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "center",
+   },
+   barContainer: {
+      width: 15,
+      height: "100%",
+      justifyContent: "flex-end",
+      marginHorizontal: 2,
+      alignItems: "center", // Center the value text
+   },
+   verticalBar: {
+      width: "100%",
+      borderTopLeftRadius: 3,
+      borderTopRightRadius: 3,
+   },
+   monthLabel: {
+      position: "absolute",
+      bottom: -20,
+      fontSize: 10,
+      textAlign: "center",
+      width: 40,
+   },
+   barValueText: {
+      fontSize: 9, // Smaller text
+      fontWeight: "600",
+      position: "absolute",
+      bottom: "50%", // Center vertically along the bar
+      textAlign: "center", // Change from right to center
+      zIndex: 5, // Ensure it's on top of other elements
+      width: 28, // Slightly narrower
+   },
+   barLabelWrapper: {
+      position: "absolute",
+      right: -15,
+      width: 45,
+      height: 15,
+      alignItems: "center",
+      justifyContent: "center",
+      transform: [{ rotate: "-90deg" }],
+      transformOrigin: "left top",
+   },
+   verticalBarLabel: {
+      fontSize: 9,
+      fontWeight: "600",
+      textAlign: "center",
+   },
+   giftedBarChartContainer: {
+      width: "100%",
+      height: 280,
+      marginVertical: 10,
+      position: "relative", // Add this
+      zIndex: 1, // Add this
+   },
+   barChartValueLabel: {
+      fontSize: 11, // Increased from 9
+      fontWeight: "600",
+      textAlign: "center",
+      marginBottom: 2, // Reduced from 4
+   },
+   tooltip: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 4,
+      borderWidth: 1,
+      borderColor: "#ccc",
+   },
+   giftedHorizontalBarContainer: {
+      width: "100%",
+      height: 200,
+      alignItems: "flex-start",
+      justifyContent: "center",
+      zIndex: -1,
+   },
+   giftedLineChartContainer: {
+      width: "100%",
+      height: 260,
+      alignItems: "center",
+      justifyContent: "center",
+      marginVertical: 10,
+   },
+   datePickerContainer: {
+      flexDirection: "row",
+      justifyContent: "center",
+      marginBottom: 20,
+      paddingLeft: 180,
+   },
+   datePickerButton: {
+      paddingHorizontal: 24,
+      paddingVertical: 10,
+      borderRadius: 20,
+      borderWidth: 1,
+   },
+   datePickerText: {
+      fontWeight: "600",
+      fontSize: 16,
+   },
+   dateRangePickerContainer: {
+      position: "absolute",
+      top: 90,
+      left: 0,
+      right: 0,
+      padding: 20,
+      borderRadius: 10,
+      borderWidth: 1,
+      alignItems: "center",
+      zIndex: 100,
+      elevation: 5,
+   },
+   dateRangeLabel: {
+      fontSize: 16,
+      fontWeight: "600",
+      marginBottom: 10,
+   },
+   datePickerButtonContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      width: "100%",
+      marginTop: 10,
+   },
+   datePickerActionButton: {
+      flex: 1,
+      paddingVertical: 10,
+      borderRadius: 10,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+   },
+   tooltipContainer: {
+      position: "absolute",
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 6,
+      borderWidth: 1.5,
+      minWidth: 60,
+      alignItems: "center",
+      // Increase elevation and z-index
+      elevation: 10,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      zIndex: 1000,
+      // Fix positioning
+      transform: [{ translateX: -30 }, { translateY: -45 }], // Add Y transform
+   },
+   tooltipText: {
+      fontSize: 14,
+      fontWeight: "bold",
+   },
+   tooltipType: {
+      fontSize: 10,
+      marginTop: 2,
+   },
+   incomeSummaryContainer: {
+      width: "100%",
+      marginTop: 15,
+      padding: 10,
+      borderTopWidth: 1,
+      borderTopColor: "#e0e0e0",
+   },
+   summaryItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 5,
+   },
+   summaryLabel: {
+      fontSize: 14,
+      fontWeight: "500",
+   },
+   summaryValue: {
+      fontSize: 14,
+      fontWeight: "700",
+   },
+});
+
+export default AnalyticsScreen;

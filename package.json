@@ -1,0 +1,42 @@
+{
+  "name": "wealthra",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.1.2",
+    "@react-native-community/datetimepicker": "8.2.0",
+    "@react-native-picker/picker": "2.9.0",
+    "@react-navigation/stack": "^7.2.10",
+    "axios": "^1.8.4",
+    "expo": "~52.0.40",
+    "expo-linear-gradient": "~14.0.2",
+    "expo-status-bar": "~2.0.1",
+    "i18next": "^25.0.1",
+    "react": "18.3.1",
+    "react-i18next": "^15.4.1",
+    "react-native": "0.76.7",
+    "react-native-chart-kit": "^6.12.0",
+    "react-native-gesture-handler": "^2.25.0",
+    "react-native-get-random-values": "^1.11.0",
+    "react-native-gifted-charts": "^1.4.61",
+    "react-native-linear-gradient": "^2.8.3",
+    "react-native-reanimated": "~3.16.1",
+    "react-native-safe-area-context": "^5.4.0",
+    "react-native-screens": "^4.10.0",
+    "react-native-svg": "15.8.0",
+    "react-native-vector-icons": "^10.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/axios": "^0.9.36",
+    "@types/react": "~18.3.12",
+    "typescript": "^5.3.3"
+  },
+  "private": true
+}
