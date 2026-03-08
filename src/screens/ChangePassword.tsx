@@ -6,12 +6,12 @@ import { useTranslation } from "react-i18next";
 import SideDrawer from "../../components/SideDrawer";
 import { changePassword } from "../services/api";
 
-interface ChangeCredentialsProps {
+interface ChangePasswordProps {
    isDarkMode: boolean;
    navigation: any;
 }
 
-const ChangeCredentials: React.FC<ChangeCredentialsProps> = ({ isDarkMode, navigation }) => {
+const ChangePassword: React.FC<ChangePasswordProps> = ({ isDarkMode, navigation }) => {
    const { t } = useTranslation();
    const themeColors = getThemeColors(isDarkMode);
 
@@ -284,4 +284,4 @@ const styles = StyleSheet.create({
    },
 });
 
-export default ChangeCredentials;
+export default ChangePassword;

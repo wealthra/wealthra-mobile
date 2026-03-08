@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Image, ActivityIndicator, TouchableOpacity, FlatList, Alert } from "react-native";
 import { getThemeColors } from "../utils/getThemeColors";
-import { API_URL, API_VERSION, getStoredToken, getExpenses, deleteExpense, addExpense, getUserCategories, getStoredUserId } from "../services/api";
+import { API_URL, getStoredToken, getExpenses, deleteExpense, addExpense, getUserCategories, getStoredUserId } from "../services/api";
 import { useTranslation } from "react-i18next";
 import SideDrawer from "../../components/SideDrawer";
 import type { FinancialSummary } from "../services/api";
@@ -104,7 +104,8 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({ isDarkMode, onToggleTheme
             // Use the updated getExpenses function that now includes userId in the path
             const response = await getExpenses(1, 10);
 
-            const mappedExpenses = response.data.map((expense) => ({
+            const items = response.items || [];
+            const mappedExpenses = items.map((expense: any) => ({
                id: expense.id,
                description: expense.description,
                amount: expense.amount,
@@ -142,9 +143,9 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({ isDarkMode, onToggleTheme
          const response = await getUserCategories();
          const currentLang = i18n.language as "en" | "tr";
 
-         if (response && response.data) {
+         if (response && response.length > 0) {
             setCategories(
-               response.data.map((category) => ({
+               response.map((category: any) => ({
                   id: category.id,
                   name: category.name, // Use current language
                }))
@@ -394,7 +395,8 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({ isDarkMode, onToggleTheme
          // Use the updated getExpenses function that now includes pagination
          const response = await getExpenses(page, pageSize);
 
-         const mappedExpenses = response.data.map((expense) => ({
+         const items = response.items || [];
+         const mappedExpenses = items.map((expense: any) => ({
             id: expense.id,
             description: expense.description,
             amount: expense.amount,
@@ -405,7 +407,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({ isDarkMode, onToggleTheme
          }));
 
          // Check if we have more data to load
-         setHasMoreData(mappedExpenses.length === pageSize);
+         setHasMoreData(response.hasNextPage ?? false);
 
          // Update the current page
          setCurrentPage(page);

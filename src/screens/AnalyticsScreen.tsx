@@ -4,11 +4,9 @@ import { PieChart } from "react-native-chart-kit";
 import { getThemeColors } from "../utils/getThemeColors";
 import { useTranslation } from "react-i18next";
 import {
-   getExpenses,
-   getIncomes,
-   getCategorySpendingByDateRange,
-   getMonthlyExpensesByDateRange,
-   getMonthlyIncomesByDateRange,
+   getSpendingBreakdown,
+   getMonthlyTrends,
+   getMonthlyMetrics,
 } from "../services/api";
 import SideDrawer from "../../components/SideDrawer";
 import { BarChart, LineChart } from "react-native-gifted-charts";
@@ -59,85 +57,69 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
    // Fetch data when component mounts or date range changes
    useEffect(() => {
       fetchAnalyticsData();
+      fetchMetricsData();
    }, [startDate, endDate]); // Fetch data when date range changes
+
+   const fetchMetricsData = async () => {
+      try {
+         const metrics = await getMonthlyMetrics(new Date().toISOString().split("T")[0]);
+         console.log("Monthly metrics fetched:", metrics);
+         // You can add state to display these metrics if needed
+      } catch (error) {
+         console.error("Error fetching metrics:", error);
+      }
+   };
 
    const fetchAnalyticsData = async () => {
       setIsLoading(true);
       try {
          // Fetch all data in parallel for better performance
-         const [categoryResult, expenseResult, incomeResult] = await Promise.all([
-            getCategorySpendingByDateRange(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]),
-            getMonthlyExpensesByDateRange(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]),
-            getMonthlyIncomesByDateRange(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]),
+         const [categoryResult, trendsResult] = await Promise.all([
+            getSpendingBreakdown(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]),
+            getMonthlyTrends(new Date().getFullYear()),
          ]);
 
          console.log("All API data fetched successfully");
 
          // Process category data
-         if (categoryResult.categories && categoryResult.categories.length > 0) {
+         if (categoryResult.categoryBreakdown && categoryResult.categoryBreakdown.length > 0) {
             // Use proper category colors instead of generic color array
-            const expenseData = categoryResult.categories.map((item) => ({
-               name: item.categoryName,
-               value: item.totalAmount,
-               color: getCategoryColor(item.categoryName), // Use category-specific color
-               categoryId: item.categoryId,
+            const mappedExpenseData = categoryResult.categoryBreakdown.map((item) => ({
+               name: item.categoryName || "Other",
+               value: item.amount,
+               color: getCategoryColor(item.categoryName || "Other"), // Use category-specific color
                legendFontColor: themeColors.card_title,
                legendFontSize: 12,
             }));
 
-            setExpenseData(expenseData);
+            setExpenseData(mappedExpenseData);
          } else {
             setExpenseData([]);
          }
 
          // Process monthly data for the bar chart
-         const months = new Set<string>();
-         const expenseByMonth: Record<string, number> = {};
-         const incomeByMonth: Record<string, number> = {};
+         if (trendsResult.monthlyData && trendsResult.monthlyData.length > 0) {
+            const monthsArray = trendsResult.monthlyData.map((item) => item.monthName || `Month ${item.month}`);
+            const incomeArray = trendsResult.monthlyData.map((item) => item.totalIncome);
+            const expenseArray = trendsResult.monthlyData.map((item) => item.totalExpenses);
 
-         // Add expense data
-         if (expenseResult.expenses && expenseResult.expenses.length > 0) {
-            expenseResult.expenses.forEach((item) => {
-               const [year, month] = item.month.split("-");
-               const monthLabel = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", { month: "short" });
-
-               months.add(monthLabel);
-               expenseByMonth[monthLabel] = item.totalAmount;
+            // Update state with the processed data
+            setIncomeData({
+               months: monthsArray,
+               incomeByMonth: incomeArray,
+               expenseByMonth: expenseArray,
+            });
+         } else {
+            setIncomeData({
+               months: [],
+               incomeByMonth: [],
+               expenseByMonth: [],
             });
          }
 
-         // Add income data
-         if (incomeResult.incomes && incomeResult.incomes.length > 0) {
-            incomeResult.incomes.forEach((item) => {
-               const [year, month] = item.month.split("-");
-               const monthLabel = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", { month: "short" });
-
-               months.add(monthLabel);
-               incomeByMonth[monthLabel] = item.totalAmount;
-            });
-         }
-
-         // Create arrays for chart data
-         const monthsArray = Array.from(months);
-         const incomeArray = monthsArray.map((month) => incomeByMonth[month] || 0);
-         const expenseArray = monthsArray.map((month) => expenseByMonth[month] || 0);
-
-         // Update state with the processed data
-         setIncomeData({
-            months: monthsArray,
-            incomeByMonth: incomeArray,
-            expenseByMonth: expenseArray,
-         });
-
-         console.log("Data processing complete", {
-            categories: expenseData.length,
-            months: monthsArray.length,
-            incomes: incomeArray,
-            expenses: expenseArray,
-         });
+         console.log("Data processing complete");
       } catch (error) {
          console.error("Error fetching analytics data:", error);
-         // Use mock data as fallback only when API completely fails
       } finally {
          setIsLoading(false);
       }
@@ -145,112 +127,51 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
 
    const fetchCategorySpendingData = async () => {
       try {
-         const result = await getCategorySpendingByDateRange(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
+         const result = await getSpendingBreakdown(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
 
          console.log("Category spending API response:", result);
 
-         // Check if response is empty or doesn't have categories property
-         if (!result || !result.categories || result.categories.length === 0) {
-            console.log("No category spending data available for the selected period");
+         if (!result || !result.categoryBreakdown || result.categoryBreakdown.length === 0) {
             setExpenseData([]);
             return;
          }
 
-         // Map the API data to your expenseData format with colors
          const categoryColors = ["#FFC107", "#4CAF50", "#2196F3", "#9C27B0", "#F44336", "#FF9800", "#009688", "#795548"];
 
-         const expenseData = result.categories.map((item, index) => ({
-            name: item.categoryName,
-            value: item.totalAmount,
+         const mappedExpenseData = result.categoryBreakdown.map((item, index) => ({
+            name: item.categoryName || "Other",
+            value: item.amount,
             color: categoryColors[index % categoryColors.length],
-            categoryId: item.categoryId,
          }));
 
-         setExpenseData(expenseData);
+         setExpenseData(mappedExpenseData);
       } catch (error) {
          console.error("Error fetching category spending data:", error);
-         // Set empty data on error
          setExpenseData([]);
       }
    };
 
-   // Update fetchMonthlyExpenseData to handle empty responses
-   const fetchMonthlyExpenseData = async () => {
+   const fetchMonthlyTrendsData = async () => {
       try {
-         const result = await getMonthlyExpensesByDateRange(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
+         const result = await getMonthlyTrends(new Date().getFullYear());
+         console.log("Monthly trends API response:", result);
 
-         console.log("Monthly expenses API response:", result);
-
-         // Check if response is empty or doesn't have expenses property
-         if (!result || !result.expenses) {
-            console.log("No expense data available for the selected period");
-            // Set empty data but maintain the structure
-            setIncomeData((prevData) => ({
-               ...prevData,
-               months: [],
-               expenseByMonth: [],
-            }));
+         if (!result || !result.monthlyData) {
+            setIncomeData({ months: [], incomeByMonth: [], expenseByMonth: [] });
             return;
          }
 
-         // Format the expense data
-         const months = result.expenses.map((item) => {
-            const [year, month] = item.month.split("-");
-            return new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", { month: "short" });
-         });
+         const months = result.monthlyData.map((item) => item.monthName || `Month ${item.month}`);
+         const incomeByMonth = result.monthlyData.map((item) => item.totalIncome);
+         const expenseByMonth = result.monthlyData.map((item) => item.totalExpenses);
 
-         const expenseByMonth = result.expenses.map((item) => item.totalAmount);
-
-         // Merge with existing income data
-         setIncomeData((prevData) => ({
-            months: months,
-            // Keep existing income data or initialize with zeros if none exists or lengths don't match
-            incomeByMonth: prevData.incomeByMonth.length === months.length ? prevData.incomeByMonth : Array(months.length).fill(0),
-            expenseByMonth: expenseByMonth,
-         }));
-      } catch (error) {
-         console.error("Error fetching monthly expense data:", error);
-         // Don't modify state on error, just log
-      }
-   };
-
-   // Similarly update fetchMonthlyIncomeData
-   const fetchMonthlyIncomeData = async () => {
-      try {
-         const result = await getMonthlyIncomesByDateRange(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
-
-         console.log("Monthly incomes API response:", result);
-
-         // Check if response is empty or doesn't have incomes property
-         if (!result || !result.incomes) {
-            console.log("No income data available for the selected period");
-            // Set empty data but maintain the structure
-            setIncomeData((prevData) => ({
-               ...prevData,
-               months: prevData.months || [],
-               incomeByMonth: [],
-            }));
-            return;
-         }
-
-         // Format the income data
-         const months = result.incomes.map((item) => {
-            const [year, month] = item.month.split("-");
-            return new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", { month: "short" });
-         });
-
-         const incomeByMonth = result.incomes.map((item) => item.totalAmount);
-
-         // Merge with existing expense data or use empty array if no expense data
-         setIncomeData((prevData) => ({
+         setIncomeData({
             months: months,
             incomeByMonth: incomeByMonth,
-            // Keep existing expense data or initialize with zeros if none exists or lengths don't match
-            expenseByMonth: prevData.expenseByMonth.length === months.length ? prevData.expenseByMonth : Array(months.length).fill(0),
-         }));
+            expenseByMonth: expenseByMonth,
+         });
       } catch (error) {
-         console.error("Error fetching monthly income data:", error);
-         // Don't modify state on error, just log
+         console.error("Error fetching monthly trends data:", error);
       }
    };
 

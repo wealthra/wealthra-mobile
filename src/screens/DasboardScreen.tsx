@@ -4,9 +4,9 @@ import { getThemeColors } from "../utils/getThemeColors";
 import SavingGoalSummary from "../../components/SavingGoalSummary";
 import DashboardCarousel from "../../components/DashboardCarousel";
 import SpendingChart from "../../components/SpendingChart";
-import { getFinancialSummary, getGoals } from "../services/api";
+import { getFinancialSummary, getGoals, getCurrentUser } from "../services/api";
 import { transformFinancialData } from "../utils/transformFinancialData";
-import type { FinancialSummary, Goal } from "../services/api";
+import type { FinancialDashboardDto, GoalHistoryDto, UserDto } from "../services/api";
 import { useTranslation } from "react-i18next";
 import SideDrawer from "../../components/SideDrawer";
 
@@ -19,7 +19,8 @@ interface DashboardScreenProps {
 function DashboardScreen({ isDarkMode, onToggleTheme, navigation }: DashboardScreenProps) {
    const themeColors = getThemeColors(isDarkMode);
    const [loading, setLoading] = useState(true);
-   const [financialData, setFinancialData] = useState<FinancialSummary | null>(null);
+   const [financialData, setFinancialData] = useState<FinancialDashboardDto | null>(null);
+   const [userInfo, setUserInfo] = useState<UserDto | null>(null);
    const [profileImage, setProfileImage] = useState<string | null>(null);
    const [goalsSummary, setGoalsSummary] = useState({
       totalSaved: 0,
@@ -29,7 +30,7 @@ function DashboardScreen({ isDarkMode, onToggleTheme, navigation }: DashboardScr
    });
    const { t } = useTranslation();
 
-   const transformSpendingData = (data: FinancialSummary) => {
+   const transformSpendingData = (data: FinancialDashboardDto) => {
       // Only use actual API data, don't fall back to mock data
       if (!data.topSpendingCategories || data.topSpendingCategories.length === 0) {
          return []; // Return empty array when no spending data is available
@@ -41,7 +42,7 @@ function DashboardScreen({ isDarkMode, onToggleTheme, navigation }: DashboardScr
       // Map categories to their proper colors based on category name
       return topCategories.map((category) => {
          // Get proper color for each category based on its name (lowercase and remove spaces)
-         const categoryName = category.categoryName.toLowerCase().replace(/\s+/g, "");
+         const categoryName = category.categoryName ? category.categoryName.toLowerCase().replace(/\s+/g, "") : "unknown";
          let color;
 
          // Match category name to the corresponding theme color
@@ -72,7 +73,7 @@ function DashboardScreen({ isDarkMode, onToggleTheme, navigation }: DashboardScr
          }
 
          return {
-            name: category.categoryName,
+            name: category.categoryName || "Unknown",
             amount: category.totalAmount,
             color: color,
          };
@@ -84,11 +85,11 @@ function DashboardScreen({ isDarkMode, onToggleTheme, navigation }: DashboardScr
       try {
          // Fetch all goals
          const goalsResponse = await getGoals(1, 50); // Get up to 50 goals
-         const goals = goalsResponse.data;
+         const goals = goalsResponse.items || [];
 
          // Calculate total goal amounts
-         const totalSaved = goals.reduce((sum, goal) => sum + goal.initialAmount, 0);
-         const totalTarget = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
+         const totalSaved = goals.reduce((sum: number, goal: GoalHistoryDto) => sum + (goal.currentAmount || 0), 0);
+         const totalTarget = goals.reduce((sum: number, goal: GoalHistoryDto) => sum + (goal.targetAmount || 0), 0);
 
          // For monthly savings, you can either:
          // 1. Use an API endpoint if you have one specifically for monthly goals
@@ -100,15 +101,15 @@ function DashboardScreen({ isDarkMode, onToggleTheme, navigation }: DashboardScr
          const currentYear = new Date().getFullYear();
 
          // Filter goals created in the current month
-         const monthlyGoals = goals.filter((goal) => {
-            const goalDate = new Date(goal.deadline);
+         const monthlyGoals = goals.filter((goal: GoalHistoryDto) => {
+            const goalDate = new Date(goal.deadline || new Date().toISOString());
             const createdDate = new Date(); // You might want to add createdAt to your API
             return createdDate.getMonth() === currentMonth && createdDate.getFullYear() === currentYear;
          });
 
          // Calculate monthly totals (or use a simpler approach if this doesn't match your requirements)
-         const monthlySaved = monthlyGoals.reduce((sum, goal) => sum + goal.initialAmount, 0);
-         const monthlyTarget = monthlyGoals.reduce((sum, goal) => sum + goal.targetAmount, 0);
+         const monthlySaved = monthlyGoals.reduce((sum: number, goal: GoalHistoryDto) => sum + (goal.currentAmount || 0), 0);
+         const monthlyTarget = monthlyGoals.reduce((sum: number, goal: GoalHistoryDto) => sum + (goal.targetAmount || 0), 0);
 
          // Set the calculated summary
          setGoalsSummary({
@@ -121,8 +122,8 @@ function DashboardScreen({ isDarkMode, onToggleTheme, navigation }: DashboardScr
          console.error("Failed to calculate goals summary:", error);
          // Set default values on error
          setGoalsSummary({
-            totalSaved: financialData?.latestGoal?.initialAmount ?? 0,
-            totalTarget: financialData?.latestGoal?.targetAmount ?? 0,
+            totalSaved: 0,
+            totalTarget: 0,
             monthlySaved: 0,
             monthlyTarget: 0,
          });
@@ -133,8 +134,10 @@ function DashboardScreen({ isDarkMode, onToggleTheme, navigation }: DashboardScr
       const fetchData = async () => {
          try {
             setLoading(true);
-            const [finData] = await Promise.all([getFinancialSummary()]);
+            // Fetch financial data and user info in parallel
+            const [finData, user] = await Promise.all([getFinancialSummary(), getCurrentUser()]);
             setFinancialData(finData);
+            setUserInfo(user);
 
             // Calculate goals summary after financial data is loaded
             await calculateGoalsSummary();
@@ -167,7 +170,7 @@ function DashboardScreen({ isDarkMode, onToggleTheme, navigation }: DashboardScr
          </View>
          <View style={styles.dashboardHeader}>
             <Text style={[styles.dashboardTitle, { color: themeColors.card_title }]}>
-               {t("dashboard.dashboardWelcome")}, {financialData?.firstName || "User"}!
+               {t("dashboard.dashboardWelcome")}, {userInfo?.firstName || "User"}!
             </Text>
             <Text style={styles.dashboardSubText}>{t("dashboard.dashboardSubtext")}</Text>
          </View>

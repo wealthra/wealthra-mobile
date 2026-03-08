@@ -7,7 +7,8 @@ import { useTranslation } from "react-i18next";
 import SideDrawer from "../../components/SideDrawer";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
 import AddBudgetModal from "../../components/AddBudgetModal";
-import { getBudgets, addBudget, deleteBudget, Budget } from "../services/api";
+import { getBudgets, addBudget, deleteBudget } from "../services/api";
+import type { BudgetDto } from "../services/api";
 
 interface BudgetScreenProps {
    isDarkMode: boolean;
@@ -59,7 +60,8 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
          console.log("Fetched budgets:", response);
 
          // Transform API data to our component format
-         const transformedBudgets = response.data.map((budget: Budget) => ({
+         const budgets = response.items || [];
+         const transformedBudgets = budgets.map((budget: BudgetDto) => ({
             id: budget.id.toString(),
             name: budget.categoryName || `Category ${budget.categoryId}`, // Use category name if available
             spent: budget.currentAmount || 0,
@@ -70,7 +72,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
          }));
 
          // Check if we have more data to load
-         setHasMoreData(transformedBudgets.length === 10);
+         setHasMoreData(response.hasNextPage ?? false);
 
          // Update the current page
          setCurrentPage(page);

@@ -77,7 +77,8 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({ isDarkMode, onToggleTheme, 
          const response = await getIncomes(page, pageSize);
 
          // Map the response data to your local format with timestamps
-         const mappedIncomes = response.data.map((income, index) => ({
+         const incomes = response.items || [];
+         const mappedIncomes = incomes.map((income: any, index: number) => ({
             id: income.id,
             title: income.name,
             amount: income.amount,
@@ -89,7 +90,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({ isDarkMode, onToggleTheme, 
          }));
 
          // Check if we have more data to load
-         setHasMoreData(mappedIncomes.length === pageSize);
+         setHasMoreData(response.hasNextPage ?? false);
 
          // Update the current page
          setCurrentPage(page);

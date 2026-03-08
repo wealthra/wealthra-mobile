@@ -62,14 +62,10 @@ const ForgotPasswordScreen = ({ isDarkMode, onToggleTheme, navigation }: ForgotP
          setError(null);
          setIsSuccess(false);
 
-         const response = await forgotPassword(email);
+         await forgotPassword(email);
 
-         if (response && response.to) {
-            setIsSuccess(true);
-            setEmail(""); // Clear email input
-         } else {
-            throw new Error("Invalid response from server");
-         }
+         setIsSuccess(true);
+         setEmail(""); // Clear email input
       } catch (error: any) {
          console.error("Forgot Password error details:", {
             message: error.message,

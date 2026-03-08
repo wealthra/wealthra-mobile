@@ -11,20 +11,20 @@ export const transformFinancialData = (financialData: FinancialSummary, isDarkMo
          id: 1,
          title: i18next.t("dashboardCard.totalNetWorth"),
          description: `$${financialData.totalBalance.toLocaleString()}`,
-         percentage: calculatePercentageChange(financialData.totalBalance, financialData.lastMonthBalance),
+         percentage: "", // Removed due to API schema change
          color: themeColors.yellow,
       },
       {
          id: 2,
-         title: i18next.t("dashboardCard.totalSpendingThisMonth"),
-         description: `$${financialData.currentMonthSpending.toLocaleString()}`,
-         percentage: calculatePercentageChange(financialData.currentMonthSpending, financialData.lastMonthSpending),
-         color: themeColors.blue,
+         title: i18next.t("dashboardCard.totalIncome"), // Reusing/creating a translation map proxy
+         description: `$${financialData.totalIncome.toLocaleString()}`,
+         percentage: "", 
+         color: themeColors.green,
       },
       {
          id: 3,
-         title: i18next.t("dashboardCard.upcomingExpenses"),
-         description: `$${financialData.totalRecurringExpenses.toLocaleString()}`,
+         title: i18next.t("dashboardCard.totalSpendingThisMonth"),
+         description: `$${financialData.totalExpenses.toLocaleString()}`,
          percentage: "",
          color: themeColors.red,
       },

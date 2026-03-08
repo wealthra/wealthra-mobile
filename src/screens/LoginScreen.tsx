@@ -75,9 +75,9 @@ const LoginScreen = ({ isDarkMode, onToggleTheme, navigation }: LoginScreenProps
          setIsLoading(true);
          setError(null);
 
-         const response = await loginUser(email, password);
+         const response = await loginUser({ email, password });
 
-         if (response && response.jwToken) {
+         if (response && response.token) {
             console.log("Login successful, navigating to Dashboard");
             navigation.navigate("Dashboard");
          } else {

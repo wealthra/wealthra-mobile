@@ -4,7 +4,7 @@ import { getThemeColors } from "../utils/getThemeColors";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import SideDrawer from "../../components/SideDrawer";
-import { getStoredToken, getUserInfo, getUserId, updateUserProfile } from "../services/api"; // Add updateUserProfile import
+import { getUserId, getCurrentUser, updateUserProfile } from "../services/api";
 
 interface ChangeCredentialsProps {
    isDarkMode: boolean;
@@ -37,7 +37,7 @@ const ChangeCredentials: React.FC<ChangeCredentialsProps> = ({ isDarkMode, navig
    const fetchUserInfo = async () => {
       try {
          setIsLoading(true);
-         const userInfo = await getUserInfo();
+         const userInfo = await getCurrentUser();
 
          if (userInfo) {
             setFirstName(userInfo.firstName || "");
@@ -80,12 +80,11 @@ const ChangeCredentials: React.FC<ChangeCredentialsProps> = ({ isDarkMode, navig
          // Get user ID
          const userId = await getUserId();
 
-         // Match the exact structure that updateUserProfile expects
+         // Match the exact structure that updateUserProfile expects (UpdateUserCommand)
          await updateUserProfile({
-            userId,
             firstName,
             lastName,
-            email,
+            // avatarUrl: null, // Optional
          });
 
          setIsSuccess(true);

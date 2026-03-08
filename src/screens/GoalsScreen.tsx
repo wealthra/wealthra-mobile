@@ -7,7 +7,8 @@ import SideDrawer from "../../components/SideDrawer";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
 import AddGoalModal from "../../components/AddGoalModal";
 import UpdateGoalModal from "../../components/UpdateGoalModal";
-import { getGoals, addGoal, deleteGoal, updateGoal, Goal, calculateDaysRemaining } from "../services/api";
+import { getGoals, addGoal, deleteGoal, updateGoal, calculateDaysRemaining } from "../services/api";
+import type { GoalHistoryDto as Goal } from "../api/types/goal.types.ts";
 
 interface GoalsScreenProps {
    isDarkMode: boolean;
@@ -38,6 +39,9 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
    const [error, setError] = useState<string | null>(null);
    const [selectedGoal, setSelectedGoal] = useState<SavingGoal | null>(null);
    const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
+   const [currentPage, setCurrentPage] = useState(1);
+   const [isLoadingMore, setIsLoadingMore] = useState(false);
+   const [hasMoreData, setHasMoreData] = useState(true);
 
    // Calculate totals for goal overview
    const totalTarget = savingGoals.reduce((sum, goal) => sum + goal.target, 0);
@@ -54,17 +58,20 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
          console.log("Fetched goals:", response);
 
          // Transform API data to our component format
-         const transformedGoals = response.data.map((goal: Goal) => ({
+         const items = response.items || [];
+         const transformedGoals = items.map((goal: Goal) => ({
             id: goal.id.toString(),
             apiId: goal.id, // Store API ID for future operations
-            name: goal.name,
-            saved: goal.initialAmount,
+            name: goal.name || "Untitled Goal",
+            saved: goal.currentAmount || 0,
             target: goal.targetAmount,
-            daysLeft: calculateDaysRemaining(goal.deadline),
+            daysLeft: calculateDaysRemaining(goal.deadline || new Date().toISOString()),
             color: getColorForGoal(Math.floor(Math.random() * 3)), // Random color for now
          }));
 
          setSavingGoals(transformedGoals);
+         // Check if we have more data to load
+         setHasMoreData(response.hasNextPage ?? false);
       } catch (err: any) {
          console.error("Error fetching goals:", err);
          setError("Failed to load goals. Please try again.");
