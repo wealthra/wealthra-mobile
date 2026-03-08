@@ -45,7 +45,3 @@ A personal finance management mobile app built with React Native and Expo.
 - `npm run android` - Run on Android
 - `npm run ios` - Run on iOS
 - `npm run web` - Run in browser
-
-## License
-
-MIT
