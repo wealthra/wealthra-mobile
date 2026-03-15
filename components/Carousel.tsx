@@ -31,6 +31,7 @@ interface CarouselProps {
    isDarkMode: boolean;
    data?: SlideData[];
    renderItem?: (item: SlideData) => React.ReactNode;
+   containerHeight?: number;
 }
 
 /**
@@ -168,7 +169,7 @@ function Slide({ data, themeColors }: { data: SlideData; themeColors: any }) {
 /**
  * Main carousel component using dummyData
  */
-const Carousel: React.FC<CarouselProps> = ({ isDarkMode, data, renderItem }) => {
+const Carousel: React.FC<CarouselProps> = ({ isDarkMode, data, renderItem, containerHeight }) => {
    const themeColors = getThemeColors(isDarkMode);
    const slideList: SlideData[] = data || getDummyData(isDarkMode);
 
@@ -216,7 +217,7 @@ const Carousel: React.FC<CarouselProps> = ({ isDarkMode, data, renderItem }) => 
    }
 
    return (
-      <View style={[styles.carouselContainer]}>
+      <View style={[styles.carouselContainer, containerHeight ? { height: containerHeight } : null]}>
          <FlatList
             ref={flatListRef}
             data={slideList}

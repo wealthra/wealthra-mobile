@@ -65,6 +65,7 @@ const DashboardCarousel: React.FC<DashboardCarouselProps> = ({ isDarkMode, data 
          isDarkMode={isDarkMode}
          data={slides}
          renderItem={(item) => <DashboardSlide data={item as DashboardSlideData} isDarkMode={isDarkMode} />}
+         containerHeight={verticalScale(130)}
       />
    );
 };
