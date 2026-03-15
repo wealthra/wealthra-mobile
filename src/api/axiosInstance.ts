@@ -26,4 +26,85 @@ axiosInstance.interceptors.request.use(
    (error) => Promise.reject(error)
 );
 
+// Interceptor for refreshing tokens
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+   failedQueue.forEach((prom) => {
+      if (error) {
+         prom.reject(error);
+      } else {
+         prom.resolve(token);
+      }
+   });
+
+   failedQueue = [];
+};
+
+axiosInstance.interceptors.response.use(
+   (response) => {
+      return response;
+   },
+   async (error) => {
+      const originalRequest = error.config;
+
+      if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes("/api/Account/refresh-token")) {
+         if (isRefreshing) {
+            return new Promise(function (resolve, reject) {
+               failedQueue.push({ resolve, reject });
+            })
+               .then((token) => {
+                  originalRequest.headers["Authorization"] = "Bearer " + token;
+                  return axiosInstance(originalRequest);
+               })
+               .catch((err) => {
+                  return Promise.reject(err);
+               });
+         }
+
+         originalRequest._retry = true;
+         isRefreshing = true;
+
+         return new Promise(async (resolve, reject) => {
+            try {
+               const refreshToken = await AsyncStorage.getItem("refreshToken");
+
+               if (!refreshToken) {
+                  throw new Error("No refresh token available");
+               }
+
+               // Use a fresh axios call to avoid the interceptor loop
+               const response = await axios.post(`${API_URL}/api/Account/refresh-token`, {
+                  token: refreshToken,
+               });
+
+               const { token: newToken, refreshToken: newRefreshToken, id } = response.data as any;
+
+               await AsyncStorage.multiSet([
+                  ["jwToken", newToken],
+                  ["refreshToken", newRefreshToken],
+                  ["userId", id],
+               ]);
+
+               axiosInstance.defaults.headers.common["Authorization"] = "Bearer " + newToken;
+               originalRequest.headers["Authorization"] = "Bearer " + newToken;
+
+               processQueue(null, newToken);
+               resolve(axiosInstance(originalRequest));
+            } catch (err) {
+               processQueue(err, null);
+               // If refresh fails, clear auth data
+               await AsyncStorage.multiRemove(["userId", "jwToken", "refreshToken", "userRoles"]);
+               reject(err);
+            } finally {
+               isRefreshing = false;
+            }
+         });
+      }
+
+      return Promise.reject(error);
+   }
+);
+
 export default axiosInstance;

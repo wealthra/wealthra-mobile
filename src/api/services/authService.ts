@@ -9,6 +9,7 @@ export const loginUser = async (loginData: LoginUserCommand): Promise<AuthRespon
       await AsyncStorage.multiSet([
          ["userId", response.data.id],
          ["jwToken", response.data.token],
+         ["refreshToken", response.data.refreshToken],
       ]);
 
       return response.data;
@@ -124,12 +125,16 @@ export const getStoredToken = async (): Promise<string | null> => {
    return await AsyncStorage.getItem("jwToken");
 };
 
+export const getStoredRefreshToken = async (): Promise<string | null> => {
+   return await AsyncStorage.getItem("refreshToken");
+};
+
 export const getStoredUserId = async (): Promise<string | null> => {
    return await AsyncStorage.getItem("userId");
 };
 
 export const clearAuthData = async (): Promise<void> => {
-   await AsyncStorage.multiRemove(["userId", "jwToken", "userRoles"]);
+   await AsyncStorage.multiRemove(["userId", "jwToken", "refreshToken", "userRoles"]);
 };
 
 export const getUserId = async (): Promise<string> => {

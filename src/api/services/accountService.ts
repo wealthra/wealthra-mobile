@@ -1,6 +1,6 @@
 import axiosInstance from "../axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getStoredToken, getUserId, clearAuthData } from "./authService";
+import { getStoredToken, getUserId, clearAuthData, getStoredRefreshToken } from "./authService";
 import { UserDto, RefreshTokenRequest, RefreshTokenResponse, UpdateUserCommand } from "../types";
 
 export const updateUserProfile = async (profileData: UpdateUserCommand): Promise<void> => {
@@ -126,11 +126,11 @@ export const getCurrentUser = async (): Promise<UserDto> => {
 
 export const refreshToken = async (): Promise<RefreshTokenResponse> => {
    try {
-      const currentToken = await getStoredToken();
-      if (!currentToken) throw new Error("No authentication token found");
+      const currentRefreshToken = await getStoredRefreshToken();
+      if (!currentRefreshToken) throw new Error("No refresh token found");
 
       const requestData: RefreshTokenRequest = {
-         token: currentToken
+         token: currentRefreshToken
       };
 
       const response = await axiosInstance.post<RefreshTokenResponse>('/api/Account/refresh-token', requestData, {
@@ -144,6 +144,7 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
          await AsyncStorage.multiSet([
             ["userId", response.data.id],
             ["jwToken", response.data.token],
+            ["refreshToken", response.data.refreshToken],
          ]);
          console.log("Token successfully refreshed");
       }
