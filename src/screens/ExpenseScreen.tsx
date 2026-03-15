@@ -192,7 +192,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({ isDarkMode, onToggleTheme
                styles.expenseItem,
                {
                   borderColor: themeColors.frame_stroke,
-                  backgroundColor: themeColors.page_background,
+                  backgroundColor: themeColors.card_background,
                },
             ]}>
             <View style={styles.expenseDetails}>
@@ -478,7 +478,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({ isDarkMode, onToggleTheme
                style={[
                   styles.card,
                   {
-                     backgroundColor: themeColors.page_background,
+                     backgroundColor: themeColors.card_background,
                      borderColor: themeColors.frame_stroke,
                   },
                ]}>
@@ -489,7 +489,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({ isDarkMode, onToggleTheme
                         styles.addButton,
                         {
                            borderColor: themeColors.frame_stroke,
-                           backgroundColor: themeColors.page_background,
+                           backgroundColor: themeColors.card_background,
                            opacity: categories.length > 0 ? 1 : 0.5,
                         },
                      ]}
@@ -526,7 +526,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({ isDarkMode, onToggleTheme
             </View>
 
             {/* Recent Transactions Section */}
-            <View style={[styles.transactionCard, { backgroundColor: themeColors.page_background }, { borderColor: themeColors.frame_stroke }]}>
+            <View style={[styles.transactionCard, { backgroundColor: themeColors.card_background }, { borderColor: themeColors.frame_stroke }]}>
                <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>{t("recentTransactions")}</Text>
                {transactions.map((transaction) => (
                   <View
@@ -535,7 +535,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({ isDarkMode, onToggleTheme
                         styles.transactionItem,
                         {
                            borderColor: themeColors.frame_stroke,
-                           backgroundColor: themeColors.page_background,
+                           backgroundColor: themeColors.card_background,
                         },
                      ]}>
                      <View style={styles.transactionInfo}>

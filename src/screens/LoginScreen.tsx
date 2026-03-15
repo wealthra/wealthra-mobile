@@ -129,7 +129,7 @@ const LoginScreen = ({ isDarkMode, onToggleTheme, navigation }: LoginScreenProps
             <Text style={[styles.loginDescriptionText, { color: themeColors.card_title }]}>{t("loginDescription")}</Text>
          </View>
          <View style={styles.loginSection}>
-            <View style={[styles.loginBox, { backgroundColor: themeColors.page_background, borderColor: themeColors.frame_stroke }]}>
+            <View style={[styles.loginBox, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                <Text style={[styles.loginBoxTitle, { color: themeColors.card_title }]}>{t("loginBoxTitle")}</Text>
                <View style={styles.loginInputSection}>
                   <View

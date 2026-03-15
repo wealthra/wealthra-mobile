@@ -98,11 +98,13 @@ function App() {
       loadSavedLanguage();
    }, []);
 
+   const theme = getThemeColors(isDarkMode);
+
    return (
       <I18nextProvider i18n={i18n}>
          <LanguageProvider>
             <NavigationContainer>
-               <SafeAreaView style={styles.container}>
+               <SafeAreaView style={[styles.container, { backgroundColor: theme.page_background }]}>
                   <AppNavigator isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
                </SafeAreaView>
             </NavigationContainer>

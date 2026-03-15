@@ -60,13 +60,13 @@ function LandingScreen({ isDarkMode, onToggleTheme, navigation }: LandingScreenP
                   style={[
                      styles.featureCard,
                      {
-                        backgroundColor: themeColors.page_background,
+                        backgroundColor: themeColors.card_background,
                         borderWidth: 1,
                         borderColor: themeColors.frame_stroke,
                      },
                   ]}>
                   <View style={styles.cardContent}>
-                     <View style={[styles.circle, { backgroundColor: themeColors.yellow }]}>
+                     <View style={[styles.circle, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                         <Text style={styles.circleText}>$</Text>
                      </View>
                      <View style={styles.textContent}>
@@ -83,7 +83,7 @@ function LandingScreen({ isDarkMode, onToggleTheme, navigation }: LandingScreenP
                   style={[
                      styles.featureCard,
                      {
-                        backgroundColor: themeColors.page_background,
+                        backgroundColor: themeColors.card_background,
                         borderWidth: 1,
                         borderColor: themeColors.frame_stroke,
                      },

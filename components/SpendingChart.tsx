@@ -27,8 +27,8 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ isDarkMode, data }) => {
    const { t } = useTranslation();
 
    const chartConfig = {
-      backgroundGradientFrom: isDarkMode ? "#1E1E1E" : "#FFFFFF",
-      backgroundGradientTo: isDarkMode ? "#1E1E1E" : "#FFFFFF",
+      backgroundGradientFrom: themeColors.card_background,
+      backgroundGradientTo: themeColors.card_background,
       color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
    };
 
@@ -45,7 +45,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ isDarkMode, data }) => {
          style={[
             styles.container,
             {
-               backgroundColor: isDarkMode ? themeColors.page_background : "#FFFFFF",
+               backgroundColor: themeColors.card_background,
                borderColor: isDarkMode ? themeColors.frame_stroke : "#E0E0E0",
             },
          ]}>
@@ -55,7 +55,11 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ isDarkMode, data }) => {
                data={chartData}
                width={chartWidth}
                height={chartHeight}
-               chartConfig={chartConfig}
+               chartConfig={{
+                  ...chartConfig,
+                  backgroundGradientFrom: themeColors.card_background,
+                  backgroundGradientTo: themeColors.card_background,
+               }}
                accessor="population"
                backgroundColor="transparent"
                paddingLeft={horizontalScale(-88).toString()}
@@ -64,7 +68,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ isDarkMode, data }) => {
                hasLegend={false} // Disable built-in legend
             />
             <View style={styles.centerCircle}>
-               <View style={[styles.innerCircle, { backgroundColor: isDarkMode ? themeColors.page_background : themeColors.page_background }]} />
+               <View style={[styles.innerCircle, { backgroundColor: themeColors.card_background }]} />
             </View>
          </View>
          {/* Custom legend */}

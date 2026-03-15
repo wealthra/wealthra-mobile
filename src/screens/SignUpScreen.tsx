@@ -206,7 +206,7 @@ const SignUpScreen = ({ isDarkMode, onToggleTheme, navigation }: SignUpScreenPro
             <Text style={[styles.signUpGreetingText, { color: themeColors.card_title }]}>{t("signUpGreetingText")}</Text>
          </View>
          <View style={styles.signUpSection}>
-            <View style={[styles.signUpBox, { backgroundColor: themeColors.page_background, borderColor: themeColors.frame_stroke }]}>
+            <View style={[styles.signUpBox, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                <Text style={[styles.signUpBoxTitle, { color: themeColors.card_title }]}>{t("signUpTitle")}</Text>
                <View style={styles.signUpInputSection}>
                   <View

@@ -110,7 +110,7 @@ const ForgotPasswordScreen = ({ isDarkMode, onToggleTheme, navigation }: ForgotP
             <Text style={[styles.forgotPasswordGreetingText, { color: themeColors.card_title }]}>{t("forgotPasswordGreetingText")}</Text>
          </View>
          <View style={styles.forgotPasswordSection}>
-            <View style={[styles.forgotPasswordBox, { backgroundColor: themeColors.page_background, borderColor: themeColors.frame_stroke }]}>
+            <View style={[styles.forgotPasswordBox, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                <Text style={[styles.forgotPasswordBoxTitle, { color: themeColors.card_title }]}>{t("forgotPasswordTitle")}</Text>
                <Text style={[styles.forgotPasswordDescriptionText, { color: themeColors.card_title }]}>{t("forgotPasswordDescription")}</Text>
                <View style={styles.forgotPasswordInputSection}>

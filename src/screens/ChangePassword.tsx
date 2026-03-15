@@ -8,6 +8,7 @@ import { changePassword } from "../services/api";
 
 interface ChangePasswordProps {
    isDarkMode: boolean;
+   onToggleTheme: () => void;
    navigation: any;
 }
 

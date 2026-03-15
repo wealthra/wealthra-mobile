@@ -170,7 +170,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
             renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, category.id)}
             overshootRight={false}
             onSwipeableOpen={() => handleDelete(category.id)}>
-            <View style={[styles.categoryItem, { backgroundColor: themeColors.page_background, borderColor: themeColors.frame_stroke }]}>
+            <View style={[styles.categoryItem, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                <View style={styles.categoryHeader}>
                   <Text style={[styles.categoryName, { color: themeColors.card_title }]}>{translatedCategoryName}</Text>
                   <Text style={[styles.percentageIndicator, { color: themeColors.card_title }]}>{percentSpent}%</Text>
@@ -181,7 +181,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
                <View
                   style={[
                      styles.categoryProgressContainer,
-                     { backgroundColor: themeColors.page_background },
+                     { backgroundColor: themeColors.card_background },
                      { borderColor: themeColors.frame_stroke },
                   ]}>
                   <View
@@ -282,11 +282,11 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
          </View>
 
          <View style={styles.content}>
-            <View style={[styles.overviewCard, { backgroundColor: themeColors.page_background, borderColor: themeColors.frame_stroke }]}>
+            <View style={[styles.overviewCard, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>{t("monthlyBudgetOverview")}</Text>
                <Text style={[styles.percentageText, { color: themeColors.card_title }]}>{budgetPercentage}%</Text>
                <View
-                  style={[styles.progressBarContainer, { backgroundColor: themeColors.page_background }, { borderColor: themeColors.frame_stroke }]}>
+                  style={[styles.progressBarContainer, { backgroundColor: themeColors.card_background }, { borderColor: themeColors.frame_stroke }]}>
                   <LinearGradient
                      colors={["#FFA500", "#FF8C00"]}
                      start={{ x: 0, y: 0 }}
@@ -300,11 +300,11 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
                </View>
             </View>
 
-            <View style={[styles.categoriesCard, { backgroundColor: themeColors.page_background, borderColor: themeColors.frame_stroke }]}>
+            <View style={[styles.categoriesCard, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                <View style={styles.categoriesHeader}>
                   <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>{t("budgetCategories")}</Text>
                   <TouchableOpacity
-                     style={[styles.addButton, { borderColor: themeColors.frame_stroke, backgroundColor: themeColors.page_background }]}
+                     style={[styles.addButton, { borderColor: themeColors.frame_stroke, backgroundColor: themeColors.card_background }]}
                      onPress={() => setIsModalVisible(true)}>
                      <Text style={[styles.addButtonText, { color: themeColors.card_title }]}>+</Text>
                   </TouchableOpacity>

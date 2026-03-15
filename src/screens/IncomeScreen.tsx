@@ -273,7 +273,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({ isDarkMode, onToggleTheme, 
                styles.incomeItem,
                {
                   borderColor: themeColors.frame_stroke,
-                  backgroundColor: themeColors.page_background,
+                  backgroundColor: themeColors.card_background,
                },
             ]}>
             <View style={styles.incomeDetails}>
@@ -354,7 +354,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({ isDarkMode, onToggleTheme, 
                style={[
                   styles.card,
                   {
-                     backgroundColor: themeColors.page_background,
+                     backgroundColor: themeColors.card_background,
                      borderColor: themeColors.frame_stroke,
                   },
                ]}>
@@ -365,7 +365,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({ isDarkMode, onToggleTheme, 
                         styles.addButton,
                         {
                            borderColor: themeColors.frame_stroke,
-                           backgroundColor: themeColors.page_background,
+                           backgroundColor: themeColors.card_background,
                         },
                      ]}
                      onPress={() => {
@@ -403,7 +403,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({ isDarkMode, onToggleTheme, 
             </View>
 
             {/* Recent Transactions Section */}
-            <View style={[styles.transactionCard, { backgroundColor: themeColors.page_background }, { borderColor: themeColors.frame_stroke }]}>
+            <View style={[styles.transactionCard, { backgroundColor: themeColors.card_background }, { borderColor: themeColors.frame_stroke }]}>
                <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>{t("recentTransactions")}</Text>
                {transactions.map((transaction) => (
                   <View
@@ -412,7 +412,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({ isDarkMode, onToggleTheme, 
                         styles.transactionItem,
                         {
                            borderColor: themeColors.frame_stroke,
-                           backgroundColor: themeColors.page_background,
+                           backgroundColor: themeColors.card_background,
                         },
                      ]}>
                      <View style={styles.transactionInfo}>

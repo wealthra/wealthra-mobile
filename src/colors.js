@@ -23,6 +23,7 @@ export default {
       card_title_light: "#333333",
       card_description_light: "#777777",
       text_input_background_light: "#FFFFFF",
+      card_background_light: "#FFFFFF",
    },
    // Dark theme colors
    dark: {
@@ -41,12 +42,13 @@ export default {
       frame_stroke_dark: "#7C7C7C",
       input_text_dark: "#777777",
       frame_fill_dark: "#1F1F1F",
-      page_background_dark: "#1F1F1F",
+      page_background_dark: "#2C2C2C",
       card_text_dark: "#333333",
       percentage_background_dark: "#FFFFFF",
       dot_background_dark: "#D6D6D6",
       card_title_dark: "#DCDCDC",
       card_description_dark: "#E5E5E5",
-      text_input_background_dark: "#2D2D2D",
+      text_input_background_dark: "#1F1F1F",
+      card_background_dark: "#1F1F1F",
    },
 };

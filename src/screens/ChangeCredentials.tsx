@@ -8,6 +8,7 @@ import { getUserId, getCurrentUser, updateUserProfile } from "../services/api";
 
 interface ChangeCredentialsProps {
    isDarkMode: boolean;
+   onToggleTheme: () => void;
    navigation: any;
 }
 

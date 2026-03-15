@@ -24,7 +24,7 @@ const SavingGoalSummary: React.FC<SavingGoalSummaryProps> = ({ currentAmount, ta
          style={[
             styles.container,
             {
-               backgroundColor: isDarkMode ? themeColors.page_background : "#FFFFFF",
+               backgroundColor: themeColors.card_background,
                borderColor: isDarkMode ? themeColors.frame_stroke : "#E0E0E0",
             },
          ]}>

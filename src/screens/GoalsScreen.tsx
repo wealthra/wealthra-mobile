@@ -156,7 +156,7 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
          overshootRight={false}
          onSwipeableOpen={() => handleDelete(goal.id)}>
          <TouchableOpacity
-            style={[styles.goalItem, { backgroundColor: themeColors.page_background, borderColor: themeColors.frame_stroke }]}
+            style={[styles.goalItem, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}
             onPress={() => handleGoalSelect(goal)}>
             <View style={styles.goalHeaderContainer}>
                <Text style={[styles.goalName, { color: themeColors.card_title }]}>{goal.name}</Text>
@@ -167,7 +167,7 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
             <Text style={[styles.goalAmounts, { color: themeColors.card_description }]}>
                ${goal.saved.toLocaleString()}/${goal.target.toLocaleString()}
             </Text>
-            <View style={[styles.goalProgressContainer, { backgroundColor: themeColors.page_background }, { borderColor: themeColors.frame_stroke }]}>
+            <View style={[styles.goalProgressContainer, { backgroundColor: themeColors.card_background }, { borderColor: themeColors.frame_stroke }]}>
                <View
                   style={[
                      styles.goalProgress,
@@ -282,11 +282,11 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
          </View>
 
          <View style={styles.content}>
-            <View style={[styles.overviewCard, { backgroundColor: themeColors.page_background, borderColor: themeColors.frame_stroke }]}>
+            <View style={[styles.overviewCard, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>{t("totalSavingProgress")}</Text>
                <Text style={[styles.percentageText, { color: themeColors.card_title }]}>{savingPercentage}%</Text>
                <View
-                  style={[styles.progressBarContainer, { backgroundColor: themeColors.page_background }, { borderColor: themeColors.frame_stroke }]}>
+                  style={[styles.progressBarContainer, { backgroundColor: themeColors.card_background }, { borderColor: themeColors.frame_stroke }]}>
                   <View style={[styles.progressBar, { width: `${savingPercentage}%`, backgroundColor: themeColors.green || "#4CAF50" }]} />
                </View>
                <View style={styles.budgetAmountsContainer}>
@@ -295,11 +295,11 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
                </View>
             </View>
 
-            <View style={[styles.goalsCard, { backgroundColor: themeColors.page_background, borderColor: themeColors.frame_stroke }]}>
+            <View style={[styles.goalsCard, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                <View style={styles.goalsHeader}>
                   <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>{t("activeGoals")}</Text>
                   <TouchableOpacity
-                     style={[styles.addButton, { borderColor: themeColors.frame_stroke, backgroundColor: themeColors.page_background }]}
+                     style={[styles.addButton, { borderColor: themeColors.frame_stroke, backgroundColor: themeColors.card_background }]}
                      onPress={() => setIsModalVisible(true)}>
                      <Text style={[styles.addButtonText, { color: themeColors.card_title }]}>+</Text>
                   </TouchableOpacity>

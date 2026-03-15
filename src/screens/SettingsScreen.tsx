@@ -101,7 +101,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleThe
 
             <ScrollView style={styles.scrollView}>
                {/* Profile Settings Section */}
-               <View style={[styles.section, { backgroundColor: themeColors.page_background, borderColor: themeColors.frame_stroke }]}>
+               <View style={[styles.section, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                   <Text style={[styles.sectionTitle, { color: themeColors.card_description }]}>{t("settings.profileSettings")}</Text>
 
                   <SettingItem title={t("settings.credentials")} onPress={() => navigation.navigate("changeCredentials")} />
@@ -110,7 +110,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleThe
                </View>
 
                {/* Application Settings Section */}
-               <View style={[styles.section, { backgroundColor: themeColors.page_background, borderColor: themeColors.frame_stroke }]}>
+               <View style={[styles.section, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                   <Text style={[styles.sectionTitle, { color: themeColors.card_description }]}>{t("settings.applicationSettings")}</Text>
 
                   <SettingItem title={t("settings.changeLanguage")} onPress={changeLanguage} />
@@ -119,7 +119,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleThe
                </View>
 
                {/* Session & Account Section */}
-               <View style={[styles.section, { backgroundColor: themeColors.page_background, borderColor: themeColors.frame_stroke }]}>
+               <View style={[styles.section, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                   <Text style={[styles.sectionTitle, { color: themeColors.card_description }]}>{t("settings.sessionAccount")}</Text>
 
                   <SettingItem title={t("settings.logout")} onPress={handleLogout} color={themeColors.red} />

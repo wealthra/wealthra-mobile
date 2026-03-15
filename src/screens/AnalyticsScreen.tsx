@@ -232,7 +232,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
          {/* Date Picker */}
          <View style={styles.datePickerContainer}>
             <TouchableOpacity
-               style={[styles.datePickerButton, { backgroundColor: themeColors.page_background }, { borderColor: themeColors.frame_stroke }]}
+               style={[styles.datePickerButton, { backgroundColor: themeColors.card_background }, { borderColor: themeColors.frame_stroke }]}
                onPress={() => {
                   setIsSelectingStartDate(true); // Always start with selecting start date
                   setShowDatePicker(true);

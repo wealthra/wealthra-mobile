@@ -24,5 +24,6 @@ export const getThemeColors = (isDarkMode: boolean) => {
       card_description: isDarkMode ? colors.dark.card_description_dark : colors.light.card_description_light,
       text_input_background: isDarkMode ? colors.dark.text_input_background_dark : colors.light.text_input_background_light,
       input_text: isDarkMode ? colors.dark.input_text_dark : colors.light.input_text_light,
+      card_background: isDarkMode ? colors.dark.card_background_dark : colors.light.card_background_light,
    };
 };
