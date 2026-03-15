@@ -9,6 +9,7 @@ import { transformFinancialData } from "../utils/transformFinancialData";
 import type { FinancialDashboardDto, GoalHistoryDto, UserDto } from "../services/api";
 import { useTranslation } from "react-i18next";
 import SideDrawer from "../../components/SideDrawer";
+import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
 
 interface DashboardScreenProps {
    isDarkMode: boolean;
@@ -195,20 +196,20 @@ const styles = StyleSheet.create({
       flex: 1,
       alignItems: "center",
       justifyContent: "flex-start",
-      paddingTop: 40,
+      paddingTop: verticalScale(40),
    },
    headerSection: {
       width: "100%",
-      paddingHorizontal: 20,
-      paddingVertical: 30,
+      paddingHorizontal: horizontalScale(20),
+      paddingVertical: verticalScale(30),
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "flex-end",
    },
    profilePhotoContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: horizontalScale(40),
+      height: horizontalScale(40),
+      borderRadius: horizontalScale(20),
       borderWidth: 1,
       overflow: "hidden",
    },
@@ -224,15 +225,15 @@ const styles = StyleSheet.create({
    },
    dashboardHeader: {
       width: "100%",
-      paddingHorizontal: 20,
+      paddingHorizontal: horizontalScale(20),
    },
    dashboardTitle: {
-      fontSize: 24,
+      fontSize: moderateScale(24),
       fontWeight: "bold",
    },
    dashboardSubText: {
-      fontSize: 16,
+      fontSize: moderateScale(16),
       color: "#999999",
-      marginTop: 4,
+      marginTop: verticalScale(4),
    },
 });

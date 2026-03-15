@@ -6,6 +6,7 @@ import fonts from "../src/fonts";
 import { ChevronUp } from "../src/assets/icons/ChevronUp";
 import { ChevronDown } from "../src/assets/icons/ChevronDown";
 import { useTranslation } from "react-i18next";
+import { horizontalScale, verticalScale, moderateScale } from "../src/utils/scaling";
 
 export interface SlideData {
    id: number;
@@ -248,8 +249,8 @@ const styles = StyleSheet.create({
    carouselContainer: {
       alignItems: "center",
       justifyContent: "center",
-      height: 200,
-      marginBottom: 30,
+      height: verticalScale(200),
+      marginBottom: verticalScale(30),
    },
    centered: {
       flex: 1,
@@ -263,13 +264,13 @@ const styles = StyleSheet.create({
       width: windowWidth,
       alignItems: "center",
       justifyContent: "center",
-      paddingVertical: 10,
+      paddingVertical: verticalScale(10),
    },
    slideOuter: {
-      width: windowWidth * 0.85,
-      maxWidth: 340,
-      height: 154,
-      borderRadius: 15,
+      width: horizontalScale(320),
+      maxWidth: horizontalScale(340),
+      height: verticalScale(154),
+      borderRadius: moderateScale(15),
       overflow: "visible",
    },
    slide: {
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
       height: "100%",
       justifyContent: "center",
       alignItems: "center",
-      borderRadius: 15,
+      borderRadius: moderateScale(15),
       overflow: "hidden",
    },
    slideWithImage: {
@@ -286,12 +287,12 @@ const styles = StyleSheet.create({
       alignItems: "center",
    },
    imageStyle: {
-      width: 100,
-      height: 120,
-      borderRadius: 20,
+      width: horizontalScale(100),
+      height: verticalScale(120),
+      borderRadius: moderateScale(20),
       backgroundColor: "rgba(0,0,0,0.1)",
       position: "absolute",
-      right: 15,
+      right: horizontalScale(15),
    },
    textContainer: {
       flex: 1,
@@ -302,114 +303,114 @@ const styles = StyleSheet.create({
       flex: 1,
       alignItems: "flex-start",
       justifyContent: "flex-start",
-      paddingRight: 120, // Space for image
-      paddingLeft: 10, // Add left padding
-      paddingTop: 10, // Add top padding
+      paddingRight: horizontalScale(120), // Space for image
+      paddingLeft: horizontalScale(10), // Add left padding
+      paddingTop: verticalScale(10), // Add top padding
       maxWidth: "100%",
    },
    textContainerWithPercentage: {
       width: "100%",
       alignItems: "flex-start", // Keep left alignment for items with percentage
       justifyContent: "flex-start",
-      paddingLeft: 15,
-      paddingTop: 15,
-      paddingRight: 15,
+      paddingLeft: horizontalScale(15),
+      paddingTop: verticalScale(15),
+      paddingRight: horizontalScale(15),
    },
    textContainerWithoutPercentage: {
       width: "100%",
       justifyContent: "center",
       alignItems: "center",
-      paddingHorizontal: 15,
+      paddingHorizontal: horizontalScale(15),
    },
    centeredText: {
       textAlign: "center",
       width: "100%",
    },
    title: {
-      fontSize: 16,
+      fontSize: moderateScale(16),
       fontFamily: fonts.card_title,
-      marginBottom: 5,
+      marginBottom: verticalScale(5),
       flexWrap: "wrap",
       width: "100%",
-      minHeight: 40,
+      minHeight: verticalScale(40),
    },
    titleWithImage: {
       fontWeight: "bold",
-      fontSize: 16,
+      fontSize: moderateScale(16),
       flexShrink: 1,
    },
    titleWrapper: {
       flexDirection: "row",
       flexWrap: "wrap",
       width: "100%",
-      marginBottom: 5,
+      marginBottom: verticalScale(5),
       paddingRight: 0,
    },
    description: {
-      fontSize: 28,
+      fontSize: moderateScale(28),
       fontFamily: fonts.management_header,
       fontWeight: "bold",
-      lineHeight: 34,
+      lineHeight: moderateScale(34),
    },
    descriptionWithImage: {
-      fontSize: 14,
+      fontSize: moderateScale(14),
       fontWeight: "normal",
-      lineHeight: 20,
-      marginTop: 4,
+      lineHeight: moderateScale(20),
+      marginTop: verticalScale(4),
    },
    percentageContainer: {
-      borderRadius: 20,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
+      borderRadius: moderateScale(20),
+      paddingHorizontal: horizontalScale(10),
+      paddingVertical: verticalScale(5),
       alignSelf: "flex-start",
    },
    percentageDefaultPosition: {
       position: "absolute",
-      bottom: 15,
-      left: 20,
+      bottom: verticalScale(15),
+      left: horizontalScale(20),
    },
    percentageBesideImage: {
-      marginTop: 8,
+      marginTop: verticalScale(8),
    },
    percentageWrapper: {
       flexDirection: "row",
       alignItems: "center",
    },
    percentage: {
-      fontSize: 14,
+      fontSize: moderateScale(14),
       fontWeight: "600",
-      marginLeft: 4,
+      marginLeft: horizontalScale(4),
    },
    dotsContainer: {
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
       position: "absolute",
-      bottom: -5,
+      bottom: verticalScale(-5),
       alignSelf: "center",
    },
    dot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      marginHorizontal: 4,
+      width: horizontalScale(8),
+      height: horizontalScale(8),
+      borderRadius: horizontalScale(4),
+      marginHorizontal: horizontalScale(4),
    },
    apiSlideContent: {
-      padding: 20,
+      padding: moderateScale(20),
       width: "100%",
       height: "100%",
    },
    apiTitle: {
-      fontSize: 20,
+      fontSize: moderateScale(20),
       color: "#333333",
-      marginBottom: 8,
+      marginBottom: verticalScale(8),
       fontFamily: fonts.card_title,
    },
    apiAmount: {
-      fontSize: 32,
+      fontSize: moderateScale(32),
       fontWeight: "bold",
       color: "#333333",
-      marginBottom: 16,
+      marginBottom: verticalScale(16),
       fontFamily: fonts.management_header,
    },
 });

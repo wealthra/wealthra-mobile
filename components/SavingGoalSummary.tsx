@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { getThemeColors } from "../src/utils/getThemeColors";
 import { useTranslation } from "react-i18next";
+import { horizontalScale, verticalScale, moderateScale } from "../src/utils/scaling";
 
 interface SavingGoalSummaryProps {
    currentAmount: number;
@@ -51,25 +52,25 @@ const SavingGoalSummary: React.FC<SavingGoalSummaryProps> = ({ currentAmount, ta
 
 const styles = StyleSheet.create({
    container: {
-      borderRadius: 15,
-      padding: 10,
+      borderRadius: moderateScale(15),
+      padding: moderateScale(10),
       borderWidth: 1,
       width: windowWidth * 0.85,
-      maxWidth: 340,
-      height: 154,
+      maxWidth: horizontalScale(340),
+      height: verticalScale(154),
    },
    percentageText: {
-      fontSize: 28,
+      fontSize: moderateScale(28),
    },
    titleText: {
-      fontSize: 20,
+      fontSize: moderateScale(20),
    },
    subtitleText: {
-      fontSize: 18,
+      fontSize: moderateScale(18),
       color: "#999999", // This stays constant
    },
    amountText: {
-      fontSize: 20,
+      fontSize: moderateScale(20),
    },
    currentAmount: {},
    separator: {
@@ -79,14 +80,14 @@ const styles = StyleSheet.create({
       color: "#999999", // This stays constant
    },
    progressBarContainer: {
-      height: 10,
-      borderRadius: 4,
+      height: verticalScale(10),
+      borderRadius: moderateScale(4),
       overflow: "hidden",
-      marginTop: 8,
+      marginTop: verticalScale(8),
    },
    progressBar: {
       height: "100%",
-      borderRadius: 4,
+      borderRadius: moderateScale(4),
    },
 });
 

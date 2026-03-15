@@ -8,6 +8,7 @@ import { data } from "../utils/data.js";
 import { getThemeColors } from "../utils/getThemeColors";
 import { useTranslation } from "react-i18next";
 import { signUp } from "../services/api";
+import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
 
 interface SignUpScreenProps {
    isDarkMode: boolean;
@@ -322,15 +323,15 @@ export default SignUpScreen;
 const styles = StyleSheet.create({
    container: {
       flex: 1,
-      padding: 20,
+      padding: horizontalScale(20),
    },
    headerSection: {
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: 10,
-      marginTop: 10,
-      paddingLeft: 200,
+      marginBottom: verticalScale(10),
+      marginTop: verticalScale(10),
+      paddingLeft: horizontalScale(200),
    },
    headerButtons: {
       flexDirection: "row",
@@ -367,25 +368,25 @@ const styles = StyleSheet.create({
       alignItems: "center",
    },
    signUpBox: {
-      width: 320,
-      height: 480,
+      width: horizontalScale(320),
+      height: verticalScale(480),
       borderWidth: 1,
-      borderRadius: 10,
-      marginTop: 20,
+      borderRadius: moderateScale(10),
+      marginTop: verticalScale(20),
       shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: { width: 0, height: verticalScale(2) },
       shadowOpacity: 0.25,
-      shadowRadius: 3.84,
+      shadowRadius: moderateScale(3.84),
       elevation: 5,
    },
    signUpBoxTitle: {
-      fontSize: 24,
-      padding: 20,
+      fontSize: moderateScale(24),
+      padding: moderateScale(20),
    },
    signUpInputSection: {
       width: "100%",
-      paddingHorizontal: 20,
-      gap: 16,
+      paddingHorizontal: horizontalScale(20),
+      gap: verticalScale(16),
    },
    inputContainer: {
       flexDirection: "row",
@@ -407,13 +408,13 @@ const styles = StyleSheet.create({
       borderWidth: 0,
    },
    signUpButton: {
-      width: 140,
-      height: 48,
-      borderRadius: 10,
+      width: horizontalScale(140),
+      height: verticalScale(48),
+      borderRadius: moderateScale(10),
       justifyContent: "center",
       alignItems: "center",
-      marginLeft: 90,
-      marginTop: 20,
+      marginLeft: horizontalScale(90),
+      marginTop: verticalScale(20),
    },
    signUpButtonText: {
       color: "#fff",

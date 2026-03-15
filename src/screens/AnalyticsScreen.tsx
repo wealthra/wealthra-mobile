@@ -11,6 +11,7 @@ import {
 import SideDrawer from "../../components/SideDrawer";
 import { BarChart, LineChart } from "react-native-gifted-charts";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
 
 interface AnalyticsScreenProps {
    isDarkMode: boolean;
@@ -328,7 +329,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
                            }}
                            accessor="value"
                            backgroundColor="transparent"
-                           paddingLeft="80"
+                           paddingLeft={horizontalScale(80).toString()}
                            absolute={false}
                            hasLegend={false}
                         />
@@ -391,7 +392,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
                            }}
                            accessor="value"
                            backgroundColor="transparent"
-                           paddingLeft="10"
+                           paddingLeft={horizontalScale(10).toString()}
                            absolute={false}
                            avoidFalseZero={true}
                         />
@@ -520,13 +521,13 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
 const styles = StyleSheet.create({
    container: {
       flex: 1,
-      paddingTop: 50,
+      paddingTop: verticalScale(50),
    },
    header: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 20,
-      marginBottom: 10,
+      paddingHorizontal: horizontalScale(20),
+      marginBottom: verticalScale(10),
    },
    loadingContainer: {
       flex: 1,
@@ -534,48 +535,49 @@ const styles = StyleSheet.create({
       alignItems: "center",
    },
    screenTitle: {
-      fontSize: 28,
+      fontSize: moderateScale(28),
       fontWeight: "bold",
-      marginHorizontal: 20,
-      marginBottom: 20,
+      marginHorizontal: horizontalScale(20),
+      marginBottom: verticalScale(20),
    },
    dateRangeContainer: {
       flexDirection: "row",
       justifyContent: "center",
-      marginBottom: 20,
-      marginTop: 50,
+      marginBottom: verticalScale(20),
+      marginTop: verticalScale(50),
    },
    dateRangeButton: {
-      paddingHorizontal: 20,
-      paddingVertical: 8,
-      marginHorizontal: 5,
-      borderRadius: 20,
+      paddingHorizontal: horizontalScale(20),
+      paddingVertical: verticalScale(8),
+      marginHorizontal: horizontalScale(5),
+      borderRadius: moderateScale(20),
       borderWidth: 1,
       borderColor: "#ccc",
    },
    dateRangeText: {
       fontWeight: "500",
+      fontSize: moderateScale(14),
    },
    scrollView: {
       flex: 1,
    },
    scrollContent: {
-      paddingHorizontal: 20,
-      paddingBottom: 30,
+      paddingHorizontal: horizontalScale(20),
+      paddingBottom: verticalScale(30),
    },
    chartContainer: {
-      marginBottom: 20,
-      padding: 15,
-      borderRadius: 15,
+      marginBottom: verticalScale(20),
+      padding: moderateScale(15),
+      borderRadius: moderateScale(15),
       borderWidth: 1,
       alignItems: "center",
       width: "100%",
       overflow: "hidden",
    },
    chartTitle: {
-      fontSize: 18,
+      fontSize: moderateScale(18),
       fontWeight: "600",
-      marginBottom: 15,
+      marginBottom: verticalScale(15),
       alignSelf: "flex-start",
    },
    noDataContainer: {
@@ -602,10 +604,10 @@ const styles = StyleSheet.create({
       marginHorizontal: 15,
    },
    legendColor: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      marginRight: 5,
+      width: horizontalScale(12),
+      height: horizontalScale(12),
+      borderRadius: horizontalScale(6),
+      marginRight: horizontalScale(5),
    },
    customLegendContainer: {
       flexDirection: "row",
@@ -616,13 +618,13 @@ const styles = StyleSheet.create({
    customLegendItem: {
       flexDirection: "row",
       alignItems: "center",
-      marginRight: 15,
-      marginBottom: 5,
+      marginRight: horizontalScale(15),
+      marginBottom: verticalScale(5),
    },
    customChartContainer: {
       width: "100%",
-      height: 250,
-      marginTop: 15,
+      height: verticalScale(250),
+      marginTop: verticalScale(15),
       flexDirection: "row",
    },
    yAxisContainer: {
@@ -633,7 +635,7 @@ const styles = StyleSheet.create({
    },
    lineChartArea: {
       flex: 1,
-      height: 220,
+      height: verticalScale(220),
       position: "relative",
    },
    gridLine: {
@@ -643,7 +645,7 @@ const styles = StyleSheet.create({
       height: 1,
    },
    axisLabel: {
-      fontSize: 10,
+      fontSize: moderateScale(10),
       position: "absolute",
       textAlign: "right",
    },
@@ -704,9 +706,9 @@ const styles = StyleSheet.create({
    barValue: {
       position: "absolute",
       alignSelf: "center",
-      top: 5,
+      top: verticalScale(5),
       fontWeight: "600",
-      fontSize: 12,
+      fontSize: moderateScale(12),
    },
    lineConnectorContainer: {
       position: "absolute",
@@ -723,13 +725,13 @@ const styles = StyleSheet.create({
    },
    verticalBarChartContainer: {
       width: "100%",
-      height: 250,
+      height: verticalScale(250),
       flexDirection: "row",
-      marginTop: 10,
+      marginTop: verticalScale(10),
    },
    verticalBarChartContent: {
       flex: 1,
-      height: 220,
+      height: verticalScale(220),
       position: "relative",
    },
    barsContainer: {
@@ -737,9 +739,9 @@ const styles = StyleSheet.create({
       flexDirection: "row",
       justifyContent: "space-evenly",
       alignItems: "flex-end",
-      paddingHorizontal: 10,
-      paddingTop: 30, // Add space at top for value labels
-      marginBottom: 20, // Add space at bottom for month labels
+      paddingHorizontal: horizontalScale(10),
+      paddingTop: verticalScale(30), // Add space at top for value labels
+      marginBottom: verticalScale(20), // Add space at bottom for month labels
    },
    monthBarGroup: {
       flexDirection: "row",
@@ -766,19 +768,19 @@ const styles = StyleSheet.create({
       width: 40,
    },
    barValueText: {
-      fontSize: 9, // Smaller text
+      fontSize: moderateScale(9), // Smaller text
       fontWeight: "600",
       position: "absolute",
       bottom: "50%", // Center vertically along the bar
       textAlign: "center", // Change from right to center
       zIndex: 5, // Ensure it's on top of other elements
-      width: 28, // Slightly narrower
+      width: horizontalScale(28), // Slightly narrower
    },
    barLabelWrapper: {
       position: "absolute",
-      right: -15,
-      width: 45,
-      height: 15,
+      right: horizontalScale(-15),
+      width: horizontalScale(45),
+      height: verticalScale(15),
       alignItems: "center",
       justifyContent: "center",
       transform: [{ rotate: "-90deg" }],
@@ -797,15 +799,15 @@ const styles = StyleSheet.create({
       zIndex: 1, // Add this
    },
    barChartValueLabel: {
-      fontSize: 11, // Increased from 9
+      fontSize: moderateScale(11), // Increased from 9
       fontWeight: "600",
       textAlign: "center",
-      marginBottom: 2, // Reduced from 4
+      marginBottom: verticalScale(2), // Reduced from 4
    },
    tooltip: {
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 4,
+      paddingHorizontal: horizontalScale(8),
+      paddingVertical: verticalScale(4),
+      borderRadius: moderateScale(4),
       borderWidth: 1,
       borderColor: "#ccc",
    },
@@ -826,13 +828,13 @@ const styles = StyleSheet.create({
    datePickerContainer: {
       flexDirection: "row",
       justifyContent: "center",
-      marginBottom: 20,
-      paddingLeft: 180,
+      marginBottom: verticalScale(20),
+      paddingLeft: horizontalScale(180),
    },
    datePickerButton: {
-      paddingHorizontal: 24,
-      paddingVertical: 10,
-      borderRadius: 20,
+      paddingHorizontal: horizontalScale(24),
+      paddingVertical: verticalScale(10),
+      borderRadius: moderateScale(20),
       borderWidth: 1,
    },
    datePickerText: {
@@ -841,20 +843,20 @@ const styles = StyleSheet.create({
    },
    dateRangePickerContainer: {
       position: "absolute",
-      top: 90,
+      top: verticalScale(90),
       left: 0,
       right: 0,
-      padding: 20,
-      borderRadius: 10,
+      padding: moderateScale(20),
+      borderRadius: moderateScale(10),
       borderWidth: 1,
       alignItems: "center",
       zIndex: 100,
       elevation: 5,
    },
    dateRangeLabel: {
-      fontSize: 16,
+      fontSize: moderateScale(16),
       fontWeight: "600",
-      marginBottom: 10,
+      marginBottom: verticalScale(10),
    },
    datePickerButtonContainer: {
       flexDirection: "row",
@@ -864,19 +866,19 @@ const styles = StyleSheet.create({
    },
    datePickerActionButton: {
       flex: 1,
-      paddingVertical: 10,
-      borderRadius: 10,
+      paddingVertical: verticalScale(10),
+      borderRadius: moderateScale(10),
       borderWidth: 1,
       alignItems: "center",
       justifyContent: "center",
    },
    tooltipContainer: {
       position: "absolute",
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: 6,
+      paddingHorizontal: horizontalScale(10),
+      paddingVertical: verticalScale(6),
+      borderRadius: moderateScale(6),
       borderWidth: 1.5,
-      minWidth: 60,
+      minWidth: horizontalScale(60),
       alignItems: "center",
       // Increase elevation and z-index
       elevation: 10,

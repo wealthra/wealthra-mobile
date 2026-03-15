@@ -5,6 +5,7 @@ import { getThemeColors } from "../src/utils/getThemeColors";
 import { useTranslation } from "react-i18next";
 import DashboardCarousel from "./DashboardCarousel"; // Importing the new component
 import SavingGoalSummary from "./SavingGoalSummary"; // Importing the new component
+import { horizontalScale, verticalScale, moderateScale } from "../src/utils/scaling";
 
 interface SpendingData {
    name: string;
@@ -21,8 +22,8 @@ const { width: windowWidth } = Dimensions.get("window");
 const SpendingChart: React.FC<SpendingChartProps> = ({ isDarkMode, data }) => {
    const themeColors = getThemeColors(isDarkMode);
    const screenWidth = Dimensions.get("window").width;
-   const chartWidth = screenWidth - 40;
-   const chartHeight = 180;
+   const chartWidth = screenWidth - horizontalScale(40);
+   const chartHeight = verticalScale(180);
    const { t } = useTranslation();
 
    const chartConfig = {
@@ -36,7 +37,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ isDarkMode, data }) => {
       population: item.amount,
       color: item.color,
       legendFontColor: isDarkMode ? themeColors.card_title : themeColors.card_title,
-      legendFontSize: 12,
+      legendFontSize: moderateScale(12),
    }));
 
    return (
@@ -57,7 +58,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ isDarkMode, data }) => {
                chartConfig={chartConfig}
                accessor="population"
                backgroundColor="transparent"
-               paddingLeft="-88"
+               paddingLeft={horizontalScale(-88).toString()}
                absolute
                center={[chartWidth / 2, 0]}
                hasLegend={false} // Disable built-in legend
@@ -84,12 +85,12 @@ const styles = StyleSheet.create({
       width: windowWidth * 0.85,
       alignItems: "center",
       borderWidth: 1,
-      borderRadius: 15,
-      marginTop: 20,
+      borderRadius: moderateScale(15),
+      marginTop: verticalScale(20),
    },
    title: {
-      fontSize: 24,
-      marginTop: 5,
+      fontSize: moderateScale(24),
+      marginTop: verticalScale(5),
    },
    chartWrapper: {
       position: "relative",
@@ -100,38 +101,38 @@ const styles = StyleSheet.create({
       position: "absolute",
       left: "50%", // Aligns with the pie chart center
       top: "50%",
-      transform: [{ translateX: -35 }, { translateY: -35 }],
-      width: 70,
-      height: 70,
-      borderRadius: 35,
+      transform: [{ translateX: horizontalScale(-35) }, { translateY: verticalScale(-35) }],
+      width: horizontalScale(70),
+      height: horizontalScale(70),
+      borderRadius: horizontalScale(35),
       alignItems: "center",
       justifyContent: "center",
    },
    innerCircle: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      marginLeft: 20,
+      width: horizontalScale(100),
+      height: horizontalScale(100),
+      borderRadius: horizontalScale(50),
+      marginLeft: horizontalScale(20),
    },
    legendContainer: {
       flexDirection: "row",
       flexWrap: "wrap",
       justifyContent: "center",
-      gap: 10,
-      marginBottom: 10,
+      gap: horizontalScale(10),
+      marginBottom: verticalScale(10),
    },
    legendItem: {
       flexDirection: "row",
       alignItems: "center",
    },
    legendDot: {
-      width: 10,
-      height: 10,
-      borderRadius: 5,
-      marginRight: 5,
+      width: horizontalScale(10),
+      height: horizontalScale(10),
+      borderRadius: horizontalScale(5),
+      marginRight: horizontalScale(5),
    },
    legendText: {
-      fontSize: 12,
+      fontSize: moderateScale(12),
    },
 });
 

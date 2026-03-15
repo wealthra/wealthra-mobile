@@ -7,6 +7,7 @@ import SideDrawer from "../../components/SideDrawer";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
 import AddGoalModal from "../../components/AddGoalModal";
 import UpdateGoalModal from "../../components/UpdateGoalModal";
+import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
 import { getGoals, addGoal, deleteGoal, updateGoal, calculateDaysRemaining } from "../services/api";
 import type { GoalHistoryDto as Goal } from "../api/types/goal.types.ts";
 
@@ -382,35 +383,35 @@ const styles = StyleSheet.create({
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 10,
+      marginBottom: verticalScale(10),
    },
    goalTitle: {
-      fontSize: 28,
+      fontSize: moderateScale(28),
       fontWeight: "bold",
    },
    overviewCard: {
       width: "100%",
-      borderRadius: 15,
-      padding: 20,
-      marginBottom: 10,
+      borderRadius: moderateScale(15),
+      padding: moderateScale(20),
+      marginBottom: verticalScale(10),
       borderWidth: 1,
    },
    cardTitle: {
-      fontSize: 20,
+      fontSize: moderateScale(20),
       fontWeight: "600",
-      marginBottom: 15,
+      marginBottom: verticalScale(15),
    },
    percentageText: {
-      fontSize: 28,
+      fontSize: moderateScale(28),
       fontWeight: "bold",
       alignSelf: "flex-end",
    },
    progressBarContainer: {
-      height: 16,
-      borderRadius: 8,
+      height: verticalScale(16),
+      borderRadius: moderateScale(8),
       width: "100%",
       overflow: "hidden",
-      marginVertical: 10,
+      marginVertical: verticalScale(10),
       borderWidth: 1,
    },
    progressBar: {
@@ -419,69 +420,69 @@ const styles = StyleSheet.create({
    budgetAmountsContainer: {
       flexDirection: "row",
       justifyContent: "space-between",
-      marginTop: 5,
+      marginTop: verticalScale(5),
    },
    currentAmount: {
-      fontSize: 18,
+      fontSize: moderateScale(18),
       fontWeight: "500",
    },
    targetAmount: {
-      fontSize: 18,
+      fontSize: moderateScale(18),
       fontWeight: "500",
    },
    goalsCard: {
       flex: 1,
       width: "100%",
-      borderRadius: 24,
-      padding: 16,
-      marginBottom: 20,
+      borderRadius: moderateScale(24),
+      padding: moderateScale(16),
+      marginBottom: verticalScale(20),
       borderWidth: 1,
    },
    goalsHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 8,
+      marginBottom: verticalScale(8),
    },
    addButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: horizontalScale(40),
+      height: horizontalScale(40),
+      borderRadius: horizontalScale(20),
       justifyContent: "center",
       alignItems: "center",
       elevation: 4,
       borderWidth: 1,
    },
    addButtonText: {
-      fontSize: 24,
+      fontSize: moderateScale(24),
       fontWeight: "400",
    },
    goalList: {
-      maxHeight: 450,
+      maxHeight: verticalScale(450),
    },
    goalItem: {
-      height: 110,
-      marginBottom: 15,
-      padding: 10,
-      borderRadius: 16,
+      height: verticalScale(110),
+      marginBottom: verticalScale(15),
+      padding: moderateScale(10),
+      borderRadius: moderateScale(16),
       borderWidth: 1,
    },
    goalHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
-      marginBottom: 5,
+      marginBottom: verticalScale(5),
    },
    goalName: {
-      fontSize: 18,
+      fontSize: moderateScale(18),
       fontWeight: "500",
    },
    daysLeftText: {
-      fontSize: 16,
+      fontSize: moderateScale(16),
       fontWeight: "normal",
    },
    goalAmounts: {
-      fontSize: 14,
-      marginBottom: 5,
+      fontSize: moderateScale(14),
+      marginBottom: verticalScale(5),
    },
    goalProgressContainer: {
       height: 12,

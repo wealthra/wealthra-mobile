@@ -4,6 +4,7 @@ import { ChevronUp } from "../src/assets/icons/ChevronUp";
 import { ChevronDown } from "../src/assets/icons/ChevronDown";
 import fonts from "../src/fonts";
 import Carousel from "./Carousel";
+import { horizontalScale, verticalScale, moderateScale } from "../src/utils/scaling";
 
 export interface DashboardSlideData {
    id: number;
@@ -23,15 +24,15 @@ const DashboardSlide = ({ data }: { data: DashboardSlideData }) => {
 
    // Add this dynamic font size calculation for amount
    const getAmountFontSize = () => {
-      if (hasPercentage) return 36; // Keep default size for amounts with percentage
+      if (hasPercentage) return moderateScale(36); // Keep default size for amounts with percentage
 
       const amountLength = data.description.replace(/[^0-9]/g, "").length;
 
       // Adjust font size based on number length
-      if (amountLength <= 3) return 36; // Standard size for small numbers
-      if (amountLength === 4) return 32; // Slightly smaller for 4 digits
-      if (amountLength === 5) return 28; // Even smaller for 5 digits
-      return 24; // Smallest size for very large numbers
+      if (amountLength <= 3) return moderateScale(36); // Standard size for small numbers
+      if (amountLength === 4) return moderateScale(32); // Slightly smaller for 4 digits
+      if (amountLength === 5) return moderateScale(28); // Even smaller for 5 digits
+      return moderateScale(24); // Smallest size for very large numbers
    };
 
    return (
@@ -51,9 +52,9 @@ const DashboardSlide = ({ data }: { data: DashboardSlideData }) => {
                      <View style={styles.percentageContainer}>
                         <View style={styles.percentageWrapper}>
                            {parseFloat(data.percentage?.replace("%", "") || "0") >= 0 ? (
-                              <ChevronUp color="#4CAF50" size={16} />
+                              <ChevronUp color="#4CAF50" size={moderateScale(16)} />
                            ) : (
-                              <ChevronDown color="#F44336" size={16} />
+                              <ChevronDown color="#F44336" size={moderateScale(16)} />
                            )}
                            <Text
                               style={[
@@ -90,22 +91,22 @@ const styles = StyleSheet.create({
       width: windowWidth,
       alignItems: "center",
       justifyContent: "center",
-      paddingVertical: 10,
+      paddingVertical: verticalScale(10),
    },
    slideOuter: {
       width: windowWidth * 0.85,
-      maxWidth: 340,
-      height: 154,
-      borderRadius: 15,
+      maxWidth: horizontalScale(340),
+      height: verticalScale(154),
+      borderRadius: moderateScale(15),
       overflow: "hidden",
    },
    slide: {
       width: "100%",
       height: "100%",
-      borderRadius: 15,
+      borderRadius: moderateScale(15),
    },
    content: {
-      padding: 20,
+      padding: moderateScale(20),
       width: "100%",
       height: "100%",
    },
@@ -115,9 +116,9 @@ const styles = StyleSheet.create({
       width: "100%", // Ensure content uses full width
    },
    title: {
-      fontSize: 20,
+      fontSize: moderateScale(20),
       color: "#333333",
-      marginBottom: 16,
+      marginBottom: verticalScale(16),
       textAlign: "center",
       fontFamily: fonts.card_title,
       flexWrap: "wrap",
@@ -125,11 +126,11 @@ const styles = StyleSheet.create({
    },
    titleWithPercentage: {
       textAlign: "left",
-      marginBottom: 8,
-      fontSize: 18,
+      marginBottom: verticalScale(8),
+      fontSize: moderateScale(18),
    },
    amount: {
-      fontSize: 36, // This will be overridden by the dynamic size
+      fontSize: moderateScale(36), // This will be overridden by the dynamic size
       fontWeight: "bold",
       color: "#333333",
       textAlign: "center",
@@ -140,20 +141,20 @@ const styles = StyleSheet.create({
    },
    percentageContainer: {
       backgroundColor: "rgba(255, 255, 255, 0.9)",
-      borderRadius: 20,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
+      borderRadius: moderateScale(20),
+      paddingHorizontal: horizontalScale(12),
+      paddingVertical: verticalScale(6),
       alignSelf: "flex-start",
-      marginTop: 12,
+      marginTop: verticalScale(12),
    },
    percentageWrapper: {
       flexDirection: "row",
       alignItems: "center",
    },
    percentage: {
-      fontSize: 14,
+      fontSize: moderateScale(14),
       fontWeight: "600",
-      marginLeft: 4,
+      marginLeft: horizontalScale(4),
    },
 });
 

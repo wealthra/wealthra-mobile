@@ -4,6 +4,7 @@ import { getThemeColors } from "../src/utils/getThemeColors";
 import { useTranslation } from "react-i18next";
 import { data } from "../src/utils/data";
 import { SvgXml } from "react-native-svg";
+import { horizontalScale, verticalScale, moderateScale } from "../src/utils/scaling";
 
 interface SideDrawerProps {
    isDarkMode: boolean;
@@ -11,7 +12,7 @@ interface SideDrawerProps {
    currentRoute: string;
 }
 
-const DRAWER_WIDTH = 250;
+const DRAWER_WIDTH = horizontalScale(250);
 
 const SideDrawer: React.FC<SideDrawerProps> = ({ isDarkMode, onNavigate, currentRoute }) => {
    const [isExpanded, setIsExpanded] = useState(false);
@@ -124,16 +125,16 @@ const styles = StyleSheet.create({
    buttonContainer: {
       position: "absolute",
       left: 0,
-      top: 20,
+      top: verticalScale(20),
       zIndex: 1000,
    },
    toggleButton: {
-      width: 30,
-      height: 30,
+      width: horizontalScale(30),
+      height: horizontalScale(30),
       justifyContent: "center",
       alignItems: "center",
-      paddingBottom: 10,
-      paddingLeft: 40,
+      paddingBottom: verticalScale(10),
+      paddingLeft: horizontalScale(40),
    },
    drawer: {
       position: "absolute",
@@ -148,21 +149,21 @@ const styles = StyleSheet.create({
    },
    menuContainer: {
       flex: 1,
-      paddingTop: 20,
+      paddingTop: verticalScale(20),
    },
    menuItem: {
       flexDirection: "row",
       alignItems: "center",
-      height: 50,
-      paddingHorizontal: 16,
+      height: verticalScale(50),
+      paddingHorizontal: horizontalScale(16),
       justifyContent: "flex-start",
-      marginVertical: 8,
-      marginHorizontal: 16,
-      borderRadius: 8,
+      marginVertical: verticalScale(8),
+      marginHorizontal: horizontalScale(16),
+      borderRadius: moderateScale(8),
    },
    menuText: {
-      marginLeft: 16,
-      fontSize: 16,
+      marginLeft: horizontalScale(16),
+      fontSize: moderateScale(16),
    },
    closeButton: {
       position: "absolute",
@@ -172,8 +173,8 @@ const styles = StyleSheet.create({
    },
    headerContainer: {
       width: "100%",
-      paddingHorizontal: 16,
-      marginBottom: 20,
+      paddingHorizontal: horizontalScale(16),
+      marginBottom: verticalScale(20),
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",

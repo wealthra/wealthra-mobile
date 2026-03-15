@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import type { FinancialSummary } from "../services/api";
 import { transformFinancialData } from "../utils/transformFinancialData";
 import DashboardCarousel from "../../components/DashboardCarousel";
+import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
 
 interface IncomeScreenProps {
    isDarkMode: boolean;
@@ -435,16 +436,16 @@ const styles = StyleSheet.create({
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      marginTop: 20,
+      marginTop: verticalScale(20),
    },
    headerSection: {
       width: "100%",
-      paddingHorizontal: 20,
-      paddingVertical: 20,
+      paddingHorizontal: horizontalScale(20),
+      paddingVertical: verticalScale(20),
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "flex-end",
-      marginTop: 10,
+      marginTop: verticalScale(10),
    },
    profilePhotoContainer: {
       width: 40,
@@ -466,40 +467,40 @@ const styles = StyleSheet.create({
    content: {
       flex: 1,
       width: "100%",
-      paddingHorizontal: 16,
+      paddingHorizontal: horizontalScale(16),
    },
    card: {
-      borderRadius: 24,
-      padding: 16,
-      marginBottom: 10,
+      borderRadius: moderateScale(24),
+      padding: moderateScale(16),
+      marginBottom: verticalScale(10),
       elevation: 2,
       shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: { width: 0, height: verticalScale(2) },
       shadowOpacity: 0.1,
-      shadowRadius: 8,
+      shadowRadius: moderateScale(8),
       borderWidth: 1,
-      minHeight: 320,
+      minHeight: verticalScale(320),
    },
    transactionCard: {
-      borderRadius: 24,
-      padding: 16,
-      marginBottom: 10,
+      borderRadius: moderateScale(24),
+      padding: moderateScale(16),
+      marginBottom: verticalScale(10),
       elevation: 2,
       shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: { width: 0, height: verticalScale(2) },
       shadowOpacity: 0.1,
-      shadowRadius: 8,
+      shadowRadius: moderateScale(8),
       borderWidth: 1,
-      minHeight: 157,
+      minHeight: verticalScale(157),
    },
    cardHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 8,
+      marginBottom: verticalScale(8),
    },
    cardTitle: {
-      fontSize: 20,
+      fontSize: moderateScale(20),
       fontWeight: "600",
       color: "#333",
    },

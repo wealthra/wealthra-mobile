@@ -10,6 +10,7 @@ import { LanguageIcon } from "../assets/icons/LanguageIcon";
 import { useTranslation } from "react-i18next";
 import { SvgXml } from "react-native-svg";
 import { data } from "../utils/data.js";
+import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
 
 interface LandingScreenProps {
    isDarkMode: boolean; // Receive theme state
@@ -119,23 +120,23 @@ function LandingScreen({ isDarkMode, onToggleTheme, navigation }: LandingScreenP
 const styles = StyleSheet.create({
    container: {
       flex: 1,
-      padding: 20,
+      padding: horizontalScale(20),
    },
    headerSection: {
       flexDirection: "row", // Example: Place title and button side-by-side
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: 10, // Add some space below the header
-      marginTop: 10,
-      paddingLeft: 200,
+      marginBottom: verticalScale(10), // Add some space below the header
+      marginTop: verticalScale(10),
+      paddingLeft: horizontalScale(200),
    },
    tagline: {
-      fontSize: 16,
+      fontSize: moderateScale(16),
       textAlign: "center",
-      marginTop: 10,
+      marginTop: verticalScale(10),
    },
    themeToggleButton: {
-      padding: 20,
+      padding: moderateScale(20),
       alignItems: "center",
       justifyContent: "center",
    },
@@ -165,91 +166,91 @@ const styles = StyleSheet.create({
       gap: 0,
    },
    underLogoText: {
-      fontSize: 16,
+      fontSize: moderateScale(16),
       textAlign: "center",
-      marginTop: -5,
+      marginTop: verticalScale(-5),
    },
    carouselSection: {
       alignItems: "center",
-      marginBottom: -25,
-      marginTop: -15,
+      marginBottom: verticalScale(-25),
+      marginTop: verticalScale(-15),
    },
    features: {
-      marginBottom: 10,
+      marginBottom: verticalScale(10),
    },
    featuresHeader: {
-      fontSize: 24,
+      fontSize: moderateScale(24),
       fontWeight: "bold",
    },
    featureCards: {
-      marginTop: 16,
-      gap: 16,
+      marginTop: verticalScale(16),
+      gap: verticalScale(16),
    },
    featureCard: {
-      height: 120, // Fixed height instead of minHeight
-      borderRadius: 15,
-      padding: 20,
+      height: verticalScale(120), // Fixed height instead of minHeight
+      borderRadius: moderateScale(15),
+      padding: moderateScale(20),
       justifyContent: "center",
       overflow: "hidden", // Hide overflowing content
    },
    cardContent: {
       flexDirection: "row",
       alignItems: "flex-start",
-      gap: 16,
+      gap: horizontalScale(16),
       height: "100%", // Fill the card height
    },
    circle: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: horizontalScale(40),
+      height: horizontalScale(40),
+      borderRadius: horizontalScale(20),
       justifyContent: "center",
       alignItems: "center",
-      marginTop: 15,
+      marginTop: verticalScale(15),
    },
    textContent: {
       flex: 1,
       flexShrink: 1,
       overflow: "hidden", // Hide overflowing text
-      marginTop: -10,
+      marginTop: verticalScale(-10),
    },
    titleWrapper: {
       flexDirection: "column",
-      marginBottom: 4, // Reduced margin
+      marginBottom: verticalScale(4), // Reduced margin
       flexWrap: "wrap",
    },
    featureTitle: {
-      fontSize: 16, // Slightly smaller font
+      fontSize: moderateScale(16), // Slightly smaller font
       fontWeight: "bold",
-      lineHeight: 20,
+      lineHeight: moderateScale(20),
       flexWrap: "wrap",
    },
    featureDescription: {
-      fontSize: 13, // Slightly smaller font
-      lineHeight: 16,
+      fontSize: moderateScale(13), // Slightly smaller font
+      lineHeight: moderateScale(16),
       flexWrap: "wrap",
    },
    circleText: {
       fontWeight: "bold",
-      fontSize: 20,
+      fontSize: moderateScale(20),
    },
    signUpButton: {
-      padding: 16,
-      borderRadius: 12,
+      padding: moderateScale(16),
+      borderRadius: moderateScale(12),
       alignItems: "center",
       justifyContent: "center",
-      width: 200,
-      marginLeft: 70,
+      width: horizontalScale(200),
+      marginLeft: horizontalScale(70),
    },
    signUpButtonText: {
       color: "#fff",
-      fontSize: 16,
+      fontSize: moderateScale(16),
       fontWeight: "regular",
    },
    loginContainer: {
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: 40,
+      marginBottom: verticalScale(40),
    },
 });
 

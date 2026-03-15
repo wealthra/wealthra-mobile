@@ -144,7 +144,8 @@ const resources = {
          },
          dashboardCard: {
             totalNetWorth: "Total Net Worth",
-            totalSpendingThisMonth: "Total Spending This Month",
+            totalIncome: "Total Income",
+            totalSpendingThisMonth: "Total Spending",
             upcomingExpenses: "Upcoming Expenses",
          },
          underLogoText: "Your Personal Finance Tracker",
@@ -351,7 +352,8 @@ const resources = {
          },
          dashboardCard: {
             totalNetWorth: "Toplam Net Değer",
-            totalSpendingThisMonth: "Bu Ayki Toplam Harcama",
+            totalIncome: "Toplam Gelir",
+            totalSpendingThisMonth: "Toplam Harcama",
             upcomingExpenses: "Yaklaşan Harcamalar",
          },
          underLogoText: "Kişisel Finans Takipçiniz",

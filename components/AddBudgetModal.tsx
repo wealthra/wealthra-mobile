@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, TouchableWithoutFeedback } from "react-native";
 import { getThemeColors } from "../src/utils/getThemeColors";
 import { useTranslation } from "react-i18next";
+import { horizontalScale, verticalScale, moderateScale } from "../src/utils/scaling";
 import { Picker } from "@react-native-picker/picker";
 
 interface AddBudgetModalProps {
@@ -160,47 +161,47 @@ const styles = StyleSheet.create({
    },
    modalContent: {
       width: "90%",
-      padding: 20,
-      borderRadius: 24,
+      padding: moderateScale(20),
+      borderRadius: moderateScale(24),
       elevation: 5,
       shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: { width: 0, height: verticalScale(2) },
       shadowOpacity: 0.25,
-      shadowRadius: 4,
+      shadowRadius: moderateScale(4),
    },
    modalTitle: {
-      fontSize: 24,
+      fontSize: moderateScale(24),
       fontWeight: "600",
-      marginBottom: 20,
+      marginBottom: verticalScale(20),
       textAlign: "center",
    },
    input: {
-      height: 50,
+      height: verticalScale(50),
       borderWidth: 1,
-      borderRadius: 25,
-      paddingHorizontal: 20,
-      marginBottom: 16,
-      fontSize: 16,
+      borderRadius: moderateScale(25),
+      paddingHorizontal: horizontalScale(20),
+      marginBottom: verticalScale(16),
+      fontSize: moderateScale(16),
    },
    pickerContainer: {
       borderWidth: 1,
-      borderRadius: 25,
-      marginBottom: 20,
+      borderRadius: moderateScale(25),
+      marginBottom: verticalScale(20),
       overflow: "hidden",
    },
    picker: {
-      height: 55,
+      height: verticalScale(55),
       width: "100%",
    },
    addButton: {
-      height: 50,
+      height: verticalScale(50),
       justifyContent: "center",
       alignItems: "center",
-      borderRadius: 25,
+      borderRadius: moderateScale(25),
    },
    addButtonText: {
       color: "white",
-      fontSize: 18,
+      fontSize: moderateScale(18),
       fontWeight: "600",
    },
 });

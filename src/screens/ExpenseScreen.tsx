@@ -11,6 +11,7 @@ import { getFinancialSummary } from "../services/api";
 import AddExpenseModal from "../../components/AddExpenseModal";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
 import axios from "axios";
+import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
 
 interface ExpenseScreenProps {
    isDarkMode: boolean;
@@ -597,40 +598,40 @@ const styles = StyleSheet.create({
    content: {
       flex: 1,
       width: "100%",
-      paddingHorizontal: 16,
+      paddingHorizontal: horizontalScale(16),
    },
    card: {
-      borderRadius: 24,
-      padding: 16,
-      marginBottom: 10,
+      borderRadius: moderateScale(24),
+      padding: moderateScale(16),
+      marginBottom: verticalScale(10),
       elevation: 2,
       shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: { width: 0, height: verticalScale(2) },
       shadowOpacity: 0.1,
-      shadowRadius: 8,
+      shadowRadius: moderateScale(8),
       borderWidth: 1,
-      minHeight: 320,
+      minHeight: verticalScale(320),
    },
    transactionCard: {
-      borderRadius: 24,
-      padding: 16,
-      marginBottom: 10,
+      borderRadius: moderateScale(24),
+      padding: moderateScale(16),
+      marginBottom: verticalScale(10),
       elevation: 2,
       shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: { width: 0, height: verticalScale(2) },
       shadowOpacity: 0.1,
-      shadowRadius: 8,
+      shadowRadius: moderateScale(8),
       borderWidth: 1,
-      minHeight: 157,
+      minHeight: verticalScale(157),
    },
    cardHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 8,
+      marginBottom: verticalScale(8),
    },
    cardTitle: {
-      fontSize: 20,
+      fontSize: moderateScale(20),
       fontWeight: "600",
       color: "#333",
    },
@@ -649,22 +650,22 @@ const styles = StyleSheet.create({
       borderWidth: 1,
    },
    addButtonText: {
-      fontSize: 24,
+      fontSize: moderateScale(24),
       fontWeight: "400",
    },
    expenseList: {
-      maxHeight: 240, // Height for 3 items (85 * 3)
+      maxHeight: verticalScale(240), // Height for 3 items (85 * 3)
    },
    expenseItem: {
-      height: 85,
+      height: verticalScale(85),
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingVertical: 16,
-      paddingHorizontal: 12,
+      paddingVertical: verticalScale(16),
+      paddingHorizontal: horizontalScale(12),
       backgroundColor: "white",
-      borderRadius: 16,
-      marginBottom: 5,
+      borderRadius: moderateScale(16),
+      marginBottom: verticalScale(5),
       borderWidth: 1,
    },
    expenseDetails: {
@@ -672,16 +673,16 @@ const styles = StyleSheet.create({
       justifyContent: "center",
    },
    expenseTitle: {
-      fontSize: 18,
+      fontSize: moderateScale(18),
       fontWeight: "600",
-      marginBottom: 4,
+      marginBottom: verticalScale(4),
    },
    expenseSubtext: {
-      fontSize: 14,
+      fontSize: moderateScale(14),
       opacity: 0.7,
    },
    expenseAmount: {
-      fontSize: 20,
+      fontSize: moderateScale(20),
       fontWeight: "600",
       color: "#2ecc71",
    },
@@ -689,12 +690,12 @@ const styles = StyleSheet.create({
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingVertical: 10,
-      paddingHorizontal: 24,
-      borderRadius: 20,
+      paddingVertical: verticalScale(10),
+      paddingHorizontal: horizontalScale(24),
+      borderRadius: moderateScale(20),
       borderWidth: 1,
 
-      marginTop: 5,
+      marginTop: verticalScale(5),
    },
    transactionInfo: {
       flexDirection: "row",
@@ -739,7 +740,7 @@ const styles = StyleSheet.create({
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
-      padding: 10,
-      height: 50,
+      padding: moderateScale(10),
+      height: verticalScale(50),
    },
 });
