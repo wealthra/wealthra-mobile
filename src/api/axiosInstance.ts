@@ -18,7 +18,9 @@ axiosInstance.defaults.paramsSerializer = (params) => {
 axiosInstance.interceptors.request.use(
    (async (config: any) => {
       const token = await AsyncStorage.getItem("jwToken");
-      if (token && config.headers) {
+      const isPublicRoute = config.url?.includes("/api/Account/login") || config.url?.includes("/api/Account/register");
+      
+      if (token && config.headers && !isPublicRoute) {
          config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
@@ -49,7 +51,13 @@ axiosInstance.interceptors.response.use(
    async (error) => {
       const originalRequest = error.config;
 
-      if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes("/api/Account/refresh-token")) {
+      if (
+         error.response?.status === 401 &&
+         !originalRequest._retry &&
+         !originalRequest.url?.includes("/api/Account/refresh-token") &&
+         !originalRequest.url?.includes("/api/Account/login") &&
+         !originalRequest.url?.includes("/api/Account/register")
+      ) {
          if (isRefreshing) {
             return new Promise(function (resolve, reject) {
                failedQueue.push({ resolve, reject });
@@ -81,11 +89,13 @@ axiosInstance.interceptors.response.use(
 
                const { token: newToken, refreshToken: newRefreshToken, id } = response.data as any;
 
-               await AsyncStorage.multiSet([
+               const authData: [string, string][] = [
                   ["jwToken", newToken],
                   ["refreshToken", newRefreshToken],
                   ["userId", id],
-               ]);
+               ].filter(([_, value]) => value !== undefined && value !== null) as [string, string][];
+
+               await AsyncStorage.multiSet(authData);
 
                axiosInstance.defaults.headers.common["Authorization"] = "Bearer " + newToken;
                originalRequest.headers["Authorization"] = "Bearer " + newToken;

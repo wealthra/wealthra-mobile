@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
 import { getThemeColors } from "../utils/getThemeColors";
-import SideDrawer from "../../components/SideDrawer";
+import ScreenHeader from "../../components/ScreenHeader";
 import { addIncome, getIncomes, deleteIncome, getFinancialSummary } from "../services/api";
 import AddIncomeModal from "../../components/AddIncomeModal";
 import { useTranslation } from "react-i18next";
@@ -340,9 +340,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({ isDarkMode, onToggleTheme, 
 
    return (
       <View style={[styles.container, { backgroundColor: themeColors.page_background }]}>
-         <View style={styles.headerSection}>
-            <SideDrawer isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Income" />
-         </View>
+         <ScreenHeader isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Income" />
          {financialData && (
             <>
                <DashboardCarousel isDarkMode={isDarkMode} data={transformFinancialData(financialData, isDarkMode)} />
@@ -436,16 +434,6 @@ const styles = StyleSheet.create({
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      marginTop: verticalScale(20),
-   },
-   headerSection: {
-      width: "100%",
-      paddingHorizontal: horizontalScale(20),
-      paddingVertical: verticalScale(20),
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      marginTop: verticalScale(10),
    },
    profilePhotoContainer: {
       width: 40,

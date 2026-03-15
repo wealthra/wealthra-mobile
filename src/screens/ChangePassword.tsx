@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator 
 import { getThemeColors } from "../utils/getThemeColors";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import SideDrawer from "../../components/SideDrawer";
+import ScreenHeader from "../../components/ScreenHeader";
 import { changePassword } from "../services/api";
 
 interface ChangePasswordProps {
@@ -116,9 +116,7 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ isDarkMode, navigation 
    return (
       <View style={[styles.container, { backgroundColor: themeColors.page_background }]}>
          {/* Header */}
-         <View style={styles.header}>
-            <SideDrawer isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="changePassword" />
-         </View>
+            <ScreenHeader isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="changePassword" />
 
          <View style={styles.content}>
             {/* New Password */}
@@ -218,13 +216,9 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ isDarkMode, navigation 
 const styles = StyleSheet.create({
    container: {
       flex: 1,
-      paddingTop: 50,
    },
    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 20,
-      marginBottom: 30,
+      display: "none",
    },
    backButton: {
       marginRight: 10,

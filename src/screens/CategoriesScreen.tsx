@@ -11,7 +11,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { getThemeColors } from "../utils/getThemeColors";
 import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
-import SideDrawer from "../../components/SideDrawer";
+import ScreenHeader from "../../components/ScreenHeader";
 import CategoryModal from "../../components/CategoryModal";
 import { getUserCategories, addCategory, updateCategory, deleteCategory } from "../services/api";
 import { CategoryDto } from "../services/api";
@@ -128,9 +128,7 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ isDarkMode, navigat
 
    return (
       <View style={[styles.container, { backgroundColor: themeColors.page_background }]}>
-         <View style={styles.headerSection}>
-            <SideDrawer isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Categories" />
-         </View>
+         <ScreenHeader isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Categories" />
 
          <View style={styles.content}>
             <View
@@ -203,13 +201,7 @@ const styles = StyleSheet.create({
       alignItems: "center",
    },
    headerSection: {
-      width: "100%",
-      paddingHorizontal: horizontalScale(20),
-      paddingVertical: verticalScale(40),
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      marginTop: verticalScale(20),
+      display: "none",
    },
    content: {
       flex: 1,

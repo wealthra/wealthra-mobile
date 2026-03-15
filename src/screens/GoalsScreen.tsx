@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, FlatList, 
 import { getThemeColors } from "../utils/getThemeColors";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
-import SideDrawer from "../../components/SideDrawer";
+import ScreenHeader from "../../components/ScreenHeader";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
 import AddGoalModal from "../../components/AddGoalModal";
 import UpdateGoalModal from "../../components/UpdateGoalModal";
@@ -277,9 +277,7 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
 
    return (
       <View style={[styles.container, { backgroundColor: themeColors.page_background }]}>
-         <View style={styles.headerSection}>
-            <SideDrawer isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Goals" />
-         </View>
+         <ScreenHeader isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Goals" />
 
          <View style={styles.content}>
             <View style={[styles.overviewCard, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
@@ -344,7 +342,6 @@ const styles = StyleSheet.create({
       flex: 1,
       alignItems: "center",
       justifyContent: "flex-start",
-      paddingTop: 40,
    },
    loadingContainer: {
       justifyContent: "center",
@@ -353,14 +350,6 @@ const styles = StyleSheet.create({
       flex: 1,
       width: "100%",
       paddingHorizontal: 20,
-   },
-   headerSection: {
-      width: "100%",
-      paddingHorizontal: 20,
-      paddingVertical: 30,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
    },
    profilePhotoContainer: {
       width: 40,

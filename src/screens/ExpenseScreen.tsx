@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image, ActivityIndicator, TouchableOpacity, Fla
 import { getThemeColors } from "../utils/getThemeColors";
 import { API_URL, getStoredToken, getExpenses, deleteExpense, addExpense, getUserCategories, getStoredUserId } from "../services/api";
 import { useTranslation } from "react-i18next";
-import SideDrawer from "../../components/SideDrawer";
+import ScreenHeader from "../../components/ScreenHeader";
 import type { FinancialSummary } from "../services/api";
 import { transformFinancialData } from "../utils/transformFinancialData";
 import DashboardCarousel from "../../components/DashboardCarousel";
@@ -464,9 +464,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({ isDarkMode, onToggleTheme
 
    return (
       <View style={[styles.container, { backgroundColor: themeColors.page_background }]}>
-         <View style={styles.headerSection}>
-            <SideDrawer isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Expenses" />
-         </View>
+         <ScreenHeader isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Expenses" />
          {financialData && (
             <>
                <DashboardCarousel isDarkMode={isDarkMode} data={transformFinancialData(financialData, isDarkMode)} />
@@ -567,16 +565,6 @@ const styles = StyleSheet.create({
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      marginTop: 20,
-   },
-   headerSection: {
-      width: "100%",
-      paddingHorizontal: 20,
-      paddingVertical: 20,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      marginTop: 10,
    },
    profilePhotoContainer: {
       width: 40,

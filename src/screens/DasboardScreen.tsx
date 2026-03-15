@@ -8,7 +8,7 @@ import { getFinancialSummary, getGoals, getCurrentUser } from "../services/api";
 import { transformFinancialData } from "../utils/transformFinancialData";
 import type { FinancialDashboardDto, GoalHistoryDto, UserDto } from "../services/api";
 import { useTranslation } from "react-i18next";
-import SideDrawer from "../../components/SideDrawer";
+import ScreenHeader from "../../components/ScreenHeader";
 import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
 
 interface DashboardScreenProps {
@@ -166,9 +166,7 @@ function DashboardScreen({ isDarkMode, onToggleTheme, navigation }: DashboardScr
 
    return (
       <View style={styles.container}>
-         <View style={styles.headerSection}>
-            <SideDrawer isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Dashboard" />
-         </View>
+         <ScreenHeader isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Dashboard" />
          <View style={styles.dashboardHeader}>
             <Text style={[styles.dashboardTitle, { color: themeColors.card_title }]}>
                {t("dashboard.dashboardWelcome")}, {userInfo?.firstName || "User"}!
@@ -196,15 +194,6 @@ const styles = StyleSheet.create({
       flex: 1,
       alignItems: "center",
       justifyContent: "flex-start",
-      paddingTop: verticalScale(40),
-   },
-   headerSection: {
-      width: "100%",
-      paddingHorizontal: horizontalScale(20),
-      paddingVertical: verticalScale(30),
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
    },
    profilePhotoContainer: {
       width: horizontalScale(40),

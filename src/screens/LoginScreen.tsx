@@ -95,7 +95,7 @@ const LoginScreen = ({ isDarkMode, onToggleTheme, navigation }: LoginScreenProps
          if (error.response?.status === 400) {
             setError(t("invalidCredentials"));
          } else if (error.response?.status === 401) {
-            setError(t("unauthorized"));
+            setError(t("invalidCredentials"));
          } else if (error.response?.status === 404) {
             setError(t("userNotFound"));
          } else if (error.message.includes("Network")) {
@@ -195,12 +195,11 @@ const styles = StyleSheet.create({
       padding: horizontalScale(20),
    },
    headerSection: {
-      flexDirection: "row", // Example: Place title and button side-by-side
-      justifyContent: "center",
+      flexDirection: "row",
+      justifyContent: "flex-end",
       alignItems: "center",
-      marginBottom: verticalScale(10), // Add some space below the header
-      marginTop: verticalScale(10),
-      paddingLeft: horizontalScale(200),
+      paddingTop: verticalScale(40),
+      paddingHorizontal: horizontalScale(20),
    },
    headerButtons: {
       flexDirection: "row",

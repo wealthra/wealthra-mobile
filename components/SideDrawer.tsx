@@ -124,18 +124,13 @@ const SideDrawer: React.FC<SideDrawerProps> = ({ isDarkMode, onNavigate, current
 
 const styles = StyleSheet.create({
    buttonContainer: {
-      position: "absolute",
-      left: 0,
-      top: verticalScale(20),
       zIndex: 1000,
    },
    toggleButton: {
-      width: horizontalScale(30),
-      height: horizontalScale(30),
+      width: horizontalScale(40),
+      height: horizontalScale(40),
       justifyContent: "center",
       alignItems: "center",
-      paddingBottom: verticalScale(10),
-      paddingLeft: horizontalScale(40),
    },
    drawer: {
       position: "absolute",

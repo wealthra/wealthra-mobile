@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from "rea
 import { getThemeColors } from "../utils/getThemeColors";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import SideDrawer from "../../components/SideDrawer";
+import ScreenHeader from "../../components/ScreenHeader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "../i18n/config";
 
@@ -95,9 +95,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleThe
    return (
       <ThemeContext.Provider value={{ isDarkMode }}>
          <View style={[styles.container, { backgroundColor: themeColors.page_background }]}>
-            <View style={styles.headerSection}>
-               <SideDrawer isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Settings" />
-            </View>
+            <ScreenHeader isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Settings" />
 
             <ScrollView style={styles.scrollView}>
                {/* Profile Settings Section */}
@@ -135,12 +133,7 @@ const styles = StyleSheet.create({
       flex: 1,
    },
    headerSection: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 20,
-      paddingHorizontal: 10,
-      paddingVertical: 20,
-      marginTop: 30,
+      display: "none",
    },
    scrollView: {
       flex: 1,

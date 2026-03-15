@@ -8,8 +8,7 @@ import {
    getMonthlyTrends,
    getMonthlyMetrics,
 } from "../services/api";
-import SideDrawer from "../../components/SideDrawer";
-import { BarChart, LineChart } from "react-native-gifted-charts";
+import ScreenHeader from "../../components/ScreenHeader";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
 
@@ -224,10 +223,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
 
    return (
       <View style={[styles.container, { backgroundColor: themeColors.page_background }]}>
-         {/* Header */}
-         <View style={styles.header}>
-            <SideDrawer isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="analytics" />
-         </View>
+         <ScreenHeader isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="analytics" />
 
          {/* Date Picker */}
          <View style={styles.datePickerContainer}>
@@ -521,13 +517,9 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
 const styles = StyleSheet.create({
    container: {
       flex: 1,
-      paddingTop: verticalScale(50),
    },
    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: horizontalScale(20),
-      marginBottom: verticalScale(10),
+      display: "none",
    },
    loadingContainer: {
       flex: 1,

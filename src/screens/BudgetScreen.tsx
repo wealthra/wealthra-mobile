@@ -4,7 +4,7 @@ import { SvgXml } from "react-native-svg";
 import { getThemeColors } from "../utils/getThemeColors";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
-import SideDrawer from "../../components/SideDrawer";
+import ScreenHeader from "../../components/ScreenHeader";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
 import AddBudgetModal from "../../components/AddBudgetModal";
 import { getBudgets, addBudget, deleteBudget } from "../services/api";
@@ -277,10 +277,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
 
    return (
       <View style={[styles.container, { backgroundColor: themeColors.page_background }]}>
-         <View style={styles.headerSection}>
-            <SideDrawer isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Budget" />
-         </View>
-
+         <ScreenHeader isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Budget" />
          <View style={styles.content}>
             <View style={[styles.overviewCard, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>{t("monthlyBudgetOverview")}</Text>
@@ -349,7 +346,6 @@ const styles = StyleSheet.create({
       flex: 1,
       alignItems: "center",
       justifyContent: "flex-start",
-      paddingTop: 40,
    },
    loadingContainer: {
       justifyContent: "center",
@@ -358,14 +354,6 @@ const styles = StyleSheet.create({
       flex: 1,
       width: "100%",
       paddingHorizontal: 20,
-   },
-   headerSection: {
-      width: "100%",
-      paddingHorizontal: 20,
-      paddingVertical: 30,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-end",
    },
    profilePhotoContainer: {
       width: 40,

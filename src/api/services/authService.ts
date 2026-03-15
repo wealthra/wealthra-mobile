@@ -6,11 +6,13 @@ export const loginUser = async (loginData: LoginUserCommand): Promise<AuthRespon
    try {
       const response = await axiosInstance.post<AuthResponse>('/api/Account/login', loginData);
 
-      await AsyncStorage.multiSet([
+      const authData: [string, string][] = [
          ["userId", response.data.id],
          ["jwToken", response.data.token],
          ["refreshToken", response.data.refreshToken],
-      ]);
+      ].filter(([_, value]) => value !== undefined && value !== null) as [string, string][];
+
+      await AsyncStorage.multiSet(authData);
 
       return response.data;
    } catch (error: any) {
@@ -19,10 +21,7 @@ export const loginUser = async (loginData: LoginUserCommand): Promise<AuthRespon
          error: error.message,
          response: error.response?.data,
       });
-      if (error.response) {
-         throw new Error(error.response.data.message || "Login failed");
-      }
-      throw new Error("Network error occurred");
+      throw error;
    }
 };
 

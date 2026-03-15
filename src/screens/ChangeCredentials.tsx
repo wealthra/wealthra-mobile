@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator,
 import { getThemeColors } from "../utils/getThemeColors";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import SideDrawer from "../../components/SideDrawer";
+import ScreenHeader from "../../components/ScreenHeader";
 import { getUserId, getCurrentUser, updateUserProfile } from "../services/api";
 
 interface ChangeCredentialsProps {
@@ -120,7 +120,7 @@ const ChangeCredentials: React.FC<ChangeCredentialsProps> = ({ isDarkMode, navig
       <View style={[styles.container, { backgroundColor: themeColors.page_background }]}>
          {/* Header */}
          <View style={styles.header}>
-            <SideDrawer isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="changeProfile" />
+            <ScreenHeader isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="changeProfile" />
          </View>
 
          <View style={styles.content}>
@@ -214,13 +214,9 @@ const ChangeCredentials: React.FC<ChangeCredentialsProps> = ({ isDarkMode, navig
 const styles = StyleSheet.create({
    container: {
       flex: 1,
-      paddingTop: 50,
    },
    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 20,
-      marginBottom: 30,
+      display: "none",
    },
    content: {
       paddingHorizontal: 20,
