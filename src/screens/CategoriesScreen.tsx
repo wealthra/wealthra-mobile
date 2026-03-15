@@ -109,12 +109,12 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ isDarkMode, navigat
                   setModalVisible(true);
                }}
                style={[styles.smallButton, { backgroundColor: themeColors.green + "20" }]}>
-               <Text style={[styles.smallButtonText, { color: themeColors.green }]}>{t("edit") || "Edit"}</Text>
+               <Text style={[styles.smallButtonText, { color: themeColors.green }]}>{t("categoryManagement.edit")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
                onPress={() => handleDeleteCategory(item.id)}
                style={[styles.smallButton, { backgroundColor: "#FF3B3020" }]}>
-               <Text style={[styles.smallButtonText, { color: "#FF3B30" }]}>{t("delete") || "Delete"}</Text>
+               <Text style={[styles.smallButtonText, { color: themeColors.red }]}>{t("categoryManagement.delete")}</Text>
             </TouchableOpacity>
          </View>
       </View>

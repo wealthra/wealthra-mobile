@@ -67,7 +67,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ visible, onClose, onSave,
                />
 
                <TouchableOpacity style={[styles.saveButton, { backgroundColor: themeColors.green }]} onPress={handleSave}>
-                  <Text style={styles.saveButtonText}>{category ? t("save") || "Save" : t("add") || "Add"}</Text>
+                  <Text style={styles.saveButtonText}>{category ? t("categoryManagement.save") || "Save" : t("categoryManagement.addCategoryButton")}</Text>
                </TouchableOpacity>
             </TouchableOpacity>
          </TouchableOpacity>
