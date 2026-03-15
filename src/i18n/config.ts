@@ -100,9 +100,9 @@ const resources = {
             enterCurrentAmount: "Enter current amount",
          },
          goal: {
-            enterTargetAmount: "Hedef tutarını girin",
-            enterCurrentAmount: "Mevcut tutarı girin",
-            updateButton: "Hedefi Güncelle",
+            enterTargetAmount: "Enter target amount",
+            enterCurrentAmount: "Enter current amount",
+            updateButton: "Update Goal",
          },
 
          dashboard: { dashboardWelcome: "Welcome Back", dashboardSubtext: "Here's what's happening in your finances today" },
@@ -124,6 +124,7 @@ const resources = {
             goals: "Goals",
             analytics: "Analytics",
             settings: "Settings",
+            categories: "Categories",
          },
          cards: {
             categoryCard: {
@@ -208,6 +209,17 @@ const resources = {
             emailPlaceholder: "Enter your email",
             saveChanges: "Save Changes",
             profileUpdated: "Profile updated successfully",
+         },
+         categoryManagement: {
+            title: "Categories",
+            addCategory: "Add Category",
+            editCategory: "Edit Category",
+            categoryName: "Category Name",
+            categoryAdded: "Category added successfully",
+            categoryUpdated: "Category updated successfully",
+            categoryDeleted: "Category deleted successfully",
+            deleteConfirm: "Are you sure you want to delete this category?",
+            categoryNamePlaceholder: "Enter category name",
          },
       },
    },
@@ -332,6 +344,7 @@ const resources = {
             goals: "Hedefler",
             analytics: "Analiz",
             settings: "Ayarlar",
+            categories: "Kategoriler",
          },
          cards: {
             categoryCard: {
@@ -416,6 +429,17 @@ const resources = {
             emailPlaceholder: "Emailinizi girin",
             saveChanges: "Değişiklikleri Kaydet",
             profileUpdated: "Profil başarıyla güncellendi",
+         },
+         categoryManagement: {
+            title: "Kategoriler",
+            addCategory: "Kategori Ekle",
+            editCategory: "Kategoriyi Düzenle",
+            categoryName: "Kategori Adı",
+            categoryAdded: "Kategori başarıyla eklendi",
+            categoryUpdated: "Kategori başarıyla güncellendi",
+            categoryDeleted: "Kategori başarıyla silindi",
+            deleteConfirm: "Bu kategoriyi silmek istediğinizden emin misiniz?",
+            categoryNamePlaceholder: "Kategori adını girin",
          },
       },
    },

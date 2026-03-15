@@ -22,6 +22,7 @@ import SettingsScreen from "./src/screens/SettingsScreen";
 import ChangeCredentials from "./src/screens/ChangeCredentials";
 import ChangePassword from "./src/screens/ChangePassword";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import CategoriesScreen from "./src/screens/CategoriesScreen";
 
 const Stack = createStackNavigator();
 function AppNavigator({ isDarkMode, toggleTheme }: { isDarkMode: boolean; toggleTheme: () => void }) {
@@ -71,6 +72,9 @@ function AppNavigator({ isDarkMode, toggleTheme }: { isDarkMode: boolean; toggle
          </Stack.Screen>
          <Stack.Screen name="changePassword">
             {({ navigation }) => <ChangePassword isDarkMode={isDarkMode} onToggleTheme={toggleTheme} navigation={navigation} />}
+         </Stack.Screen>
+         <Stack.Screen name="Categories">
+            {({ navigation }) => <CategoriesScreen isDarkMode={isDarkMode} onToggleTheme={toggleTheme} navigation={navigation} />}
          </Stack.Screen>
       </Stack.Navigator>
    );

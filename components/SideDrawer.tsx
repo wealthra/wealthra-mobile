@@ -27,6 +27,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({ isDarkMode, onNavigate, current
       { icon: data[8].budgetIcon, label: "Budget", route: "Budget" },
       { icon: data[9].goalsIcon, label: "Goals", route: "Goals" },
       { icon: data[10].analyticsIcon, label: "Analytics", route: "Analytics" },
+      { icon: data[7].expensesIcon, label: "Categories", route: "Categories" },
       { icon: data[11].settingsIcon, label: "Settings", route: "Settings" },
    ];
 

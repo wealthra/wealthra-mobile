@@ -29,10 +29,10 @@ const DashboardSlide = ({ data, isDarkMode }: { data: DashboardSlideData; isDark
          return <Entypo name="wallet" size={moderateScale(24)} color={themeColors.yellow} />;
       }
       if (title.includes("income")) {
-         return <Entypo name="price-tag" size={moderateScale(24)} color={themeColors.green} />;
+         return <Entypo name="credit-card" size={moderateScale(24)} color={themeColors.green} />;
       }
       if (title.includes("spending") || title.includes("expense")) {
-         return <Entypo name="credit-card" size={moderateScale(24)} color={themeColors.red} />;
+         return <Entypo name="shopping-cart" size={moderateScale(24)} color={themeColors.red} />;
       }
       return <Entypo name="wallet" size={moderateScale(24)} color={data.color} />;
    };
