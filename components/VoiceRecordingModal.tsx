@@ -38,6 +38,17 @@ const VoiceRecordingModal: React.FC<VoiceRecordingModalProps> = ({
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    if (visible) {
+      setTimer(0);
+      setIsRecording(false);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+  }, [visible]);
+
+  useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (recording) {
@@ -73,17 +84,20 @@ const VoiceRecordingModal: React.FC<VoiceRecordingModalProps> = ({
     }
   };
 
-  const stopRecording = async () => {
+  const stopRecording = async (shouldComplete = true) => {
     if (!recording) return;
 
     setIsRecording(false);
-    if (timerRef.current) clearInterval(timerRef.current);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     
     try {
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
       setRecording(null);
-      if (uri) {
+      if (uri && shouldComplete) {
         onRecordingComplete(uri);
       }
     } catch (err) {
@@ -99,9 +113,9 @@ const VoiceRecordingModal: React.FC<VoiceRecordingModalProps> = ({
       .padStart(2, "0")}`;
   };
 
-  const handleClose = () => {
+  const handleClose = async () => {
     if (isRecording) {
-      stopRecording();
+      await stopRecording(false);
     }
     onClose();
   };
@@ -138,7 +152,7 @@ const VoiceRecordingModal: React.FC<VoiceRecordingModalProps> = ({
               styles.recordButton,
               { backgroundColor: isRecording ? themeColors.red : themeColors.green },
             ]}
-            onPress={isRecording ? stopRecording : startRecording}
+            onPress={() => (isRecording ? stopRecording() : startRecording())}
           >
             <MaterialCommunityIcons
               name={isRecording ? "stop" : "microphone"}
