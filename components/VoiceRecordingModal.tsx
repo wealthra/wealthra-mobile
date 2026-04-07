@@ -36,6 +36,7 @@ const VoiceRecordingModal: React.FC<VoiceRecordingModalProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [timer, setTimer] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const recordingRef = useRef<Audio.Recording | null>(null);
 
   useEffect(() => {
     if (visible) {
@@ -50,9 +51,13 @@ const VoiceRecordingModal: React.FC<VoiceRecordingModalProps> = ({
 
   useEffect(() => {
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (recording) {
-        recording.stopAndUnloadAsync();
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      if (recordingRef.current) {
+        recordingRef.current.stopAndUnloadAsync().catch(() => {});
+        recordingRef.current = null;
       }
     };
   }, []);
@@ -73,9 +78,11 @@ const VoiceRecordingModal: React.FC<VoiceRecordingModalProps> = ({
       const { recording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
+      recordingRef.current = recording;
       setRecording(recording);
       setIsRecording(true);
       setTimer(0);
+      if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
         setTimer((t) => t + 1);
       }, 1000);
@@ -85,7 +92,9 @@ const VoiceRecordingModal: React.FC<VoiceRecordingModalProps> = ({
   };
 
   const stopRecording = async (shouldComplete = true) => {
-    if (!recording) return;
+    // Check both ref and state to be safe
+    const currentRecording = recordingRef.current || recording;
+    if (!currentRecording) return;
 
     setIsRecording(false);
     if (timerRef.current) {
@@ -94,14 +103,25 @@ const VoiceRecordingModal: React.FC<VoiceRecordingModalProps> = ({
     }
     
     try {
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
+      await currentRecording.stopAndUnloadAsync();
+      const uri = currentRecording.getURI();
+      
+      // Clear references
+      recordingRef.current = null;
       setRecording(null);
+
       if (uri && shouldComplete) {
         onRecordingComplete(uri);
       }
+      
+      // If we're not completing, reset the timer immediately
+      if (!shouldComplete) {
+        setTimer(0);
+      }
     } catch (err) {
       console.error("Failed to stop recording", err);
+      recordingRef.current = null;
+      setRecording(null);
     }
   };
 
@@ -114,9 +134,10 @@ const VoiceRecordingModal: React.FC<VoiceRecordingModalProps> = ({
   };
 
   const handleClose = async () => {
-    if (isRecording) {
+    if (isRecording || recordingRef.current) {
       await stopRecording(false);
     }
+    setTimer(0); // Ensure timer is reset on close
     onClose();
   };
 
