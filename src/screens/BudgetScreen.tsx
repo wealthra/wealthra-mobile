@@ -9,6 +9,7 @@ import { Swipeable, RectButton } from "react-native-gesture-handler";
 import AddBudgetModal from "../../components/AddBudgetModal";
 import { getBudgets, addBudget, deleteBudget } from "../services/api";
 import type { BudgetDto } from "../services/api";
+import { getCategoryColor } from "../utils/getCategoryColor";
 
 interface BudgetScreenProps {
    isDarkMode: boolean;
@@ -66,7 +67,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
             name: budget.categoryName || `Category ${budget.categoryId}`, // Use category name if available
             spent: budget.currentAmount || 0,
             budgeted: budget.limitAmount,
-            color: getColorForCategory(budget.categoryName || `Category ${budget.categoryId}`),
+            color: getCategoryColor(budget.categoryName || `Category ${budget.categoryId}`, isDarkMode),
             apiId: budget.id, // Store API ID for future operations
             categoryId: budget.categoryId, // Store category ID for future operations
          }));
@@ -162,7 +163,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
       const percentSpent = category.budgeted > 0 ? Math.round((category.spent / category.budgeted) * 100) : 0;
 
       // Translate the category name
-      const translatedCategoryName = t(`categories.${category.name.toLowerCase().replace(/\s+/g, "_")}`);
+      const translatedCategoryName = t(`categories.${(category.name || "miscellaneous").toLowerCase().replace(/\s+/g, "_")}`);
 
       return (
          <Swipeable
@@ -219,7 +220,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
             name: originalCategoryName, // Store the original name for translation
             spent: budget.currentAmount,
             budgeted: budget.budgetLimit,
-            color: getColorForCategory(originalCategoryName),
+            color: getCategoryColor(originalCategoryName, isDarkMode),
             apiId: newBudgetId,
          };
 
@@ -231,20 +232,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
       }
    };
 
-   const getColorForCategory = (category: string) => {
-      const categoryColors: { [key: string]: string } = {
-         Food: themeColors.food_category || "#7CB342",
-         Housing: themeColors.housing_category || "#E6A23C",
-         Entertainment: themeColors.entertainment_category || "#409EFF",
-         Transport: themeColors.transport_category || "#F56C6C",
-         Education: themeColors.education_category || "#9C27B0",
-         Shopping: themeColors.shopping_category || "#FF9800",
-         Healthcare: themeColors.health_category || "#00BCD4",
-         Other: themeColors.other_category || "#607D8B",
-      };
-
-      return categoryColors[category] || "#607D8B";
-   };
+   // Removed local getColorForCategory in favor of getCategoryColor utility
 
    const availableCategories = ["Food", "Housing", "Entertainment", "Transport", "Education", "Shopping", "Healthcare", "Other"];
 

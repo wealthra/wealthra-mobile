@@ -11,6 +11,7 @@ import {
 import ScreenHeader from "../../components/ScreenHeader";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
+import { getCategoryColor } from "../utils/getCategoryColor";
 
 interface AnalyticsScreenProps {
    isDarkMode: boolean;
@@ -87,7 +88,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
             const mappedExpenseData = categoryResult.categoryBreakdown.map((item) => ({
                name: item.categoryName || "Other",
                value: item.amount,
-               color: getCategoryColor(item.categoryName || "Other"), // Use category-specific color
+               color: getCategoryColor(item.categoryName || "Other", isDarkMode), // Use category-specific color
                legendFontColor: themeColors.card_title,
                legendFontSize: 12,
             }));
@@ -197,29 +198,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
       }
    }, [incomeData.months]);
 
-   // Add this function to your AnalyticsScreen component
-   const getCategoryColor = (categoryName: string): string => {
-      const normalizedName = categoryName.toLowerCase();
-
-      switch (normalizedName) {
-         case "food":
-            return themeColors.food_category;
-         case "housing":
-            return themeColors.housing_category;
-         case "entertainment":
-            return themeColors.entertainment_category;
-         case "healthcare":
-            return themeColors.health_category;
-         case "education":
-            return themeColors.education_category;
-         case "transport":
-            return themeColors.transport_category;
-         case "shopping":
-            return themeColors.shopping_category;
-         default:
-            return themeColors.other_category;
-      }
-   };
+   // Removed local getCategoryColor as we're now using the centralized utility in ../utils/getCategoryColor.ts
 
    return (
       <View style={[styles.container, { backgroundColor: themeColors.page_background }]}>
@@ -335,7 +314,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
                            {expenseData.map((item, index) => (
                               <View key={index} style={styles.customLegendItem}>
                                  <View style={[styles.legendColor, { backgroundColor: item.color }]} />
-                                 <Text style={{ color: themeColors.card_title }}>{t(`categories.${item.name.toLowerCase()}`)}</Text>
+                                 <Text style={{ color: themeColors.card_title }}>{t(`categories.${(item.name || "miscellaneous").toLowerCase().replace(/\s+/g, "_")}`)}</Text>
                               </View>
                            ))}
                         </View>
@@ -457,7 +436,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
                                  value: item.value,
                                  frontColor: item.color,
                                  // Increase substring length to show more text
-                                 label: t(`categories.${item.name.toLowerCase()}`).substring(0, 20),
+                                 label: t(`categories.${(item.name || "miscellaneous").toLowerCase().replace(/\s+/g, "_")}`).substring(0, 20),
                                  labelTextStyle: {
                                     color: themeColors.card_title,
                                     fontSize: 11, // Increased font size

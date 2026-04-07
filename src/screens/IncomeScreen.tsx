@@ -375,9 +375,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color={themeColors.green} />
-        <Text style={{ color: themeColors.card_title, marginLeft: 8 }}>
-          Loading more...
-        </Text>
+          {t("common.loadingMore")}
       </View>
     );
   };
@@ -518,24 +516,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
       />
       <ActionFAB
         isDarkMode={isDarkMode}
-        actions={[
-          {
-            label: t("fab.manualIncome") || "Manual Income",
-            icon: "plus",
-            onPress: () => setIsAddModalVisible(true),
-            color: themeColors.green,
-          },
-          {
-            label: t("fab.voice") || "Voice Input",
-            icon: "microphone",
-            onPress: () => console.log("Voice Input pressed"),
-          },
-          {
-            label: t("fab.scan") || "Scan Receipt",
-            icon: "camera",
-            onPress: () => console.log("Scan Receipt pressed"),
-          },
-        ]}
+        onPress={() => setIsAddModalVisible(true)}
       />
     </View>
   );

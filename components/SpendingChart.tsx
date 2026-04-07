@@ -67,16 +67,13 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ isDarkMode, data }) => {
                center={[chartWidth / 2, 0]}
                hasLegend={false} // Disable built-in legend
             />
-            <View style={styles.centerCircle}>
-               <View style={[styles.innerCircle, { backgroundColor: themeColors.card_background }]} />
-            </View>
          </View>
          {/* Custom legend */}
          <View style={styles.legendContainer}>
             {data.map((item, index) => (
                <View key={index} style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                  <Text style={[styles.legendText, { color: themeColors.card_title }]}>{t(`categories.${item.name.toLowerCase()}`)}</Text>
+                  <Text style={[styles.legendText, { color: themeColors.card_title }]}>{t(`categories.${item.name.toLowerCase().replace(/\s+/g, "_")}`)}</Text>
                </View>
             ))}
          </View>
@@ -101,42 +98,28 @@ const styles = StyleSheet.create({
       alignItems: "center",
       justifyContent: "center",
    },
-   centerCircle: {
-      position: "absolute",
-      left: "50%", // Aligns with the pie chart center
-      top: "50%",
-      transform: [{ translateX: horizontalScale(-35) }, { translateY: verticalScale(-35) }],
-      width: horizontalScale(70),
-      height: horizontalScale(70),
-      borderRadius: horizontalScale(35),
-      alignItems: "center",
-      justifyContent: "center",
-   },
-   innerCircle: {
-      width: horizontalScale(100),
-      height: horizontalScale(100),
-      borderRadius: horizontalScale(50),
-      marginLeft: horizontalScale(20),
-   },
    legendContainer: {
       flexDirection: "row",
       flexWrap: "wrap",
       justifyContent: "center",
-      gap: horizontalScale(10),
-      marginBottom: verticalScale(10),
+      marginTop: verticalScale(10), // Added top margin
+      paddingHorizontal: horizontalScale(10), // Added horizontal padding
+      marginBottom: verticalScale(15),
    },
    legendItem: {
       flexDirection: "row",
       alignItems: "center",
+      marginRight: horizontalScale(15), // Matches AnalyticsScreen marginRight
+      marginBottom: verticalScale(8), // Breathable vertical space
    },
    legendDot: {
-      width: horizontalScale(10),
-      height: horizontalScale(10),
-      borderRadius: horizontalScale(5),
-      marginRight: horizontalScale(5),
+      width: horizontalScale(12), // Slightly larger dots for clarity
+      height: horizontalScale(12),
+      borderRadius: horizontalScale(6),
+      marginRight: horizontalScale(8),
    },
    legendText: {
-      fontSize: moderateScale(12),
+      fontSize: moderateScale(13), // Slightly larger text for legibility
    },
 });
 

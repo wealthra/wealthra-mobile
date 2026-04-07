@@ -24,7 +24,7 @@ const DashboardSlide = ({ data, isDarkMode }: { data: DashboardSlideData; isDark
 
    const getIcon = () => {
       // Mapping titles to icons. In a real app, this should probably come from the data object
-      const title = data.title.toLowerCase();
+      const title = (data.title || "").toLowerCase();
       if (title.includes("net worth") || title.includes("balance")) {
          return <Entypo name="wallet" size={moderateScale(24)} color={themeColors.yellow} />;
       }

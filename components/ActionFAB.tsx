@@ -26,10 +26,17 @@ export interface FABAction {
 
 interface ActionFABProps {
   isDarkMode: boolean;
-  actions: FABAction[];
+  actions?: FABAction[];
+  onPress?: () => void;
+  icon?: keyof typeof MaterialCommunityIcons.glyphMap;
 }
 
-const ActionFAB: React.FC<ActionFABProps> = ({ isDarkMode, actions }) => {
+const ActionFAB: React.FC<ActionFABProps> = ({
+  isDarkMode,
+  actions = [],
+  onPress,
+  icon,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
   const themeColors = getThemeColors(isDarkMode);
@@ -121,11 +128,11 @@ const ActionFAB: React.FC<ActionFABProps> = ({ isDarkMode, actions }) => {
       {/* Main FAB */}
       <TouchableOpacity
         style={[styles.mainButton, { backgroundColor: themeColors.green }]}
-        onPress={toggleMenu}
+        onPress={onPress || toggleMenu}
         activeOpacity={0.8}
       >
         <Animated.View style={{ transform: [{ rotate: rotation }] }}>
-          <MaterialCommunityIcons name="plus" size={30} color="white" />
+          <MaterialCommunityIcons name={icon || "plus"} size={30} color="white" />
         </Animated.View>
       </TouchableOpacity>
     </View>

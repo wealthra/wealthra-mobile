@@ -57,6 +57,9 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, onA
 
    // Get translated category names based on the original English names
    const getTranslatedCategoryName = (categoryName: string) => {
+      // Add safety check for undefined/null names
+      if (!categoryName) return t("categories.miscellaneous");
+
       // Use the original name as the translation key
       const translationKey = `categories.${categoryName.toLowerCase().replace(/\s+/g, "_")}`;
       const translated = t(translationKey);

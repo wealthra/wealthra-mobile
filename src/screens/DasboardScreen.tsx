@@ -5,20 +5,25 @@ import SavingGoalSummary from "../../components/SavingGoalSummary";
 import DashboardCarousel from "../../components/DashboardCarousel";
 import SpendingChart from "../../components/SpendingChart";
 import {
-  getFinancialSummary,
-  getGoals,
-  getCurrentUser,
   addExpense,
   addIncome,
   getUserCategories,
+  getFinancialSummary,
+  getGoals,
+  getCurrentUser,
+  bulkAddExpenses,
+  extractExpenseFromImage,
+  extractExpenseFromAudio,
+  type FinancialDashboardDto,
+  type GoalHistoryDto,
+  type UserDto,
+  type CategoryDto,
+  type ExpenseDto,
 } from "../services/api";
+import * as ImagePicker from "expo-image-picker";
+import VoiceRecordingModal from "../../components/VoiceRecordingModal";
+import ResultReviewModal from "../../components/ResultReviewModal";
 import { transformFinancialData } from "../utils/transformFinancialData";
-import type {
-  FinancialDashboardDto,
-  GoalHistoryDto,
-  UserDto,
-  CategoryDto,
-} from "../services/api";
 import { useTranslation } from "react-i18next";
 import ScreenHeader from "../../components/ScreenHeader";
 import AddExpenseModal from "../../components/AddExpenseModal";
@@ -57,6 +62,10 @@ function DashboardScreen({
   const [isExpenseModalVisible, setIsExpenseModalVisible] = useState(false);
   const [isIncomeModalVisible, setIsIncomeModalVisible] = useState(false);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
+  const [isVoiceModalVisible, setIsVoiceModalVisible] = useState(false);
+  const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
+  const [extractedExpenses, setExtractedExpenses] = useState<ExpenseDto[]>([]);
+  const [isExtracting, setIsExtracting] = useState(false);
   const { t } = useTranslation();
 
   const handleAddExpense = async (newExpense: {
@@ -96,6 +105,109 @@ function DashboardScreen({
     } catch (error) {
       console.error("Error adding income from dashboard:", error);
       Alert.alert("Error", "Failed to add income");
+    }
+  };
+
+  const handleScanReceipt = async () => {
+    Alert.alert(
+      t("scan.title") || "Scan Receipt",
+      t("scan.message") || "Choose a source",
+      [
+        {
+          text: t("scan.camera") || "Camera",
+          onPress: () => processImage(ImagePicker.launchCameraAsync),
+        },
+        {
+          text: t("scan.gallery") || "Gallery",
+          onPress: () => processImage(ImagePicker.launchImageLibraryAsync),
+        },
+        {
+          text: t("common.cancel") || "Cancel",
+          style: "cancel",
+        },
+      ]
+    );
+  };
+
+  const processImage = async (
+    launcher: typeof ImagePicker.launchCameraAsync
+  ) => {
+    try {
+      const result = await launcher({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setIsExtracting(true);
+        const asset = result.assets[0];
+        const expenses = await extractExpenseFromImage(
+          asset.uri,
+          asset.mimeType || "image/jpeg",
+          asset.fileName || "receipt.jpg"
+        );
+        setExtractedExpenses(expenses);
+        setIsReviewModalVisible(true);
+      }
+    } catch (error) {
+      console.error("Image processing error:", error);
+      Alert.alert("Error", "Failed to process receipt image");
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const handleVoiceRecordingComplete = async (uri: string) => {
+    setIsVoiceModalVisible(false);
+    setIsExtracting(true);
+    try {
+      const expenses = await extractExpenseFromAudio(
+        uri,
+        "audio/mpeg",
+        "voice-expense.mp3"
+      );
+      setExtractedExpenses(expenses);
+      setIsReviewModalVisible(true);
+    } catch (error) {
+      console.error("Voice processing error:", error);
+      Alert.alert("Error", "Failed to process voice command");
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const handleConfirmBulkAdd = async (expenses: ExpenseDto[]) => {
+    if (expenses.length === 0) {
+      setIsReviewModalVisible(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const commands = expenses.map((e) => ({
+        description: e.description,
+        amount: e.amount,
+        paymentMethod: e.paymentMethod,
+        isRecurring: e.isRecurring,
+        categoryId: e.categoryId,
+        transactionDate: e.transactionDate,
+      }));
+
+      await bulkAddExpenses(commands);
+      setIsReviewModalVisible(false);
+
+      // Refresh data
+      const finData = await getFinancialSummary();
+      setFinancialData(finData);
+      await calculateGoalsSummary();
+      
+      Alert.alert("Success", `Added ${expenses.length} expenses`);
+    } catch (error) {
+      console.error("Bulk add error:", error);
+      Alert.alert("Error", "Failed to add expenses");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -320,12 +432,12 @@ function DashboardScreen({
           {
             label: t("fab.voice") || "Voice Input",
             icon: "microphone",
-            onPress: () => console.log("Voice Input pressed"),
+            onPress: () => setIsVoiceModalVisible(true),
           },
           {
             label: t("fab.scan") || "Scan Receipt",
             icon: "camera",
-            onPress: () => console.log("Scan Receipt pressed"),
+            onPress: handleScanReceipt,
           },
         ]}
       />
@@ -345,6 +457,27 @@ function DashboardScreen({
         onAdd={handleAddIncome}
         isDarkMode={isDarkMode}
       />
+      <VoiceRecordingModal
+        visible={isVoiceModalVisible}
+        onClose={() => setIsVoiceModalVisible(false)}
+        onRecordingComplete={handleVoiceRecordingComplete}
+        isDarkMode={isDarkMode}
+      />
+      <ResultReviewModal
+        visible={isReviewModalVisible}
+        expenses={extractedExpenses}
+        onConfirm={handleConfirmBulkAdd}
+        onCancel={() => setIsReviewModalVisible(false)}
+        isDarkMode={isDarkMode}
+      />
+      {isExtracting && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={themeColors.green} />
+          <Text style={[styles.loadingText, { color: "white" }]}>
+            {t("common.extracting") || "Processing..."}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -386,5 +519,17 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(16),
     color: "#999999",
     marginTop: verticalScale(4),
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 2000,
+  },
+  loadingText: {
+    marginTop: verticalScale(10),
+    fontSize: moderateScale(16),
+    fontWeight: "600",
   },
 });

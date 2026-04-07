@@ -11,14 +11,19 @@ import {
 } from "react-native";
 import { getThemeColors } from "../utils/getThemeColors";
 import {
-  API_URL,
-  getStoredToken,
   getExpenses,
   deleteExpense,
   addExpense,
   getUserCategories,
   getStoredUserId,
+  bulkAddExpenses,
+  extractExpenseFromImage,
+  extractExpenseFromAudio,
+  type ExpenseDto,
 } from "../services/api";
+import * as ImagePicker from "expo-image-picker";
+import VoiceRecordingModal from "../../components/VoiceRecordingModal";
+import ResultReviewModal from "../../components/ResultReviewModal";
 import { useTranslation } from "react-i18next";
 import ScreenHeader from "../../components/ScreenHeader";
 import type { FinancialSummary } from "../services/api";
@@ -101,6 +106,10 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMoreData, setHasMoreData] = useState(true);
+  const [isVoiceModalVisible, setIsVoiceModalVisible] = useState(false);
+  const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
+  const [extractedExpenses, setExtractedExpenses] = useState<ExpenseDto[]>([]);
+  const [isExtracting, setIsExtracting] = useState(false);
   const pageSize = 10;
   const { t, i18n } = useTranslation();
 
@@ -166,6 +175,99 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
 
     fetchExpenses();
   }, []);
+
+  const handleScanReceipt = async () => {
+    Alert.alert(t("scan.title") || "Scan Receipt", t("scan.message") || "Choose a source", [
+      {
+        text: t("scan.camera") || "Camera",
+        onPress: () => processImage(ImagePicker.launchCameraAsync),
+      },
+      {
+        text: t("scan.gallery") || "Gallery",
+        onPress: () => processImage(ImagePicker.launchImageLibraryAsync),
+      },
+      {
+        text: t("common.cancel") || "Cancel",
+        style: "cancel",
+      },
+    ]);
+  };
+
+  const processImage = async (launcher: typeof ImagePicker.launchCameraAsync) => {
+    try {
+      const result = await launcher({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setIsExtracting(true);
+        const asset = result.assets[0];
+        const expensesData = await extractExpenseFromImage(
+          asset.uri,
+          asset.mimeType || "image/jpeg",
+          asset.fileName || "receipt.jpg",
+        );
+        setExtractedExpenses(expensesData);
+        setIsReviewModalVisible(true);
+      }
+    } catch (error) {
+      console.error("Image processing error:", error);
+      Alert.alert("Error", "Failed to process receipt image");
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const handleVoiceRecordingComplete = async (uri: string) => {
+    setIsVoiceModalVisible(false);
+    setIsExtracting(true);
+    try {
+      const expensesData = await extractExpenseFromAudio(uri, "audio/mpeg", "voice-expense.mp3");
+      setExtractedExpenses(expensesData);
+      setIsReviewModalVisible(true);
+    } catch (error) {
+      console.error("Voice processing error:", error);
+      Alert.alert("Error", "Failed to process voice command");
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const handleConfirmBulkAdd = async (expensesToAdd: ExpenseDto[]) => {
+    if (expensesToAdd.length === 0) {
+      setIsReviewModalVisible(false);
+      return;
+    }
+
+    try {
+      setIsExtracting(true);
+      const commands = expensesToAdd.map((e) => ({
+        description: e.description,
+        amount: e.amount,
+        paymentMethod: e.paymentMethod,
+        isRecurring: e.isRecurring,
+        categoryId: e.categoryId,
+        transactionDate: e.transactionDate,
+      }));
+
+      await bulkAddExpenses(commands);
+      setIsReviewModalVisible(false);
+
+      // Refresh data
+      fetchExpenses(1, false);
+      const finData = await getFinancialSummary();
+      setFinancialData(finData);
+
+      Alert.alert("Success", `Added ${expensesToAdd.length} expenses`);
+    } catch (error) {
+      console.error("Bulk add error:", error);
+      Alert.alert("Error", "Failed to add expenses");
+    } finally {
+      setIsExtracting(false);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -243,7 +345,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
             •{source?.paymentMethod || t("expense.unknownMethod")} •
             {/* Translate the category name */}
             {t(
-              `categories.${(source?.categoryName || "uncategorized").toLowerCase().replace(/\s+/g, "_")}`,
+              `categories.${(source?.categoryName || "miscellaneous").toLowerCase().replace(/\s+/g, "_")}`,
             )}
           </Text>
         </View>
@@ -496,7 +598,14 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
 
       // Either replace or append the data
       if (shouldAppend) {
-        setExpenses((prev) => [...prev, ...mappedExpenses]);
+        setExpenses((prev) => {
+          // Filter out items that are already in the list to avoid duplicate key errors
+          const existingIds = new Set(prev.map((item) => item.id));
+          const newItems = mappedExpenses.filter(
+            (item) => !existingIds.has(item.id),
+          );
+          return [...prev, ...newItems];
+        });
       } else {
         setExpenses(mappedExpenses);
       }
@@ -685,15 +794,36 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
           {
             label: t("fab.voice") || "Voice Input",
             icon: "microphone",
-            onPress: () => console.log("Voice Input pressed"),
+            onPress: () => setIsVoiceModalVisible(true),
           },
           {
             label: t("fab.scan") || "Scan Receipt",
             icon: "camera",
-            onPress: () => console.log("Scan Receipt pressed"),
+            onPress: handleScanReceipt,
           },
         ]}
       />
+      <VoiceRecordingModal
+        visible={isVoiceModalVisible}
+        onClose={() => setIsVoiceModalVisible(false)}
+        onRecordingComplete={handleVoiceRecordingComplete}
+        isDarkMode={isDarkMode}
+      />
+      <ResultReviewModal
+        visible={isReviewModalVisible}
+        expenses={extractedExpenses}
+        onConfirm={handleConfirmBulkAdd}
+        onCancel={() => setIsReviewModalVisible(false)}
+        isDarkMode={isDarkMode}
+      />
+      {isExtracting && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={themeColors.green} />
+          <Text style={[styles.loadingText, { color: "white" }]}>
+            {t("common.extracting") || "Processing..."}
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -870,5 +1000,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: moderateScale(10),
     height: verticalScale(50),
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 2000,
+  },
+  loadingText: {
+    marginTop: verticalScale(10),
+    fontSize: moderateScale(16),
+    fontWeight: "600",
   },
 });
