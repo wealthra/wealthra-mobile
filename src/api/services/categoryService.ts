@@ -15,7 +15,17 @@ export const getUserCategories = async (): Promise<CategoryDto[]> => {
          },
       });
 
-      return response.data;
+      console.log("Categories API Response Structure:", typeof response.data, Array.isArray(response.data) ? "Array" : "Object");
+
+      // Normalize response: handle both raw arrays and paginated objects with 'items'
+      if (Array.isArray(response.data)) {
+         return response.data;
+      } else if (response.data && typeof response.data === 'object' && (response.data as any).items) {
+         console.log("Normalizing categories from 'items' property");
+         return (response.data as any).items;
+      }
+
+      return response.data || [];
    } catch (error: any) {
       console.error("Failed to fetch categories:", error);
       throw new Error(error.response?.data?.message || "Failed to fetch categories");

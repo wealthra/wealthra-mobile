@@ -21,6 +21,13 @@ const AddBudgetModal: React.FC<AddBudgetModalProps> = ({ visible, onClose, onAdd
    const [currentAmount, setCurrentAmount] = useState("");
    const [selectedCategory, setSelectedCategory] = useState("");
 
+   // Log current categories for debugging
+   useEffect(() => {
+      if (visible) {
+         console.log("ADD_BUDGET_MODAL_CATEGORIES_PROP:", categories);
+      }
+   }, [visible, categories]);
+
    // Update component state when language changes
    useEffect(() => {
       // This will force a re-render when language changes

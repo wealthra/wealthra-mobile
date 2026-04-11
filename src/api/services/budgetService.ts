@@ -22,21 +22,39 @@ export const getBudgets = async (pageNumber: number = 1, pageSize: number = 10):
 
       console.log("Budget API Response:", response.data);
 
-      if (response.data.items && response.data.items.length > 0 && !response.data.items[0].categoryName) {
+      // Normalize response if it's an array instead of a PaginatedListOfBudgetDto object
+      let normalizedData: PaginatedListOfBudgetDto;
+      if (Array.isArray(response.data)) {
+         normalizedData = {
+            items: response.data,
+            pageNumber: 1,
+            totalPages: 1,
+            totalCount: response.data.length,
+            hasNextPage: false,
+            hasPreviousPage: false,
+         };
+      } else {
+         normalizedData = response.data;
+      }
+
+      if (normalizedData.items && normalizedData.items.length > 0 && !normalizedData.items[0].categoryName) {
          const categoriesResponse = await getUserCategories();
          // Handle regular array returned from getUserCategories
          const categories = categoriesResponse || [];
 
-         response.data.items = response.data.items.map((budget: BudgetDto) => {
-            const category = categories.find((c: any) => c.id === budget.categoryId);
+         normalizedData.items = normalizedData.items.map((budget: BudgetDto) => {
+            const category = categories.find((c: any) => 
+               (c.categoryName || c.name || '').toLowerCase() === budget.categoryName?.toLowerCase() || 
+               c.id === budget.categoryId
+            );
             return {
                ...budget,
-               categoryName: category ? (category.name || `Category ${budget.categoryId}`) : `Category ${budget.categoryId}`,
+               categoryName: category ? (category.categoryName || category.name || `Category ${budget.categoryId}`) : `Category ${budget.categoryId}`,
             };
          });
       }
 
-      return response.data;
+      return normalizedData;
    } catch (error: any) {
       console.error("Failed to fetch budgets:", {
          error: error.message,

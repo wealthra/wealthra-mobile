@@ -7,9 +7,10 @@ import { useTranslation } from "react-i18next";
 import ScreenHeader from "../../components/ScreenHeader";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
 import AddBudgetModal from "../../components/AddBudgetModal";
-import { getBudgets, addBudget, deleteBudget } from "../services/api";
+import { getBudgets, addBudget, deleteBudget, getUserCategories } from "../services/api";
 import type { BudgetDto } from "../services/api";
 import { getCategoryColor } from "../utils/getCategoryColor";
+import ActionFAB from "../../components/ActionFAB";
 
 interface BudgetScreenProps {
    isDarkMode: boolean;
@@ -41,6 +42,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
    const [currentPage, setCurrentPage] = useState(1);
    const [isLoadingMore, setIsLoadingMore] = useState(false);
    const [hasMoreData, setHasMoreData] = useState(true);
+   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
    // Calculate totals for the budget overview
    const totalBudgeted = budgetCategories.reduce((sum, category) => sum + category.budgeted, 0);
@@ -58,16 +60,29 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
          setError(null);
 
          const response = await getBudgets(page, 10);
-         console.log("Fetched budgets:", response);
+         const categories = await getUserCategories();
+         console.log(`Fetched budgets (Page ${page}):`, JSON.stringify(response, null, 2));
 
          // Transform API data to our component format
-         const budgets = response.items || [];
-         const transformedBudgets = budgets.map((budget: BudgetDto) => ({
+         // Use normalization to handle both raw arrays and PaginatedListOfBudgetDto objects
+         const items = response.items || (Array.isArray(response) ? response : []);
+         const normalizedItems = items.map((budget: BudgetDto) => {
+            const category = categories.find((c: any) => 
+               (c.categoryName || c.name || '').toLowerCase() === budget.categoryName?.toLowerCase() || 
+               c.id === budget.categoryId
+            );
+            return {
+               ...budget,
+               categoryName: category ? (category.categoryName || category.name || `Category ${budget.categoryId}`) : `Category ${budget.categoryId}`,
+            };
+         });
+
+         const transformedBudgets = normalizedItems.map((budget: any) => ({
             id: budget.id.toString(),
-            name: budget.categoryName || `Category ${budget.categoryId}`, // Use category name if available
+            name: budget.categoryName,
             spent: budget.currentAmount || 0,
             budgeted: budget.limitAmount,
-            color: getCategoryColor(budget.categoryName || `Category ${budget.categoryId}`, isDarkMode),
+            color: getCategoryColor(budget.categoryName, isDarkMode),
             apiId: budget.id, // Store API ID for future operations
             categoryId: budget.categoryId, // Store category ID for future operations
          }));
@@ -96,9 +111,35 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
       }
    };
 
+   // Fetch categories from API
+   const fetchCategories = async () => {
+      try {
+         console.log("Fetching budget categories...");
+         const categories = await getUserCategories();
+         console.log("Fetched categories from API:", JSON.stringify(categories, null, 2));
+
+         const categoryNames = categories
+            .map((c) => c.categoryName || c.name)
+            .filter((name): name is string => !!name);
+
+         console.log("Processed category names for dropdown:", categoryNames);
+         setAvailableCategories(categoryNames);
+      } catch (err) {
+         console.error("Error fetching categories:", err);
+         // Fallback to empty list but log it clearly
+         setAvailableCategories([]);
+      }
+   };
+
+   // Log current categories whenever they change
+   useEffect(() => {
+      console.log("BUDGET_SCREEN_CATEGORIES_STATE_UPDATE:", availableCategories);
+   }, [availableCategories]);
+
    // Initial data fetch
    useEffect(() => {
       fetchBudgets();
+      fetchCategories();
    }, []);
 
    const handleNavigate = (screen: string) => {
@@ -234,7 +275,6 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
 
    // Removed local getColorForCategory in favor of getCategoryColor utility
 
-   const availableCategories = ["Food", "Housing", "Entertainment", "Transport", "Education", "Shopping", "Healthcare", "Other"];
 
    // Show loading indicator while fetching data
    if (isLoading && !isRefreshing) {
@@ -288,11 +328,6 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
             <View style={[styles.categoriesCard, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                <View style={styles.categoriesHeader}>
                   <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>{t("budgetCategories")}</Text>
-                  <TouchableOpacity
-                     style={[styles.addButton, { borderColor: themeColors.frame_stroke, backgroundColor: themeColors.card_background }]}
-                     onPress={() => setIsModalVisible(true)}>
-                     <Text style={[styles.addButtonText, { color: themeColors.card_title }]}>+</Text>
-                  </TouchableOpacity>
                </View>
 
                <FlatList
@@ -325,6 +360,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
             isDarkMode={isDarkMode}
             categories={availableCategories}
          />
+         <ActionFAB isDarkMode={isDarkMode} onPress={() => setIsModalVisible(true)} />
       </View>
    );
 };

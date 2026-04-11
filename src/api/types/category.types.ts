@@ -1,6 +1,7 @@
 export interface CategoryDto {
    id: number;
    name?: string;
+   categoryName?: string;
 }
 
 export interface CreateCategoryCommand {

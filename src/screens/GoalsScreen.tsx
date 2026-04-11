@@ -10,6 +10,7 @@ import UpdateGoalModal from "../../components/UpdateGoalModal";
 import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
 import { getGoals, addGoal, deleteGoal, updateGoal, calculateDaysRemaining } from "../services/api";
 import type { GoalHistoryDto as Goal } from "../api/types/goal.types.ts";
+import ActionFAB from "../../components/ActionFAB";
 
 interface GoalsScreenProps {
    isDarkMode: boolean;
@@ -296,11 +297,6 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
             <View style={[styles.goalsCard, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                <View style={styles.goalsHeader}>
                   <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>{t("activeGoals")}</Text>
-                  <TouchableOpacity
-                     style={[styles.addButton, { borderColor: themeColors.frame_stroke, backgroundColor: themeColors.card_background }]}
-                     onPress={() => setIsModalVisible(true)}>
-                     <Text style={[styles.addButtonText, { color: themeColors.card_title }]}>+</Text>
-                  </TouchableOpacity>
                </View>
                <FlatList
                   data={savingGoals}
@@ -333,6 +329,7 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
             initialValues={selectedGoal || undefined}
             isDarkMode={isDarkMode}
          />
+         <ActionFAB isDarkMode={isDarkMode} onPress={() => setIsModalVisible(true)} />
       </View>
    );
 };
