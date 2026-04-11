@@ -288,6 +288,13 @@ const resources = {
         startInstruction: "Tap the microphone to start recording",
         stopInstruction: "Tap the button to stop recording and process",
       },
+      notifications: {
+        title: "Notifications",
+        markAllRead: "Mark all as read",
+        clearAll: "Clear all",
+        now: "Just now",
+        empty: "No notifications yet",
+      },
     },
   },
   tr: {
@@ -576,6 +583,13 @@ const resources = {
         recordingTitle: "Sesli Komut",
         startInstruction: "Kaydı başlatmak için mikrofona dokunun",
         stopInstruction: "Kaydı durdurmak ve işlemek için düğmeye dokunun",
+      },
+      notifications: {
+        title: "Bildirimler",
+        markAllRead: "Tümünü okundu işaretle",
+        clearAll: "Tümünü temizle",
+        now: "Şimdi",
+        empty: "Henüz bildirim yok",
       },
     },
   },

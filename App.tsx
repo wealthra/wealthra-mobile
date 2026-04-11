@@ -29,6 +29,8 @@ import ChangeCredentials from "./src/screens/ChangeCredentials";
 import ChangePassword from "./src/screens/ChangePassword";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CategoriesScreen from "./src/screens/CategoriesScreen";
+import NotificationCenterScreen from "./src/screens/NotificationCenterScreen";
+import { NotificationProvider } from "./src/context/NotificationContext";
 
 const Stack = createStackNavigator();
 function AppNavigator({
@@ -164,11 +166,14 @@ function AppNavigator({
           />
         )}
       </Stack.Screen>
-      {/*
-         <Stack.Screen name="Categories">
-            {({ navigation }) => <CategoriesScreen isDarkMode={isDarkMode} onToggleTheme={toggleTheme} navigation={navigation} />}
-         </Stack.Screen>
-         */}
+      <Stack.Screen name="NotificationCenter">
+        {({ navigation }) => (
+          <NotificationCenterScreen
+            isDarkMode={isDarkMode}
+            navigation={navigation}
+          />
+        )}
+      </Stack.Screen>
     </Stack.Navigator>
   );
 }
@@ -200,16 +205,18 @@ function App() {
   return (
     <I18nextProvider i18n={i18n}>
       <LanguageProvider>
-        <NavigationContainer>
-          <SafeAreaView
-            style={[
-              styles.container,
-              { backgroundColor: theme.page_background },
-            ]}
-          >
-            <AppNavigator isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
-          </SafeAreaView>
-        </NavigationContainer>
+        <NotificationProvider>
+          <NavigationContainer>
+            <SafeAreaView
+              style={[
+                styles.container,
+                { backgroundColor: theme.page_background },
+              ]}
+            >
+              <AppNavigator isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+            </SafeAreaView>
+          </NavigationContainer>
+        </NotificationProvider>
       </LanguageProvider>
     </I18nextProvider>
   );

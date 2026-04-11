@@ -31,7 +31,7 @@ export const markNotificationsRead = async (notificationIds?: number[], markAll?
          markAll
       };
 
-      await axiosInstance.put(`/api/Notifications/mark-read`, requestData, {
+      await axiosInstance.post(`/api/Notifications/mark-read`, requestData, {
          headers: {
             "Content-Type": "application/json",
          },

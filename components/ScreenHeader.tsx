@@ -1,6 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import SideDrawer from "./SideDrawer";
+import NotificationBell from "./NotificationBell";
 import { horizontalScale, verticalScale } from "../src/utils/scaling";
 
 interface ScreenHeaderProps {
@@ -13,6 +14,9 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({ isDarkMode, onNavigate, cur
    return (
       <View style={styles.headerContainer}>
          <SideDrawer isDarkMode={isDarkMode} onNavigate={onNavigate} currentRoute={currentRoute} />
+         <View style={styles.rightContainer}>
+            <NotificationBell isDarkMode={isDarkMode} />
+         </View>
       </View>
    );
 };
@@ -23,9 +27,13 @@ const styles = StyleSheet.create({
       height: verticalScale(60),
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "flex-start",
+      justifyContent: "space-between", // Changed from flex-start
       paddingHorizontal: horizontalScale(20),
       marginTop: verticalScale(40), // Standardized top margin
+   },
+   rightContainer: {
+      flexDirection: "row",
+      alignItems: "center",
    },
 });
 
