@@ -35,6 +35,7 @@ import {
   moderateScale,
 } from "../utils/scaling";
 import ActionFAB from "../../components/ActionFAB";
+import { getCategoryColor } from "../utils/getCategoryColor";
 
 interface DashboardScreenProps {
   isDarkMode: boolean;
@@ -227,43 +228,10 @@ function DashboardScreen({
 
     // Map categories to their proper colors based on category name
     return topCategories.map((category) => {
-      // Get proper color for each category based on its name (lowercase and remove spaces)
-      const categoryName = category.categoryName
-        ? category.categoryName.toLowerCase().replace(/\s+/g, "")
-        : "unknown";
-      let color;
-
-      // Match category name to the corresponding theme color
-      switch (categoryName) {
-        case "food":
-          color = themeColors.food_category;
-          break;
-        case "housing":
-          color = themeColors.housing_category;
-          break;
-        case "entertainment":
-          color = themeColors.entertainment_category;
-          break;
-        case "healthcare":
-          color = themeColors.health_category;
-          break;
-        case "education":
-          color = themeColors.education_category;
-          break;
-        case "transport":
-          color = themeColors.transport_category;
-          break;
-        case "shopping":
-          color = themeColors.shopping_category;
-          break;
-        default:
-          color = themeColors.other_category;
-      }
-
       return {
         name: category.categoryName || "Unknown",
         amount: category.totalAmount,
-        color: color,
+        color: getCategoryColor(category.categoryName || "Other", isDarkMode),
       };
     });
   };
