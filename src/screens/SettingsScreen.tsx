@@ -6,6 +6,9 @@ import { Ionicons } from "@expo/vector-icons";
 import ScreenHeader from "../../components/ScreenHeader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "../i18n/config";
+import { getUserInfo, updatePreferredCurrency } from "../api/services/accountService";
+import { useFocusEffect } from "@react-navigation/native";
+import { useUser } from "../context/UserContext";
 
 interface SettingsScreenProps {
    isDarkMode: boolean;
@@ -39,10 +42,59 @@ const ThemeContext = React.createContext({ isDarkMode: false });
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleTheme, navigation }) => {
    const { t } = useTranslation();
    const themeColors = getThemeColors(isDarkMode);
+   const [preferredCurrency, setPreferredCurrency] = React.useState<string>("USD");
+   const [isLoading, setIsLoading] = React.useState(false);
+   const { refreshUser } = useUser();
 
    function handleNavigate(screen: string): void {
       navigation.navigate(screen);
    }
+
+   // Fetch user info to get preferred currency
+   useFocusEffect(
+      React.useCallback(() => {
+         const fetchUserInfo = async () => {
+            try {
+               const userInfo = await getUserInfo();
+               if (userInfo.preferredCurrency) {
+                  setPreferredCurrency(userInfo.preferredCurrency);
+               }
+            } catch (error) {
+               console.error("Error fetching user info:", error);
+            }
+         };
+         fetchUserInfo();
+      }, [])
+   );
+
+   // Handle currency change
+   const handleChangeCurrency = () => {
+      const currencies = ["USD", "EUR", "TRY", "GBP"];
+      
+      Alert.alert(
+         t("settings.changeCurrency"),
+         "",
+         [
+            ...currencies.map(curr => ({
+               text: curr,
+               onPress: async () => {
+                  try {
+                     setIsLoading(true);
+                     await updatePreferredCurrency(curr);
+                     setPreferredCurrency(curr);
+                     await refreshUser();
+                     Alert.alert(t("alert.genericErrorTitle"), t("alert.currencyUpdated"));
+                  } catch (error) {
+                     Alert.alert(t("alert.genericErrorTitle"), t("alert.currencyUpdateError"));
+                  } finally {
+                     setIsLoading(false);
+                  }
+               }
+            })),
+            { text: t("alert.cancel"), style: "cancel" }
+         ]
+      );
+   };
 
    // Handle language change with useState for re-render
    const [, forceUpdate] = React.useState(0);
@@ -114,6 +166,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleThe
                   <SettingItem title={t("settings.changeLanguage")} onPress={changeLanguage} />
 
                   <SettingItem title={t("settings.changeTheme")} onPress={toggleTheme} />
+
+                  <SettingItem title={`${t("settings.changeCurrency")} (${preferredCurrency})`} onPress={handleChangeCurrency} />
                </View>
 
                {/* Session & Account Section */}

@@ -5,6 +5,7 @@ export interface IncomeDto {
    method?: string;
    isRecurring?: boolean;
    transactionDate?: string;
+   currency?: string;
 }
 
 export interface CreateIncomeCommand {
@@ -13,6 +14,7 @@ export interface CreateIncomeCommand {
    method?: string;
    isRecurring?: boolean;
    transactionDate?: string;
+   currency?: string;
 }
 
 export interface UpdateIncomeCommand {
@@ -22,6 +24,7 @@ export interface UpdateIncomeCommand {
    method?: string;
    isRecurring?: boolean;
    transactionDate?: string;
+   currency?: string;
 }
 
 export interface PaginatedListOfIncomeDto {

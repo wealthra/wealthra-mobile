@@ -11,6 +11,7 @@ export interface MonthlyTrendItem {
 export interface MonthlyTrendsDto {
    year: number;
    monthlyData: MonthlyTrendItem[];
+   currency?: string;
 }
 
 export interface SpendingBreakdownDto {
@@ -18,4 +19,5 @@ export interface SpendingBreakdownDto {
    totalAmount: number;
    startDate?: string;
    endDate?: string;
+   currency?: string;
 }

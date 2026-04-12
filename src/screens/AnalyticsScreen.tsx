@@ -13,6 +13,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
 import { getCategoryColor } from "../utils/getCategoryColor";
 import { usePrivacy } from "../context/PrivacyContext";
+import { getCurrencySymbol } from "../utils/currencyUtils";
+import { useUser } from "../context/UserContext";
 
 interface AnalyticsScreenProps {
    isDarkMode: boolean;
@@ -38,13 +40,15 @@ const screenWidth = Dimensions.get("window").width;
 const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigation }) => {
    const themeColors = getThemeColors(isDarkMode);
    const { isPrivacyMode } = usePrivacy();
+   const { preferredCurrency } = useUser();
    const { t } = useTranslation();
    const [isLoading, setIsLoading] = useState(false);
    const [expenseData, setExpenseData] = useState<any[]>([]);
-   const [incomeData, setIncomeData] = useState<{ incomeByMonth: number[]; expenseByMonth: number[]; months: string[] }>({
+   const [incomeData, setIncomeData] = useState<{ incomeByMonth: number[]; expenseByMonth: number[]; months: string[]; currency?: string }>({
       incomeByMonth: [],
       expenseByMonth: [],
       months: [],
+      currency: undefined,
    });
    const [monthlyExpenseData, setMonthlyExpenseData] = useState<{ months: string[]; expenseByMonth: number[] }>({
       months: [],
@@ -111,6 +115,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
                months: monthsArray,
                incomeByMonth: incomeArray,
                expenseByMonth: expenseArray,
+               currency: trendsResult.currency,
             });
          } else {
             setIncomeData({
@@ -379,13 +384,13 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
                            <View style={styles.summaryItem}>
                               <Text style={[styles.summaryLabel, { color: themeColors.card_title }]}>{t("analytics.totalIncome")}:</Text>
                               <Text style={[styles.summaryValue, { color: themeColors.green }]}>
-                                 {isPrivacyMode ? "****" : `$${incomeData.incomeByMonth.reduce((sum, val) => sum + val, 0).toFixed(2)}`}
+                                 {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency || incomeData.currency)}${incomeData.incomeByMonth.reduce((sum, val) => sum + val, 0).toFixed(2)}`}
                               </Text>
                            </View>
                            <View style={styles.summaryItem}>
                               <Text style={[styles.summaryLabel, { color: themeColors.card_title }]}>{t("analytics.totalExpenses")}:</Text>
                               <Text style={[styles.summaryValue, { color: themeColors.red }]}>
-                                 {isPrivacyMode ? "****" : `$${incomeData.expenseByMonth.reduce((sum, val) => sum + val, 0).toFixed(2)}`}
+                                 {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency || incomeData.currency)}${incomeData.expenseByMonth.reduce((sum, val) => sum + val, 0).toFixed(2)}`}
                               </Text>
                            </View>
                            <View style={styles.summaryItem}>
@@ -402,7 +407,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
                                              : themeColors.red,
                                     },
                                  ]}>
-                                 {isPrivacyMode ? "****" : `$${(
+                                 {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency || incomeData.currency)}${(
                                     incomeData.incomeByMonth.reduce((sum, val) => sum + val, 0) -
                                     incomeData.expenseByMonth.reduce((sum, val) => sum + val, 0)
                                  ).toFixed(2)}`}

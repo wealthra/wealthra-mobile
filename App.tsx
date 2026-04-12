@@ -32,6 +32,7 @@ import CategoriesScreen from "./src/screens/CategoriesScreen";
 import NotificationCenterScreen from "./src/screens/NotificationCenterScreen";
 import { NotificationProvider } from "./src/context/NotificationContext";
 import { PrivacyProvider } from "./src/context/PrivacyContext";
+import { UserProvider } from "./src/context/UserContext";
 
 const Stack = createStackNavigator();
 function AppNavigator({
@@ -208,7 +209,8 @@ function App() {
       <LanguageProvider>
         <PrivacyProvider>
           <NotificationProvider>
-            <NavigationContainer>
+            <UserProvider>
+              <NavigationContainer>
               <SafeAreaView
                 style={[
                   styles.container,
@@ -221,6 +223,7 @@ function App() {
                 />
               </SafeAreaView>
             </NavigationContainer>
+            </UserProvider>
           </NotificationProvider>
         </PrivacyProvider>
       </LanguageProvider>

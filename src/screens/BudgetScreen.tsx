@@ -12,6 +12,8 @@ import type { BudgetDto } from "../services/api";
 import { getCategoryColor } from "../utils/getCategoryColor";
 import ActionFAB from "../../components/ActionFAB";
 import { usePrivacy } from "../context/PrivacyContext";
+import { getCurrencySymbol } from "../utils/currencyUtils";
+import { useUser } from "../context/UserContext";
 
 interface BudgetScreenProps {
    isDarkMode: boolean;
@@ -34,6 +36,7 @@ const { width: windowWidth } = Dimensions.get("window");
 const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, navigation }) => {
    const themeColors = getThemeColors(isDarkMode);
    const { isPrivacyMode } = usePrivacy();
+   const { preferredCurrency } = useUser();
    const { t } = useTranslation();
    const [profileImage, setProfileImage] = useState<string | null>(null);
    const [isModalVisible, setIsModalVisible] = useState(false);
@@ -220,7 +223,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
                   <Text style={[styles.percentageIndicator, { color: themeColors.card_title }]}>{percentSpent}%</Text>
                </View>
                <Text style={[styles.categoryAmounts, { color: themeColors.card_description }]}>
-                  {isPrivacyMode ? "****" : `$${category.spent.toLocaleString()}`} / {isPrivacyMode ? "****" : `$${category.budgeted.toLocaleString()}`}
+                  {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency)}${category.spent.toLocaleString()}`} / {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency)}${category.budgeted.toLocaleString()}`}
                </Text>
                <View
                   style={[
@@ -322,8 +325,8 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
                   />
                </View>
                <View style={styles.budgetAmountsContainer}>
-                  <Text style={[styles.currentAmount, { color: themeColors.card_title }]}>{isPrivacyMode ? "****" : `$${totalSpent.toLocaleString()}`}</Text>
-                  <Text style={[styles.targetAmount, { color: themeColors.card_title }]}>{isPrivacyMode ? "****" : `$${totalBudgeted.toLocaleString()}`}</Text>
+                  <Text style={[styles.currentAmount, { color: themeColors.card_title }]}>{isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency)}${totalSpent.toLocaleString()}`}</Text>
+                  <Text style={[styles.targetAmount, { color: themeColors.card_title }]}>{isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency)}${totalBudgeted.toLocaleString()}`}</Text>
                </View>
             </View>
 

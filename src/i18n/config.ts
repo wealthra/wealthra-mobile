@@ -211,6 +211,8 @@ const resources = {
         cancel: "Cancel",
         confirm: "Confirm",
         invalidInputs: "Invalid inputs",
+        currencyUpdated: "Currency updated successfully",
+        currencyUpdateError: "Failed to update currency",
       },
       settings: {
         profileSettings: "Profile Settings",
@@ -225,6 +227,7 @@ const resources = {
         logoutMessage: "Are you sure you want to log out?",
         changeLanguage: "Change Language",
         changeTheme: "Change Theme",
+        changeCurrency: "Change Preferred Currency",
         sessionAccount: "Session",
       },
       changePassword: {
@@ -507,6 +510,8 @@ const resources = {
         cancel: "İptal",
         confirm: "Onayla",
         invalidInputs: "Geçersiz bilgi",
+        currencyUpdated: "Para birimi başarıyla güncellendi",
+        currencyUpdateError: "Para birimi güncellenemedi",
       },
       settings: {
         profileSettings: "Profil Ayarları",
@@ -521,6 +526,7 @@ const resources = {
         logoutMessage: "Çıkış yapmak istediğinize emin misiniz?",
         changeLanguage: "Dil Değiştir",
         changeTheme: "Tema Değiştir",
+        changeCurrency: "Tercih Edilen Para Birimi",
         sessionAccount: "Oturum",
       },
       changePassword: {

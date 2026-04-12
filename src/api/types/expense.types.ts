@@ -7,6 +7,7 @@ export interface ExpenseDto {
    transactionDate?: string;
    categoryId: number;
    categoryName?: string;
+   currency?: string;
 }
 
 export interface CreateExpenseCommand {
@@ -16,6 +17,7 @@ export interface CreateExpenseCommand {
    isRecurring?: boolean;
    categoryId?: number;
    transactionDate?: string;
+   currency?: string;
 }
 
 export interface UpdateExpenseCommand {
@@ -26,6 +28,7 @@ export interface UpdateExpenseCommand {
    isRecurring?: boolean;
    categoryId?: number;
    transactionDate?: string;
+   currency?: string;
 }
 
 export interface PaginatedListOfExpenseDto {

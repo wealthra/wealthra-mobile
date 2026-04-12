@@ -76,12 +76,9 @@ export const getUserInfo = async (): Promise<UserDto> => {
 
       const userId = await getUserId();
 
-      const response = await axiosInstance.get<UserDto>('/api/Account/user-info', {
+      const response = await axiosInstance.get<UserDto>('/api/Account/me', {
          headers: {
             "Content-Type": "application/json",
-         },
-         params: {
-            UserId: userId,
          },
       });
 
@@ -210,6 +207,33 @@ export const deleteAccount = async (): Promise<void> => {
       });
 
       const errorMessage = error.response?.data?.message || "Failed to delete account";
+      throw new Error(errorMessage);
+   }
+};
+
+export const updatePreferredCurrency = async (currencyCode: string): Promise<void> => {
+   try {
+      const token = await getStoredToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const response = await axiosInstance.put('/api/Account/preferred-currency', {
+         currency: currencyCode
+      }, {
+         headers: {
+            "Content-Type": "application/json",
+         },
+      });
+
+      console.log("Preferred currency updated successfully:", response.status);
+      return;
+   } catch (error: any) {
+      console.error("Failed to update preferred currency:", {
+         error: error.message,
+         status: error.response?.status,
+         data: error.response?.data,
+      });
+
+      const errorMessage = error.response?.data?.message || "Failed to update preferred currency";
       throw new Error(errorMessage);
    }
 };

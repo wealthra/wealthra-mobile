@@ -37,6 +37,8 @@ import {
 import ActionFAB from "../../components/ActionFAB";
 import { getCategoryColor } from "../utils/getCategoryColor";
 import { usePrivacy } from "../context/PrivacyContext";
+import { useUser } from "../context/UserContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 interface DashboardScreenProps {
   isDarkMode: boolean;
@@ -51,6 +53,7 @@ function DashboardScreen({
 }: DashboardScreenProps) {
   const themeColors = getThemeColors(isDarkMode);
   const { isPrivacyMode } = usePrivacy();
+  const { preferredCurrency, refreshUser } = useUser();
   const [loading, setLoading] = useState(true);
   const [financialData, setFinancialData] =
     useState<FinancialDashboardDto | null>(null);
@@ -303,6 +306,28 @@ function DashboardScreen({
     }
   };
 
+  // Refresh user and financial data on focus
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchData = async () => {
+        try {
+          // Parallel fetch
+          const [summary, user] = await Promise.all([
+            getFinancialSummary(),
+            refreshUser()
+          ]);
+          if (summary) {
+            setFinancialData(summary);
+          }
+          await calculateGoalsSummary();
+        } catch (error) {
+          console.error("Dashboard focus refresh error:", error);
+        }
+      };
+      fetchData();
+    }, [refreshUser])
+  );
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -362,7 +387,7 @@ function DashboardScreen({
         <>
           <DashboardCarousel
             isDarkMode={isDarkMode}
-            data={transformFinancialData(financialData, isDarkMode, isPrivacyMode)}
+            data={transformFinancialData(financialData, isDarkMode, isPrivacyMode, preferredCurrency)}
           />
 
           {/* Use the monthly savings view for the dashboard */}
@@ -370,6 +395,7 @@ function DashboardScreen({
             currentAmount={goalsSummary.monthlySaved}
             targetAmount={goalsSummary.monthlyTarget}
             isDarkMode={isDarkMode}
+            currency={preferredCurrency}
           />
 
           <SpendingChart

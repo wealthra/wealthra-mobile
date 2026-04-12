@@ -6,6 +6,7 @@ export interface GoalDto {
    progressPercentage: number;
    deadline?: string;
    isCompleted?: boolean;
+   currency?: string;
 }
 
 export interface CreateGoalCommand {
@@ -13,6 +14,7 @@ export interface CreateGoalCommand {
    targetAmount?: number;
    currentAmount?: number;
    deadline?: string;
+   currency?: string;
 }
 
 export interface UpdateGoalCommand {
@@ -21,6 +23,7 @@ export interface UpdateGoalCommand {
    targetAmount?: number;
    currentAmount?: number;
    deadline?: string;
+   currency?: string;
 }
 
 export interface GoalHistoryDto {
@@ -33,6 +36,7 @@ export interface GoalHistoryDto {
    notAchievedAmount: number;
    deadline?: string;
    isCompleted?: boolean;
+   currency?: string;
 }
 
 export interface PaginatedListOfGoalHistoryDto {

@@ -40,6 +40,8 @@ import {
 } from "../utils/scaling";
 import ActionFAB from "../../components/ActionFAB";
 import { usePrivacy } from "../context/PrivacyContext";
+import { getCurrencySymbol } from "../utils/currencyUtils";
+import { useUser } from "../context/UserContext";
 
 interface ExpenseScreenProps {
   isDarkMode: boolean;
@@ -55,6 +57,7 @@ interface ExpenseSource {
   isRecurring: boolean;
   categoryId: number;
   categoryName: string;
+  currency?: string;
 }
 
 interface ExpenseCategory {
@@ -66,6 +69,7 @@ interface Transaction {
   date: string;
   source: string;
   amount: number;
+  currency?: string;
 }
 
 // Add the interface for the API response
@@ -96,6 +100,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
 }) => {
   const themeColors = getThemeColors(isDarkMode);
   const { isPrivacyMode } = usePrivacy();
+  const { preferredCurrency, refreshUser } = useUser();
   const [loading, setLoading] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [financialData, setFinancialData] = useState<FinancialSummary | null>(
@@ -153,6 +158,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
           isRecurring: expense.isRecurring,
           categoryId: expense.categoryId,
           categoryName: expense.categoryName,
+          currency: expense.currency,
         }));
 
         setExpenses(mappedExpenses);
@@ -165,6 +171,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
               date: new Date().toISOString().split("T")[0],
               source: expense.description,
               amount: expense.amount,
+              currency: expense.currency,
             })),
           );
         }
@@ -352,7 +359,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
           </Text>
         </View>
         <Text style={[styles.expenseAmount, { color: themeColors.red }]}>
-          {isPrivacyMode ? "****" : `$${source?.amount ? source.amount.toLocaleString() : "0"}`}
+          {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency || source?.currency)}${source?.amount ? source.amount.toLocaleString() : "0"}`}
         </Text>
       </TouchableOpacity>
     </Swipeable>
@@ -452,6 +459,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
     method: string;
     isRecurring: boolean;
     categoryId: number;
+    currency?: string;
   }) => {
     try {
       console.log("Adding new expense:", newExpense);
@@ -536,6 +544,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
       date: new Date().toISOString().split("T")[0],
       source: newExpense.description,
       amount: newExpense.amount,
+      currency: newExpense.currency,
     };
 
     // Update transactions list, keeping only 2 most recent
@@ -590,6 +599,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
         isRecurring: expense.isRecurring,
         categoryId: expense.categoryId,
         categoryName: expense.categoryName,
+        currency: expense.currency,
       }));
 
       // Check if we have more data to load
@@ -622,6 +632,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
           date: new Date().toISOString().split("T")[0],
           source: expense.description,
           amount: expense.amount,
+          currency: expense.currency,
         }));
 
         setTransactions(newTransactions);
@@ -672,7 +683,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
         <>
           <DashboardCarousel
             isDarkMode={isDarkMode}
-            data={transformFinancialData(financialData, isDarkMode, isPrivacyMode)}
+            data={transformFinancialData(financialData, isDarkMode, isPrivacyMode, preferredCurrency)}
           />
         </>
       )}
@@ -763,7 +774,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
                   { color: themeColors.card_title },
                 ]}
               >
-                {isPrivacyMode ? "****" : `$${transaction.amount}`}
+                {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency || transaction.currency)}${transaction.amount}`}
               </Text>
             </View>
           ))}

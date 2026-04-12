@@ -8,12 +8,14 @@ export interface RecentTransactionDto {
    amount: number;
    transactionDate?: string;
    categoryName?: string | null;
+   currency?: string;
 }
 
 export interface FinancialDashboardDto {
    totalBalance: number;
    totalIncome: number;
    totalExpenses: number;
+   currency?: string;
    recentTransactions: RecentTransactionDto[];
    topSpendingCategories: TopCategoryDto[];
    budgetAlerts: BudgetAlertDto[];

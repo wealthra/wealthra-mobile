@@ -29,6 +29,8 @@ import {
 } from "../utils/scaling";
 import ActionFAB from "../../components/ActionFAB";
 import { usePrivacy } from "../context/PrivacyContext";
+import { getCurrencySymbol } from "../utils/currencyUtils";
+import { useUser } from "../context/UserContext";
 
 interface IncomeScreenProps {
   isDarkMode: boolean;
@@ -42,6 +44,7 @@ interface IncomeSource {
   amount: number;
   type: string;
   paymentMethod: string;
+  currency?: string;
   addedAt?: string; // Track when the item was added
 }
 
@@ -49,6 +52,7 @@ interface Transaction {
   date: string;
   source: string;
   amount: number;
+  currency?: string;
 }
 
 const IncomeScreen: React.FC<IncomeScreenProps> = ({
@@ -58,6 +62,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
 }) => {
   const themeColors = getThemeColors(isDarkMode);
   const { isPrivacyMode } = usePrivacy();
+  const { preferredCurrency } = useUser();
   const { t } = useTranslation();
   const [incomeSources, setIncomeSources] = useState<IncomeSource[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -86,6 +91,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         date: new Date().toISOString().split("T")[0],
         source: income.title,
         amount: income.amount,
+        currency: income.currency,
       }));
 
       setTransactions(newTransactions);
@@ -111,6 +117,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         amount: income.amount,
         type: income.isRecurring ? "Periodic" : "One-time",
         paymentMethod: income.method,
+        currency: income.currency,
         // Use a fake timestamp to simulate recency for existing items
         // Each item gets a timestamp 1 minute apart, with newer items being more recent
         addedAt: new Date(Date.now() - index * 60000).toISOString(),
@@ -139,6 +146,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
           date: new Date().toISOString().split("T")[0],
           source: income.title,
           amount: income.amount,
+          currency: income.currency,
         }));
 
         setTransactions(newTransactions);
@@ -165,6 +173,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
       date: new Date().toISOString().split("T")[0],
       source: newIncome.title,
       amount: newIncome.amount,
+      currency: newIncome.currency,
     };
 
     // Always put the new transaction first
@@ -176,6 +185,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
     amount: number;
     method: string;
     isRecurring: boolean;
+    currency?: string;
   }) => {
     try {
       // Add income using the API
@@ -193,6 +203,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         amount: newIncome.amount,
         type: newIncome.isRecurring ? "Periodic" : "One-time",
         paymentMethod: newIncome.method,
+        currency: newIncome.currency,
         addedAt: new Date().toISOString(), // Add timestamp for tracking recency
       };
 
@@ -256,6 +267,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
                   date: new Date().toISOString().split("T")[0],
                   source: income.title,
                   amount: income.amount,
+                  currency: income.currency,
                 })),
               );
 
@@ -334,7 +346,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
           </Text>
         </View>
         <Text style={[styles.incomeAmount, { color: themeColors.green }]}>
-          {isPrivacyMode ? "****" : `$${typeof source?.amount === "number" ? source.amount : "0"}`}
+          {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency || source?.currency)}${typeof source?.amount === "number" ? source.amount : "0"}`}
         </Text>
       </TouchableOpacity>
     </Swipeable>
@@ -410,7 +422,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         <>
           <DashboardCarousel
             isDarkMode={isDarkMode}
-            data={transformFinancialData(financialData, isDarkMode, isPrivacyMode)}
+            data={transformFinancialData(financialData, isDarkMode, isPrivacyMode, preferredCurrency)}
           />
         </>
       )}
@@ -504,7 +516,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
                   { color: themeColors.card_title },
                 ]}
               >
-                {isPrivacyMode ? "****" : `$${transaction.amount}`}
+                {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency || transaction.currency)}${transaction.amount}`}
               </Text>
             </View>
           ))}

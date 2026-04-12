@@ -12,6 +12,8 @@ import { getGoals, addGoal, deleteGoal, updateGoal, calculateDaysRemaining } fro
 import type { GoalHistoryDto as Goal } from "../api/types/goal.types.ts";
 import ActionFAB from "../../components/ActionFAB";
 import { usePrivacy } from "../context/PrivacyContext";
+import { getCurrencySymbol } from "../utils/currencyUtils";
+import { useUser } from "../context/UserContext";
 
 interface GoalsScreenProps {
    isDarkMode: boolean;
@@ -27,6 +29,7 @@ interface SavingGoal {
    target: number;
    daysLeft: number;
    color: string;
+   currency?: string;
 }
 
 const { width: windowWidth } = Dimensions.get("window");
@@ -34,6 +37,7 @@ const { width: windowWidth } = Dimensions.get("window");
 const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, navigation }) => {
    const themeColors = getThemeColors(isDarkMode);
    const { isPrivacyMode } = usePrivacy();
+   const { preferredCurrency } = useUser();
    const { t } = useTranslation();
    const [profileImage, setProfileImage] = useState<string | null>(null);
    const [isModalVisible, setIsModalVisible] = useState(false);
@@ -69,6 +73,7 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
             name: goal.name || "Untitled Goal",
             saved: goal.currentAmount || 0,
             target: goal.targetAmount,
+            currency: goal.currency,
             daysLeft: calculateDaysRemaining(goal.deadline || new Date().toISOString()),
             color: getColorForGoal(Math.floor(Math.random() * 3)), // Random color for now
          }));
@@ -168,7 +173,7 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
                </Text>
             </View>
             <Text style={[styles.goalAmounts, { color: themeColors.card_description }]}>
-               {isPrivacyMode ? "****" : `$${goal.saved.toLocaleString()}`} / {isPrivacyMode ? "****" : `$${goal.target.toLocaleString()}`}
+               {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency || goal.currency)}${goal.saved.toLocaleString()}`} / {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency || goal.currency)}${goal.target.toLocaleString()}`}
             </Text>
             <View style={[styles.goalProgressContainer, { backgroundColor: themeColors.card_background }, { borderColor: themeColors.frame_stroke }]}>
                <View
@@ -291,8 +296,8 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
                   <View style={[styles.progressBar, { width: `${savingPercentage}%`, backgroundColor: themeColors.green || "#4CAF50" }]} />
                </View>
                <View style={styles.budgetAmountsContainer}>
-                  <Text style={[styles.currentAmount, { color: themeColors.card_title }]}>{isPrivacyMode ? "****" : `$${totalSaved.toLocaleString()}`}</Text>
-                  <Text style={[styles.targetAmount, { color: themeColors.card_title }]}>{isPrivacyMode ? "****" : `$${totalTarget.toLocaleString()}`}</Text>
+                  <Text style={[styles.currentAmount, { color: themeColors.card_title }]}>{isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency)}${totalSaved.toLocaleString()}`}</Text>
+                  <Text style={[styles.targetAmount, { color: themeColors.card_title }]}>{isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency)}${totalTarget.toLocaleString()}`}</Text>
                </View>
             </View>
 

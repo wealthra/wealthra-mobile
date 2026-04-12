@@ -5,16 +5,18 @@ import { getThemeColors } from "../src/utils/getThemeColors";
 import { useTranslation } from "react-i18next";
 import { horizontalScale, verticalScale, moderateScale } from "../src/utils/scaling";
 import { usePrivacy } from "../src/context/PrivacyContext";
+import { getCurrencySymbol } from "../src/utils/currencyUtils";
 
 interface SavingGoalSummaryProps {
    currentAmount: number;
    targetAmount: number;
    isDarkMode: boolean;
+   currency?: string;
 }
 
 const { width: windowWidth } = Dimensions.get("window");
 
-const SavingGoalSummary: React.FC<SavingGoalSummaryProps> = ({ currentAmount, targetAmount, isDarkMode }) => {
+const SavingGoalSummary: React.FC<SavingGoalSummaryProps> = ({ currentAmount, targetAmount, isDarkMode, currency }) => {
    const { isPrivacyMode } = usePrivacy();
    const themeColors = getThemeColors(isDarkMode);
    const progress = targetAmount > 0 ? (currentAmount / targetAmount) * 100 : 0;
@@ -22,7 +24,8 @@ const SavingGoalSummary: React.FC<SavingGoalSummaryProps> = ({ currentAmount, ta
    const { t } = useTranslation();
 
    const formatAmount = (amount: number) => {
-      return isPrivacyMode ? "****" : `$${amount.toLocaleString()}`;
+      const symbol = getCurrencySymbol(currency);
+      return isPrivacyMode ? "****" : `${symbol}${amount.toLocaleString()}`;
    };
 
    return (
