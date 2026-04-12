@@ -83,7 +83,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleThe
                      await updatePreferredCurrency(curr);
                      setPreferredCurrency(curr);
                      await refreshUser();
-                     Alert.alert(t("alert.genericErrorTitle"), t("alert.currencyUpdated"));
+                     Alert.alert(t("alert.genericSuccessTitle"), t("alert.currencyUpdated"));
                   } catch (error) {
                      Alert.alert(t("alert.genericErrorTitle"), t("alert.currencyUpdateError"));
                   } finally {
