@@ -31,6 +31,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import CategoriesScreen from "./src/screens/CategoriesScreen";
 import NotificationCenterScreen from "./src/screens/NotificationCenterScreen";
 import { NotificationProvider } from "./src/context/NotificationContext";
+import { PrivacyProvider } from "./src/context/PrivacyContext";
 
 const Stack = createStackNavigator();
 function AppNavigator({
@@ -205,18 +206,23 @@ function App() {
   return (
     <I18nextProvider i18n={i18n}>
       <LanguageProvider>
-        <NotificationProvider>
-          <NavigationContainer>
-            <SafeAreaView
-              style={[
-                styles.container,
-                { backgroundColor: theme.page_background },
-              ]}
-            >
-              <AppNavigator isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
-            </SafeAreaView>
-          </NavigationContainer>
-        </NotificationProvider>
+        <PrivacyProvider>
+          <NotificationProvider>
+            <NavigationContainer>
+              <SafeAreaView
+                style={[
+                  styles.container,
+                  { backgroundColor: theme.page_background },
+                ]}
+              >
+                <AppNavigator
+                  isDarkMode={isDarkMode}
+                  toggleTheme={toggleTheme}
+                />
+              </SafeAreaView>
+            </NavigationContainer>
+          </NotificationProvider>
+        </PrivacyProvider>
       </LanguageProvider>
     </I18nextProvider>
   );

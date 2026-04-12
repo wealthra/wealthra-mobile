@@ -39,6 +39,7 @@ import {
   moderateScale,
 } from "../utils/scaling";
 import ActionFAB from "../../components/ActionFAB";
+import { usePrivacy } from "../context/PrivacyContext";
 
 interface ExpenseScreenProps {
   isDarkMode: boolean;
@@ -94,6 +95,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
   navigation,
 }) => {
   const themeColors = getThemeColors(isDarkMode);
+  const { isPrivacyMode } = usePrivacy();
   const [loading, setLoading] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [financialData, setFinancialData] = useState<FinancialSummary | null>(
@@ -350,7 +352,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
           </Text>
         </View>
         <Text style={[styles.expenseAmount, { color: themeColors.red }]}>
-          ${source?.amount ? source.amount.toLocaleString() : "0"}
+          {isPrivacyMode ? "****" : `$${source?.amount ? source.amount.toLocaleString() : "0"}`}
         </Text>
       </TouchableOpacity>
     </Swipeable>
@@ -670,7 +672,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
         <>
           <DashboardCarousel
             isDarkMode={isDarkMode}
-            data={transformFinancialData(financialData, isDarkMode)}
+            data={transformFinancialData(financialData, isDarkMode, isPrivacyMode)}
           />
         </>
       )}
@@ -761,7 +763,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
                   { color: themeColors.card_title },
                 ]}
               >
-                ${transaction.amount}
+                {isPrivacyMode ? "****" : `$${transaction.amount}`}
               </Text>
             </View>
           ))}

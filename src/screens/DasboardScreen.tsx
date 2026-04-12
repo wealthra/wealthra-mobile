@@ -36,6 +36,7 @@ import {
 } from "../utils/scaling";
 import ActionFAB from "../../components/ActionFAB";
 import { getCategoryColor } from "../utils/getCategoryColor";
+import { usePrivacy } from "../context/PrivacyContext";
 
 interface DashboardScreenProps {
   isDarkMode: boolean;
@@ -49,6 +50,7 @@ function DashboardScreen({
   navigation,
 }: DashboardScreenProps) {
   const themeColors = getThemeColors(isDarkMode);
+  const { isPrivacyMode } = usePrivacy();
   const [loading, setLoading] = useState(true);
   const [financialData, setFinancialData] =
     useState<FinancialDashboardDto | null>(null);
@@ -360,7 +362,7 @@ function DashboardScreen({
         <>
           <DashboardCarousel
             isDarkMode={isDarkMode}
-            data={transformFinancialData(financialData, isDarkMode)}
+            data={transformFinancialData(financialData, isDarkMode, isPrivacyMode)}
           />
 
           {/* Use the monthly savings view for the dashboard */}

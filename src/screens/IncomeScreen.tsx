@@ -28,6 +28,7 @@ import {
   moderateScale,
 } from "../utils/scaling";
 import ActionFAB from "../../components/ActionFAB";
+import { usePrivacy } from "../context/PrivacyContext";
 
 interface IncomeScreenProps {
   isDarkMode: boolean;
@@ -56,6 +57,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
   navigation,
 }) => {
   const themeColors = getThemeColors(isDarkMode);
+  const { isPrivacyMode } = usePrivacy();
   const { t } = useTranslation();
   const [incomeSources, setIncomeSources] = useState<IncomeSource[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -332,7 +334,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
           </Text>
         </View>
         <Text style={[styles.incomeAmount, { color: themeColors.green }]}>
-          ${typeof source?.amount === "number" ? source.amount : "0"}
+          {isPrivacyMode ? "****" : `$${typeof source?.amount === "number" ? source.amount : "0"}`}
         </Text>
       </TouchableOpacity>
     </Swipeable>
@@ -408,7 +410,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         <>
           <DashboardCarousel
             isDarkMode={isDarkMode}
-            data={transformFinancialData(financialData, isDarkMode)}
+            data={transformFinancialData(financialData, isDarkMode, isPrivacyMode)}
           />
         </>
       )}
@@ -502,7 +504,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
                   { color: themeColors.card_title },
                 ]}
               >
-                ${transaction.amount}
+                {isPrivacyMode ? "****" : `$${transaction.amount}`}
               </Text>
             </View>
           ))}

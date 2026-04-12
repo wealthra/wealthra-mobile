@@ -3,28 +3,32 @@ import { FinancialSummary } from "../services/api";
 import { getThemeColors } from "./getThemeColors";
 import i18next from "i18next";
 
-export const transformFinancialData = (financialData: FinancialSummary, isDarkMode: boolean): DashboardSlideData[] => {
+export const transformFinancialData = (financialData: FinancialSummary, isDarkMode: boolean, isPrivacyMode: boolean): DashboardSlideData[] => {
    const themeColors = getThemeColors(isDarkMode);
+
+   const formatAmount = (amount: number) => {
+      return isPrivacyMode ? "****" : `$${amount.toLocaleString()}`;
+   };
 
    return [
       {
          id: 1,
          title: i18next.t("dashboardCard.totalNetWorth"),
-         description: `$${financialData.totalBalance.toLocaleString()}`,
+         description: formatAmount(financialData.totalBalance),
          percentage: "", // Removed due to API schema change
          color: themeColors.yellow,
       },
       {
          id: 2,
          title: i18next.t("dashboardCard.totalIncome"), // Reusing/creating a translation map proxy
-         description: `$${financialData.totalIncome.toLocaleString()}`,
+         description: formatAmount(financialData.totalIncome),
          percentage: "", 
          color: themeColors.green,
       },
       {
          id: 3,
          title: i18next.t("dashboardCard.totalSpendingThisMonth"),
-         description: `$${financialData.totalExpenses.toLocaleString()}`,
+         description: formatAmount(financialData.totalExpenses),
          percentage: "",
          color: themeColors.red,
       },

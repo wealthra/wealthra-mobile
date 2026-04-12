@@ -12,6 +12,7 @@ import ScreenHeader from "../../components/ScreenHeader";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
 import { getCategoryColor } from "../utils/getCategoryColor";
+import { usePrivacy } from "../context/PrivacyContext";
 
 interface AnalyticsScreenProps {
    isDarkMode: boolean;
@@ -36,6 +37,7 @@ const screenWidth = Dimensions.get("window").width;
 
 const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigation }) => {
    const themeColors = getThemeColors(isDarkMode);
+   const { isPrivacyMode } = usePrivacy();
    const { t } = useTranslation();
    const [isLoading, setIsLoading] = useState(false);
    const [expenseData, setExpenseData] = useState<any[]>([]);
@@ -377,13 +379,13 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
                            <View style={styles.summaryItem}>
                               <Text style={[styles.summaryLabel, { color: themeColors.card_title }]}>{t("analytics.totalIncome")}:</Text>
                               <Text style={[styles.summaryValue, { color: themeColors.green }]}>
-                                 ${incomeData.incomeByMonth.reduce((sum, val) => sum + val, 0).toFixed(2)}
+                                 {isPrivacyMode ? "****" : `$${incomeData.incomeByMonth.reduce((sum, val) => sum + val, 0).toFixed(2)}`}
                               </Text>
                            </View>
                            <View style={styles.summaryItem}>
                               <Text style={[styles.summaryLabel, { color: themeColors.card_title }]}>{t("analytics.totalExpenses")}:</Text>
                               <Text style={[styles.summaryValue, { color: themeColors.red }]}>
-                                 ${incomeData.expenseByMonth.reduce((sum, val) => sum + val, 0).toFixed(2)}
+                                 {isPrivacyMode ? "****" : `$${incomeData.expenseByMonth.reduce((sum, val) => sum + val, 0).toFixed(2)}`}
                               </Text>
                            </View>
                            <View style={styles.summaryItem}>
@@ -400,11 +402,10 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
                                              : themeColors.red,
                                     },
                                  ]}>
-                                 $
-                                 {(
+                                 {isPrivacyMode ? "****" : `$${(
                                     incomeData.incomeByMonth.reduce((sum, val) => sum + val, 0) -
                                     incomeData.expenseByMonth.reduce((sum, val) => sum + val, 0)
-                                 ).toFixed(2)}
+                                 ).toFixed(2)}`}
                               </Text>
                            </View>
                         </View>

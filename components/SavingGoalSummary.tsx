@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { getThemeColors } from "../src/utils/getThemeColors";
 import { useTranslation } from "react-i18next";
 import { horizontalScale, verticalScale, moderateScale } from "../src/utils/scaling";
+import { usePrivacy } from "../src/context/PrivacyContext";
 
 interface SavingGoalSummaryProps {
    currentAmount: number;
@@ -14,10 +15,15 @@ interface SavingGoalSummaryProps {
 const { width: windowWidth } = Dimensions.get("window");
 
 const SavingGoalSummary: React.FC<SavingGoalSummaryProps> = ({ currentAmount, targetAmount, isDarkMode }) => {
+   const { isPrivacyMode } = usePrivacy();
    const themeColors = getThemeColors(isDarkMode);
    const progress = targetAmount > 0 ? (currentAmount / targetAmount) * 100 : 0;
    const progressPercentage = Math.min(100, Math.round(progress)); // Cap at 100%
    const { t } = useTranslation();
+
+   const formatAmount = (amount: number) => {
+      return isPrivacyMode ? "****" : `$${amount.toLocaleString()}`;
+   };
 
    return (
       <View
@@ -33,10 +39,10 @@ const SavingGoalSummary: React.FC<SavingGoalSummaryProps> = ({ currentAmount, ta
          <Text style={styles.subtitleText}>{t("overallProgress")}</Text>
          <Text style={styles.amountText}>
             <Text style={[styles.currentAmount, { color: isDarkMode ? themeColors.card_description : "#333333" }]}>
-               ${currentAmount.toLocaleString()}
+               {formatAmount(currentAmount)}
             </Text>
             <Text style={styles.separator}> / </Text>
-            <Text style={styles.targetAmount}>${targetAmount.toLocaleString()}</Text>
+            <Text style={styles.targetAmount}>{formatAmount(targetAmount)}</Text>
          </Text>
          <View style={[styles.progressBarContainer, { backgroundColor: isDarkMode ? themeColors.frame_stroke : "#F0F0F0" }]}>
             <LinearGradient

@@ -1,8 +1,9 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import SideDrawer from "./SideDrawer";
 import NotificationBell from "./NotificationBell";
-import { horizontalScale, verticalScale } from "../src/utils/scaling";
+import { horizontalScale, verticalScale, moderateScale } from "../src/utils/scaling";
+import { usePrivacy } from "../src/context/PrivacyContext";
+import { Ionicons } from "@expo/vector-icons";
 
 interface ScreenHeaderProps {
    isDarkMode: boolean;
@@ -11,10 +12,19 @@ interface ScreenHeaderProps {
 }
 
 const ScreenHeader: React.FC<ScreenHeaderProps> = ({ isDarkMode, onNavigate, currentRoute }) => {
+   const { isPrivacyMode, togglePrivacyMode } = usePrivacy();
+
    return (
       <View style={styles.headerContainer}>
          <SideDrawer isDarkMode={isDarkMode} onNavigate={onNavigate} currentRoute={currentRoute} />
          <View style={styles.rightContainer}>
+            <TouchableOpacity onPress={togglePrivacyMode} style={styles.iconButton} activeOpacity={0.7}>
+               <Ionicons
+                  name={isPrivacyMode ? "eye-off-outline" : "eye-outline"}
+                  size={moderateScale(28)}
+                  color={isDarkMode ? "#FFFFFF" : "#333333"}
+               />
+            </TouchableOpacity>
             <NotificationBell isDarkMode={isDarkMode} />
          </View>
       </View>
@@ -34,6 +44,10 @@ const styles = StyleSheet.create({
    rightContainer: {
       flexDirection: "row",
       alignItems: "center",
+   },
+   iconButton: {
+      marginRight: horizontalScale(15),
+      padding: horizontalScale(5),
    },
 });
 

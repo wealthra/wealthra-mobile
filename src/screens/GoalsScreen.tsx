@@ -11,6 +11,7 @@ import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling"
 import { getGoals, addGoal, deleteGoal, updateGoal, calculateDaysRemaining } from "../services/api";
 import type { GoalHistoryDto as Goal } from "../api/types/goal.types.ts";
 import ActionFAB from "../../components/ActionFAB";
+import { usePrivacy } from "../context/PrivacyContext";
 
 interface GoalsScreenProps {
    isDarkMode: boolean;
@@ -32,6 +33,7 @@ const { width: windowWidth } = Dimensions.get("window");
 
 const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, navigation }) => {
    const themeColors = getThemeColors(isDarkMode);
+   const { isPrivacyMode } = usePrivacy();
    const { t } = useTranslation();
    const [profileImage, setProfileImage] = useState<string | null>(null);
    const [isModalVisible, setIsModalVisible] = useState(false);
@@ -166,7 +168,7 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
                </Text>
             </View>
             <Text style={[styles.goalAmounts, { color: themeColors.card_description }]}>
-               ${goal.saved.toLocaleString()}/${goal.target.toLocaleString()}
+               {isPrivacyMode ? "****" : `$${goal.saved.toLocaleString()}`} / {isPrivacyMode ? "****" : `$${goal.target.toLocaleString()}`}
             </Text>
             <View style={[styles.goalProgressContainer, { backgroundColor: themeColors.card_background }, { borderColor: themeColors.frame_stroke }]}>
                <View
@@ -289,8 +291,8 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
                   <View style={[styles.progressBar, { width: `${savingPercentage}%`, backgroundColor: themeColors.green || "#4CAF50" }]} />
                </View>
                <View style={styles.budgetAmountsContainer}>
-                  <Text style={[styles.currentAmount, { color: themeColors.card_title }]}>${totalSaved.toLocaleString()}</Text>
-                  <Text style={[styles.targetAmount, { color: themeColors.card_title }]}>${totalTarget.toLocaleString()}</Text>
+                  <Text style={[styles.currentAmount, { color: themeColors.card_title }]}>{isPrivacyMode ? "****" : `$${totalSaved.toLocaleString()}`}</Text>
+                  <Text style={[styles.targetAmount, { color: themeColors.card_title }]}>{isPrivacyMode ? "****" : `$${totalTarget.toLocaleString()}`}</Text>
                </View>
             </View>
 
