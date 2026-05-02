@@ -66,7 +66,7 @@ const VoiceRecordingModal: React.FC<VoiceRecordingModalProps> = ({
     try {
       const permission = await Audio.requestPermissionsAsync();
       if (permission.status !== "granted") {
-        alert("Permission to access microphone is required!");
+        alert(t("common.micPermission"));
         return;
       }
 

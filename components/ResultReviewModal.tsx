@@ -57,10 +57,10 @@ const ResultReviewModal: React.FC<ResultReviewModalProps> = ({
     <View style={[styles.itemCard, { backgroundColor: isDarkMode ? "#1e1e1e" : "#f5f5f5" }]}>
       <View style={styles.itemInfo}>
         <Text style={[styles.itemDescription, { color: themeColors.card_title }]}>
-          {item.description || t("noDescription")}
+          {item.description || t("common.noDescription")}
         </Text>
         <Text style={[styles.itemSubText, { color: themeColors.card_description }]}>
-          {item.categoryName || t("other")} • {item.paymentMethod || t("unknown")}
+          {item.categoryName || t("common.other")} • {item.paymentMethod || t("common.unknown")}
         </Text>
         <Text style={[styles.itemDate, { color: themeColors.card_description }]}>
           {item.transactionDate ? new Date(item.transactionDate).toLocaleDateString() : ""}
@@ -92,10 +92,10 @@ const ResultReviewModal: React.FC<ResultReviewModalProps> = ({
           ]}
         >
           <Text style={[styles.title, { color: themeColors.card_title }]}>
-            {t("review.title") || "Review Extracted Expenses"}
+            {t("review.title")}
           </Text>
           <Text style={[styles.subtitle, { color: themeColors.card_description }]}>
-            {t("review.subtitle") || "Verify the details below before saving"}
+            {t("review.subtitle")}
           </Text>
 
           <FlatList
@@ -106,7 +106,7 @@ const ResultReviewModal: React.FC<ResultReviewModalProps> = ({
             contentContainerStyle={styles.listContent}
             ListEmptyComponent={
               <Text style={[styles.emptyText, { color: themeColors.card_description }]}>
-                {t("review.empty") || "No expenses found"}
+                {t("review.empty")}
               </Text>
             }
           />
@@ -117,7 +117,7 @@ const ResultReviewModal: React.FC<ResultReviewModalProps> = ({
               onPress={onCancel}
             >
               <Text style={[styles.footerButtonText, { color: themeColors.card_description }]}>
-                {t("common.cancel") || "Cancel"}
+                {t("common.cancel")}
               </Text>
             </TouchableOpacity>
             
@@ -127,7 +127,7 @@ const ResultReviewModal: React.FC<ResultReviewModalProps> = ({
               disabled={items.length === 0}
             >
               <Text style={[styles.footerButtonText, { color: "white" }]}>
-                {t("common.confirm") || "Add All"}
+                {t("common.addAll")}
               </Text>
             </TouchableOpacity>
           </View>

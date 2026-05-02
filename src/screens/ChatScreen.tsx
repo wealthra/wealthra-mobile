@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Alert,
   Keyboard,
+  Modal,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons, Entypo } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -31,7 +32,7 @@ import {
 import ResultReviewModal from "../../components/ResultReviewModal";
 import VoiceRecordingModal from "../../components/VoiceRecordingModal";
 import { ExpenseDto } from "../api/types";
-import { bulkAddExpenses, sendCopilotMessage } from "../services/api";
+import { bulkAddExpenses, sendCopilotMessage, getUserUsage, UserUsageDto } from "../services/api";
 
 interface Message {
   id: string;
@@ -54,7 +55,7 @@ const ChatScreen = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Hi! I'm Owlaris Copilot. Send me a voice message or upload a receipt photo to extract your expenses.",
+      text: t("copilot.welcomeMessage"),
       sender: "bot",
       timestamp: new Date().toLocaleTimeString([], {
         hour: "2-digit",
@@ -68,9 +69,28 @@ const ChatScreen = ({
   const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
   const [isVoiceModalVisible, setIsVoiceModalVisible] = useState(false);
   const [extractedExpenses, setExtractedExpenses] = useState<ExpenseDto[]>([]);
+  const [isImageExtraction, setIsImageExtraction] = useState(true);
 
   const flatListRef = useRef<FlatList>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [usage, setUsage] = useState<UserUsageDto | null>(null);
+  const [isUsageLoading, setIsUsageLoading] = useState(true);
+  const [isUsageModalVisible, setIsUsageModalVisible] = useState(false);
+
+  useEffect(() => {
+    const fetchUsage = async () => {
+      setIsUsageLoading(true);
+      try {
+        const data = await getUserUsage();
+        setUsage(data);
+      } catch (error) {
+        console.error("Failed to fetch AI usage limits", error);
+      } finally {
+        setIsUsageLoading(false);
+      }
+    };
+    fetchUsage();
+  }, []);
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -119,7 +139,7 @@ const ChatScreen = ({
       
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: response.message,
+        text: response.message || t("copilot.errorUnderstanding"),
         sender: "bot",
         timestamp: new Date().toLocaleTimeString([], {
           hour: "2-digit",
@@ -132,7 +152,7 @@ const ChatScreen = ({
       console.error("Error communicating with copilot:", error);
       const errorResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I'm sorry, I'm having trouble connecting to the server right now. Please try again.",
+        text: t("copilot.errorConnecting"),
         sender: "bot",
         timestamp: new Date().toLocaleTimeString([], {
           hour: "2-digit",
@@ -160,7 +180,7 @@ const ChatScreen = ({
         // Add image message to chat
         const imageMessage: Message = {
           id: Date.now().toString(),
-          text: "Uploaded a receipt image",
+          text: t("copilot.uploadedReceipt"),
           sender: "user",
           timestamp: new Date().toLocaleTimeString([], {
             hour: "2-digit",
@@ -172,6 +192,7 @@ const ChatScreen = ({
         setMessages((prev) => [...prev, imageMessage]);
 
         setIsExtracting(true);
+        setIsImageExtraction(true);
         const expenses = await extractExpenseFromImage(
           asset.uri,
           asset.mimeType || "image/jpeg",
@@ -181,8 +202,8 @@ const ChatScreen = ({
         setIsReviewModalVisible(true);
       }
     } catch (error) {
-      console.error("Image processing error:", error);
-      Alert.alert("Error", "Failed to process receipt image");
+      console.error("Image extraction error:", error);
+      Alert.alert(t("copilot.error"), t("copilot.errorImage"));
     } finally {
       setIsExtracting(false);
     }
@@ -191,10 +212,9 @@ const ChatScreen = ({
   const handleVoiceRecordComplete = async (uri: string) => {
     setIsVoiceModalVisible(false);
     
-    // Add audio message to chat
     const audioMessage: Message = {
       id: Date.now().toString(),
-      text: "Sent a voice message",
+      text: t("copilot.uploadedAudio"),
       sender: "user",
       timestamp: new Date().toLocaleTimeString([], {
         hour: "2-digit",
@@ -207,12 +227,13 @@ const ChatScreen = ({
 
     try {
       setIsExtracting(true);
+      setIsImageExtraction(false);
       const expenses = await extractExpenseFromAudio(uri);
       setExtractedExpenses(expenses);
       setIsReviewModalVisible(true);
     } catch (error) {
-      console.error("Audio processing error:", error);
-      Alert.alert("Error", "Failed to process voice message");
+      console.error("Audio extraction error:", error);
+      Alert.alert(t("copilot.error"), t("copilot.errorAudio"));
     } finally {
       setIsExtracting(false);
     }
@@ -237,7 +258,9 @@ const ChatScreen = ({
       // Add success message
       const successMessage: Message = {
         id: Date.now().toString(),
-        text: `Successfully added ${expenses.length} expenses from your receipt!`,
+        text: isImageExtraction 
+          ? t("copilot.successReceipt", { count: expenses.length })
+          : t("copilot.successAudio", { count: expenses.length }),
         sender: "bot",
         timestamp: new Date().toLocaleTimeString([], {
           hour: "2-digit",
@@ -248,7 +271,7 @@ const ChatScreen = ({
       setMessages((prev) => [...prev, successMessage]);
     } catch (error) {
       console.error("Bulk add error:", error);
-      Alert.alert("Error", "Failed to add expenses");
+      Alert.alert(t("copilot.error"), t("copilot.errorAddExpenses"));
     } finally {
       setIsExtracting(false);
     }
@@ -266,7 +289,7 @@ const ChatScreen = ({
           </View>
         )}
         <View style={styles.messageContent}>
-          {isBot && <Text style={styles.botName}>Owlaris</Text>}
+          {isBot && <Text style={styles.botName}>{t("copilot.botName")}</Text>}
           <View
             style={[
               styles.messageBubble,
@@ -313,11 +336,75 @@ const ChatScreen = ({
             <MaterialCommunityIcons name="robot" size={24} color="white" />
           </View>
           <View>
-            <Text style={styles.headerTitle}>Owlaris Copilot</Text>
-            <Text style={styles.headerStatus}>Online</Text>
+            <Text style={styles.headerTitle}>{t("copilot.title")}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.headerStatus}>{t("copilot.online")}</Text>
+              {usage && (
+                <Text style={[styles.headerStatus, { marginLeft: 8, opacity: 0.8, fontSize: moderateScale(11) }]}>
+                  {t("copilot.limitsLeft", { ocr: Math.max(0, usage.monthlyOcrLimit - usage.ocrRequestsThisMonth), stt: Math.max(0, usage.monthlySttLimit - usage.sttRequestsThisMonth) })}
+                </Text>
+              )}
+            </View>
           </View>
         </View>
+        <TouchableOpacity onPress={() => setIsUsageModalVisible(true)} style={{ padding: 4 }}>
+          <MaterialCommunityIcons name="information" size={24} color="white" />
+        </TouchableOpacity>
       </View>
+
+      {/* Usage Info Modal */}
+      <Modal
+        visible={isUsageModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsUsageModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setIsUsageModalVisible(false)}
+        >
+          <View style={[styles.usageModalContent, { backgroundColor: theme.card_background, borderColor: theme.frame_stroke }]}>
+            <View style={styles.usageModalHeader}>
+              <Text style={[styles.usageModalTitle, { color: theme.card_title }]}>{t("copilot.myPlan")}</Text>
+              <TouchableOpacity onPress={() => setIsUsageModalVisible(false)}>
+                <MaterialCommunityIcons name="close" size={24} color={theme.card_description} />
+              </TouchableOpacity>
+            </View>
+
+            {isUsageLoading ? (
+              <ActivityIndicator color={theme.green} style={{ marginVertical: 20 }} />
+            ) : usage ? (
+              <View style={styles.usageDetails}>
+                <View style={styles.usageRow}>
+                  <Text style={[styles.usageLabel, { color: theme.card_description }]}>{t("copilot.planTier")}</Text>
+                  <Text style={[styles.usageValue, { color: theme.card_title }]}>{usage.subscriptionPlanName}</Text>
+                </View>
+                <View style={styles.usageRow}>
+                  <Text style={[styles.usageLabel, { color: theme.card_description }]}>{t("copilot.ocrLimit")}</Text>
+                  <Text style={[styles.usageValue, { color: theme.card_title }]}>{usage.ocrRequestsThisMonth} / {usage.monthlyOcrLimit}</Text>
+                </View>
+                <View style={styles.usageRow}>
+                  <Text style={[styles.usageLabel, { color: theme.card_description }]}>{t("copilot.sttLimit")}</Text>
+                  <Text style={[styles.usageValue, { color: theme.card_title }]}>{usage.sttRequestsThisMonth} / {usage.monthlySttLimit}</Text>
+                </View>
+                {usage.lastUsageActivityDate && (
+                  <View style={styles.usageRow}>
+                    <Text style={[styles.usageLabel, { color: theme.card_description }]}>{t("copilot.lastActivity")}</Text>
+                    <Text style={[styles.usageValue, { color: theme.card_title }]}>
+                      {new Date(usage.lastUsageActivityDate).toLocaleDateString()}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            ) : (
+              <Text style={[{ color: theme.card_description, textAlign: "center", marginVertical: 20 }]}>
+                {t("copilot.loadError")}
+              </Text>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       {/* Replaced KeyboardAvoidingView with manual flex container */}
       <View style={styles.keyboardView}>
@@ -337,7 +424,7 @@ const ChatScreen = ({
             <Text
               style={[styles.extractingText, { color: theme.card_description }]}
             >
-              Owlaris is thinking...
+              {t("copilot.thinking")}
             </Text>
           </View>
         )}
@@ -366,7 +453,7 @@ const ChatScreen = ({
             </TouchableOpacity>
             <TextInput
               style={[styles.input, { color: theme.card_title }]}
-              placeholder="Type a message..."
+              placeholder={t("copilot.placeholder")}
               placeholderTextColor="#999"
               value={inputText}
               onChangeText={setInputText}
@@ -550,6 +637,44 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(12),
     marginLeft: horizontalScale(8),
     fontStyle: "italic",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: horizontalScale(20),
+  },
+  usageModalContent: {
+    width: "100%",
+    borderRadius: moderateScale(16),
+    padding: moderateScale(20),
+    borderWidth: 1,
+  },
+  usageModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: verticalScale(16),
+  },
+  usageModalTitle: {
+    fontSize: moderateScale(18),
+    fontWeight: "bold",
+  },
+  usageDetails: {
+    gap: verticalScale(12),
+  },
+  usageRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  usageLabel: {
+    fontSize: moderateScale(14),
+  },
+  usageValue: {
+    fontSize: moderateScale(14),
+    fontWeight: "600",
   },
 });
 

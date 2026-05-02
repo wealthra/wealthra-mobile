@@ -11,3 +11,4 @@ export * from './ocrService';
 export * from './recommendationService';
 export * from './notificationService';
 export * from './copilotService';
+export * from './aiUsageService';
