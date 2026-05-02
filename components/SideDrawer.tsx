@@ -79,6 +79,13 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
         </View>
       )}
 
+      {/* Backdrop Overlay */}
+      {isExpanded && (
+        <TouchableWithoutFeedback onPress={toggleDrawer}>
+          <View style={styles.overlay} />
+        </TouchableWithoutFeedback>
+      )}
+
       <Animated.View
         style={[
           styles.drawer,
@@ -191,6 +198,15 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
 };
 
 const styles = StyleSheet.create({
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: Dimensions.get("screen").width,
+    height: Dimensions.get("screen").height,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    zIndex: 998,
+  },
   buttonContainer: {
     zIndex: 1000,
   },
