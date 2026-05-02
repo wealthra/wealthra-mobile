@@ -14,21 +14,25 @@ import {
   bulkAddExpenses,
   extractExpenseFromImage,
   extractExpenseFromAudio,
+  getActiveAnnouncements,
   type FinancialDashboardDto,
   type GoalHistoryDto,
   type UserDto,
   type CategoryDto,
   type ExpenseDto,
+  type AnnouncementDto,
 } from "../services/api";
 import * as ImagePicker from "expo-image-picker";
 import VoiceRecordingModal from "../../components/VoiceRecordingModal";
 import ResultReviewModal from "../../components/ResultReviewModal";
+import AnnouncementModal from "../../components/AnnouncementModal";
 import { transformFinancialData } from "../utils/transformFinancialData";
 import { useTranslation } from "react-i18next";
 import ScreenHeader from "../../components/ScreenHeader";
 import AddExpenseModal from "../../components/AddExpenseModal";
 import AddIncomeModal from "../../components/AddIncomeModal";
 import { Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   horizontalScale,
   verticalScale,
@@ -71,6 +75,8 @@ function DashboardScreen({
   const [isVoiceModalVisible, setIsVoiceModalVisible] = useState(false);
   const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
   const [extractedExpenses, setExtractedExpenses] = useState<ExpenseDto[]>([]);
+  const [activeAnnouncement, setActiveAnnouncement] = useState<AnnouncementDto | null>(null);
+  const [isAnnouncementVisible, setIsAnnouncementVisible] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const { t } = useTranslation();
 
@@ -332,20 +338,33 @@ function DashboardScreen({
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch financial data, user info and categories in parallel
-        const [finData, user, catData] = await Promise.all([
+        // Fetch financial data, user info, categories and announcements in parallel
+        const [finData, user, catData, announcements] = await Promise.all([
           getFinancialSummary(),
           getCurrentUser(),
           getUserCategories(),
+          getActiveAnnouncements(),
         ]);
         setFinancialData(finData);
         setUserInfo(user);
         setCategories(catData);
 
+        // Show the first active announcement if any
+        if (announcements && announcements.length > 0) {
+          const firstAnnouncement = announcements[0];
+          const lastSeenId = await AsyncStorage.getItem("lastSeenAnnouncementId");
+          
+          if (lastSeenId !== firstAnnouncement.id.toString()) {
+            setActiveAnnouncement(firstAnnouncement);
+            setIsAnnouncementVisible(true);
+            await AsyncStorage.setItem("lastSeenAnnouncementId", firstAnnouncement.id.toString());
+          }
+        }
+
         // Calculate goals summary after financial data is loaded
         await calculateGoalsSummary();
       } catch (error) {
-        console.error("Failed to fetch financial data:", error);
+        console.error("Failed to fetch dashboard data:", error);
       } finally {
         setLoading(false);
       }
@@ -464,6 +483,12 @@ function DashboardScreen({
         expenses={extractedExpenses}
         onConfirm={handleConfirmBulkAdd}
         onCancel={() => setIsReviewModalVisible(false)}
+        isDarkMode={isDarkMode}
+      />
+      <AnnouncementModal
+        visible={isAnnouncementVisible}
+        onClose={() => setIsAnnouncementVisible(false)}
+        announcement={activeAnnouncement}
         isDarkMode={isDarkMode}
       />
       {isExtracting && (

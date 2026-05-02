@@ -291,7 +291,11 @@ const resources = {
         noDescription: "No description",
         other: "Other",
         unknown: "Unknown",
-        micPermission: "Permission to access microphone is required!"
+        micPermission: "Permission to access microphone is required!",
+        gotIt: "Got it!",
+        info: "Information",
+        warning: "Warning",
+        promotion: "Promotion"
       },
       scan: {
         title: "Scan Receipt",
@@ -633,7 +637,11 @@ const resources = {
         noDescription: "Açıklama yok",
         other: "Diğer",
         unknown: "Bilinmiyor",
-        micPermission: "Mikrofon erişim izni gereklidir!"
+        micPermission: "Mikrofon erişim izni gereklidir!",
+        gotIt: "Anladım!",
+        info: "Bilgi",
+        warning: "Uyarı",
+        promotion: "Promosyon"
       },
       scan: {
         title: "Fiş Tara",

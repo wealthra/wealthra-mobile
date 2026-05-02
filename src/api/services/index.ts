@@ -12,3 +12,4 @@ export * from './recommendationService';
 export * from './notificationService';
 export * from './copilotService';
 export * from './aiUsageService';
+export * from './announcementService';

@@ -11,3 +11,4 @@ export * from './notification.types';
 export * from './recommendation.types';
 export * from './analytic.types';
 export * from './ocr.types';
+export * from './announcement.types';
