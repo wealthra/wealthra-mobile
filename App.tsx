@@ -30,6 +30,7 @@ import ChangePassword from "./src/screens/ChangePassword";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CategoriesScreen from "./src/screens/CategoriesScreen";
 import NotificationCenterScreen from "./src/screens/NotificationCenterScreen";
+import ChatScreen from "./src/screens/ChatScreen";
 import { NotificationProvider } from "./src/context/NotificationContext";
 import { PrivacyProvider } from "./src/context/PrivacyContext";
 import { UserProvider } from "./src/context/UserContext";
@@ -171,6 +172,14 @@ function AppNavigator({
       <Stack.Screen name="NotificationCenter">
         {({ navigation }) => (
           <NotificationCenterScreen
+            isDarkMode={isDarkMode}
+            navigation={navigation}
+          />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="Chat">
+        {({ navigation }) => (
+          <ChatScreen
             isDarkMode={isDarkMode}
             navigation={navigation}
           />

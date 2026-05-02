@@ -160,6 +160,7 @@ const resources = {
         analytics: "Analytics",
         settings: "Settings",
         categories: "Categories",
+        copilot: "Copilot",
       },
       cards: {
         categoryCard: {
@@ -459,6 +460,7 @@ const resources = {
         analytics: "Analiz",
         settings: "Ayarlar",
         categories: "Kategoriler",
+        copilot: "Copilot",
       },
       cards: {
         categoryCard: {

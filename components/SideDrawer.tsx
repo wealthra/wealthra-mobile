@@ -12,6 +12,7 @@ import { getThemeColors } from "../src/utils/getThemeColors";
 import { useTranslation } from "react-i18next";
 import { data } from "../src/utils/data";
 import { SvgXml } from "react-native-svg";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   horizontalScale,
   verticalScale,
@@ -43,7 +44,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     { icon: data[8].budgetIcon, label: "Budget", route: "Budget" },
     { icon: data[9].goalsIcon, label: "Goals", route: "Goals" },
     { icon: data[10].analyticsIcon, label: "Analytics", route: "Analytics" },
-    //{ icon: data[7].expensesIcon, label: "Categories", route: "Categories" },
+    { materialIcon: "robot", label: "Copilot", route: "Chat" },
     { icon: data[11].settingsIcon, label: "Settings", route: "Settings" },
   ];
 
@@ -145,16 +146,28 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
               ]}
               onPress={() => onNavigate(item.route)}
             >
-              <SvgXml
-                xml={item.icon ?? null}
-                width={24}
-                height={24}
-                color={
-                  currentRoute === item.route
-                    ? themeColors.green
-                    : themeColors.card_title
-                }
-              />
+              {item.materialIcon ? (
+                <MaterialCommunityIcons
+                  name={item.materialIcon as any}
+                  size={24}
+                  color={
+                    currentRoute === item.route
+                      ? themeColors.green
+                      : themeColors.card_title
+                  }
+                />
+              ) : (
+                <SvgXml
+                  xml={item.icon ?? null}
+                  width={24}
+                  height={24}
+                  color={
+                    currentRoute === item.route
+                      ? themeColors.green
+                      : themeColors.card_title
+                  }
+                />
+              )}
               <Text
                 style={[
                   styles.menuText,
