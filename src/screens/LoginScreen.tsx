@@ -9,6 +9,7 @@ import { data } from "../utils/data.js";
 import { getThemeColors } from "../utils/getThemeColors";
 import { loginUser } from "../services/api";
 import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
+import { useAuth } from "../context/AuthContext";
 
 interface LoginScreenProps {
    isDarkMode: boolean; // Receive theme state
@@ -22,6 +23,7 @@ const LoginScreen = ({ isDarkMode, onToggleTheme, navigation }: LoginScreenProps
    const themeColors = getThemeColors(isDarkMode);
    const [email, setEmail] = useState("");
    const [password, setPassword] = useState("");
+   const { login } = useAuth();
    const [isLoading, setIsLoading] = useState(false);
    const [error, setError] = useState<string | null>(null);
 
@@ -79,8 +81,9 @@ const LoginScreen = ({ isDarkMode, onToggleTheme, navigation }: LoginScreenProps
          const response = await loginUser({ email, password });
 
          if (response && response.token) {
-            console.log("Login successful, navigating to Dashboard");
-            navigation.navigate("Dashboard");
+            console.log("Login successful, updating global auth state");
+            await login(response.token, response.refreshToken, response.id);
+            // Navigation will happen automatically due to the AppNavigator logic
          } else {
             throw new Error("Invalid response from server");
          }

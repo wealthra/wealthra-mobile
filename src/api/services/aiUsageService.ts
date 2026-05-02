@@ -18,11 +18,6 @@ export interface UserUsageDto {
 
 export const getUserUsage = async (): Promise<UserUsageDto | null> => {
   try {
-    const token = await getStoredToken();
-    if (!token) {
-      console.warn("No authentication token found. Skipping usage fetch.");
-      return null;
-    }
     const response = await axiosInstance.get<UserUsageDto>("/api/Account/me/usage");
     return response.data;
   } catch (error) {

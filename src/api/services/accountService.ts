@@ -5,9 +5,6 @@ import { UserDto, RefreshTokenRequest, RefreshTokenResponse, UpdateUserCommand }
 
 export const updateUserProfile = async (profileData: UpdateUserCommand): Promise<void> => {
    try {
-      const token = await getStoredToken();
-      if (!token) throw new Error("No authentication token found");
-
       console.log("Updating user profile with data:", profileData);
 
       const response = await axiosInstance.put('/api/Account/update-user', profileData, {
@@ -36,9 +33,6 @@ export const updateUserProfile = async (profileData: UpdateUserCommand): Promise
 
 export const changePassword = async (currentPassword: string, newPassword: string, confirmPassword: string): Promise<void> => {
    try {
-      const token = await getStoredToken();
-      if (!token) throw new Error("No authentication token found");
-
       const userId = await getUserId();
       const requestData = {
          userId: userId,
@@ -71,9 +65,6 @@ export const changePassword = async (currentPassword: string, newPassword: strin
 
 export const getUserInfo = async (): Promise<UserDto> => {
    try {
-      const token = await getStoredToken();
-      if (!token) throw new Error("No authentication token found");
-
       const userId = await getUserId();
 
       const response = await axiosInstance.get<UserDto>('/api/Account/me', {

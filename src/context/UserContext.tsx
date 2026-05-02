@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { getUserInfo } from "../api/services/accountService";
 import { UserDto } from "../api/types";
+import { useAuth } from "./AuthContext";
 
 interface UserContextType {
    userInfo: UserDto | null;
@@ -12,11 +13,14 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+   const { isAuthenticated } = useAuth();
    const [userInfo, setUserInfo] = useState<UserDto | null>(null);
    const [preferredCurrency, setPreferredCurrency] = useState<string>("USD");
-   const [isLoading, setIsLoading] = useState(true);
+   const [isLoading, setIsLoading] = useState(false);
 
    const refreshUser = useCallback(async () => {
+      if (!isAuthenticated) return;
+
       try {
          setIsLoading(true);
          const user = await getUserInfo();
@@ -29,11 +33,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } finally {
          setIsLoading(false);
       }
-   }, []);
+   }, [isAuthenticated]);
 
    useEffect(() => {
-      refreshUser();
-   }, [refreshUser]);
+      if (isAuthenticated) {
+         refreshUser();
+      } else {
+         setUserInfo(null);
+      }
+   }, [isAuthenticated, refreshUser]);
 
    return (
       <UserContext.Provider value={{ userInfo, preferredCurrency, isLoading, refreshUser }}>

@@ -9,6 +9,7 @@ import i18n from "../i18n/config";
 import { getUserInfo, updatePreferredCurrency } from "../api/services/accountService";
 import { useFocusEffect } from "@react-navigation/native";
 import { useUser } from "../context/UserContext";
+import { useAuth } from "../context/AuthContext";
 
 interface SettingsScreenProps {
    isDarkMode: boolean;
@@ -45,6 +46,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleThe
    const [preferredCurrency, setPreferredCurrency] = React.useState<string>("USD");
    const [isLoading, setIsLoading] = React.useState(false);
    const { refreshUser } = useUser();
+   const { logout } = useAuth();
 
    function handleNavigate(screen: string): void {
       navigation.navigate(screen);
@@ -129,12 +131,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleThe
             style: "destructive",
             onPress: async () => {
                try {
-                  // Clear token and navigate to login
-                  await AsyncStorage.removeItem("userToken");
-                  navigation.reset({
-                     index: 0,
-                     routes: [{ name: "Login" }],
-                  });
+                  // Clear tokens globally
+                  await logout();
+                  // App will automatically redirect to Login due to AppNavigator logic
                } catch (error) {
                   console.error("Error during logout:", error);
                   Alert.alert(t("alerts.titles.error"), t("settings.logoutError"));
