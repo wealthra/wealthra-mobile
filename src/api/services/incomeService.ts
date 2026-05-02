@@ -1,5 +1,5 @@
 import axiosInstance from "../axiosInstance";
-import { getStoredToken, getUserId } from "./authService";
+import { getStoredToken, getUserId, getStoredCurrency } from "./authService";
 import { IncomeDto, PaginatedListOfIncomeDto, CreateIncomeCommand, UpdateIncomeCommand, IncomeSummaryDto, IncomeGeneralInfoDto } from "../types";
 
 export const getIncomes = async (pageNumber: number = 1, pageSize: number = 10): Promise<PaginatedListOfIncomeDto> => {
@@ -8,15 +8,17 @@ export const getIncomes = async (pageNumber: number = 1, pageSize: number = 10):
       if (!token) throw new Error("No authentication token found");
 
       const userId = await getUserId();
-      const params = { PageNumber: pageNumber, PageSize: pageSize };
+      const currency = await getStoredCurrency();
+      const params = { PageNumber: pageNumber, PageSize: pageSize, currency };
 
       console.log("Fetching incomes:", params);
 
+      console.log(`🚀 [DEBUG] Fetching incomes for currency: ${currency}`);
       const response = await axiosInstance.get<PaginatedListOfIncomeDto>(`/api/Incomes`, {
          params,
       });
 
-      console.log("Income API Response:", response.data);
+      console.log("✅ [DEBUG] Income List API Response:", JSON.stringify(response.data, null, 2));
       return response.data;
    } catch (error: any) {
       console.error("Failed to fetch incomes:", error);
@@ -105,12 +107,16 @@ export const getIncomeSummary = async (): Promise<IncomeSummaryDto> => {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
+      const currency = await getStoredCurrency();
+      console.log(`🚀 [DEBUG] Fetching income summary for currency: ${currency}`);
       const response = await axiosInstance.get<IncomeSummaryDto>(`/api/Incomes/summary`, {
          headers: {
             "Content-Type": "application/json",
          },
+         params: { currency }
       });
 
+      console.log("✅ [DEBUG] Income Summary API Response:", JSON.stringify(response.data, null, 2));
       return response.data;
    } catch (error: any) {
       console.error("Failed to fetch income summary:", error);
@@ -123,10 +129,12 @@ export const getIncomeGeneralInfo = async (): Promise<IncomeGeneralInfoDto> => {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
+      const currency = await getStoredCurrency();
       const response = await axiosInstance.get<IncomeGeneralInfoDto>(`/api/Incomes/generalinfo`, {
          headers: {
             "Content-Type": "application/json",
          },
+         params: { currency }
       });
 
       return response.data;

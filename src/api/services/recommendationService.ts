@@ -1,15 +1,17 @@
 import axiosInstance from "../axiosInstance";
-import { getStoredToken } from "./authService";
+import { getStoredToken, getStoredCurrency } from "./authService";
 
 export const getFinancialRecommendations = async (): Promise<string[]> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
-      const response = await axiosInstance.get<string[]>(`/api/Recommendation`, {
+      const currency = await getStoredCurrency();
+      const response = await axiosInstance.get<string[]>(`/api/Recommendations/personalized`, {
          headers: {
             "Content-Type": "application/json",
          },
+         params: { currency }
       });
 
       return response.data;

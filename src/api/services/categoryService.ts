@@ -32,23 +32,6 @@ export const getUserCategories = async (): Promise<CategoryDto[]> => {
    }
 };
 
-export const getCategory = async (id: number): Promise<CategoryDto> => {
-   try {
-      const token = await getStoredToken();
-      if (!token) throw new Error("No authentication token found");
-
-      const response = await axiosInstance.get<CategoryDto>(`/api/Categories/${id}`, {
-         headers: {
-            "Content-Type": "application/json",
-         },
-      });
-
-      return response.data;
-   } catch (error: any) {
-      console.error(`Failed to fetch category ${id}:`, error);
-      throw new Error(error.response?.data?.message || "Failed to fetch category");
-   }
-};
 
 export const addCategory = async (name: string): Promise<number> => {
    try {

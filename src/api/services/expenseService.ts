@@ -1,5 +1,5 @@
 import axiosInstance from "../axiosInstance";
-import { getStoredToken, getUserId } from "./authService";
+import { getStoredToken, getUserId, getStoredCurrency } from "./authService";
 import {
   ExpenseDto,
   PaginatedListOfExpenseDto,
@@ -18,7 +18,8 @@ export const getExpenses = async (
     if (!token) throw new Error("No authentication token found");
 
     const userId = await getUserId();
-    const params = { PageNumber: pageNumber, PageSize: pageSize };
+    const currency = await getStoredCurrency();
+    const params = { PageNumber: pageNumber, PageSize: pageSize, currency };
 
     console.log("Fetching expenses:", params);
 
@@ -155,12 +156,14 @@ export const getExpenseSummary = async (): Promise<ExpenseSummaryDto> => {
     const token = await getStoredToken();
     if (!token) throw new Error("No authentication token found");
 
+    const currency = await getStoredCurrency();
     const response = await axiosInstance.get<ExpenseSummaryDto>(
       `/api/Expenses/summary`,
       {
         headers: {
           "Content-Type": "application/json",
         },
+        params: { currency },
       },
     );
 
@@ -179,12 +182,14 @@ export const getExpenseGeneralInfo =
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
+      const currency = await getStoredCurrency();
       const response = await axiosInstance.get<ExpenseGeneralInfoDto>(
-        `/api/Expenses/general-info`,
+        `/api/Expenses/generalinfo`,
         {
           headers: {
             "Content-Type": "application/json",
           },
+          params: { currency },
         },
       );
 

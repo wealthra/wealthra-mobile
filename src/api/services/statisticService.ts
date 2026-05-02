@@ -1,5 +1,5 @@
 import axiosInstance from "../axiosInstance";
-import { getStoredToken } from "./authService";
+import { getStoredToken, getStoredCurrency } from "./authService";
 import { FinancialDashboardDto, SpendingBreakdownDto, MonthlyTrendsDto } from "../types";
 
 export const getFinancialSummary = async (): Promise<FinancialDashboardDto> => {
@@ -7,13 +7,17 @@ export const getFinancialSummary = async (): Promise<FinancialDashboardDto> => {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
+      const currency = await getStoredCurrency();
+      console.log(`🚀 [DEBUG] Fetching financial summary for currency: ${currency}`);
+
       const response = await axiosInstance.get<FinancialDashboardDto>('/api/Summary/dashboard', {
          headers: {
             "Content-Type": "application/json",
          },
+         params: { currency }
       });
 
-      console.log("Summary dashboard fetched successfully");
+      console.log("✅ [DEBUG] Financial Summary API Response:", JSON.stringify(response.data, null, 2));
       return response.data;
    } catch (error: any) {
       console.error("Failed to fetch dashboard summary:", error);
@@ -26,11 +30,12 @@ export const getSpendingBreakdown = async (startDate?: string, endDate?: string)
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
+      const currency = await getStoredCurrency();
       const response = await axiosInstance.get<SpendingBreakdownDto>(`/api/Statistics/breakdown`, {
          headers: {
             "Content-Type": "application/json",
          },
-         params: { startDate, endDate }
+         params: { startDate, endDate, currency }
       });
 
       return response.data;
@@ -45,11 +50,12 @@ export const getMonthlyTrends = async (year?: number): Promise<MonthlyTrendsDto>
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
+      const currency = await getStoredCurrency();
       const response = await axiosInstance.get<MonthlyTrendsDto>(`/api/Statistics/trends`, {
          headers: {
             "Content-Type": "application/json",
          },
-         params: { year }
+         params: { year, currency }
       });
 
       return response.data;

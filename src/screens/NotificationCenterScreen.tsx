@@ -48,6 +48,46 @@ const NotificationCenterScreen: React.FC<NotificationCenterScreenProps> = ({
     }
   };
 
+  const beautifyMessage = (message?: string): { tag: string | null; text: string } => {
+    if (!message) return { tag: null, text: "" };
+
+    // Mapping for technical tags to user-friendly labels
+    const tagMap: Record<string, string> = {
+      "[HIGH_INCOME_SHARE]": "High Income Share",
+      "[LOW_SAVINGS]": "Low Savings Alert",
+      "[UNUSUAL_SPENDING]": "Unusual Activity",
+      "[BUDGET_EXCEEDED]": "Budget Limit Reached",
+      "[GOAL_ACHIEVED]": "Goal Reached!",
+      "[GOAL_PROGRESS]": "Goal Update",
+      "[BILL_REMINDER]": "Upcoming Bill",
+      "[SUBSCRIPTION_DETECTED]": "New Subscription",
+    };
+
+    let processed = message;
+
+    // 1. Clean up potential weird formatting (like %24.4 -> 24.4%)
+    processed = processed.replace(/%(\d+\.?\d*)/g, "$1%");
+
+    // 2. Extract and format tags
+    let extractedTag = "";
+    Object.keys(tagMap).forEach((tag) => {
+      if (processed.includes(tag)) {
+        extractedTag = tagMap[tag];
+        processed = processed.replace(tag, "").trim();
+      }
+    });
+
+    // 3. Remove any remaining square bracket tags if not in map
+    processed = processed.replace(/\[[A-Z_]+\]/g, "").trim();
+
+    // 4. If we found a tag, prepend it beautifully
+    if (extractedTag) {
+      return { tag: extractedTag, text: processed };
+    }
+
+    return { tag: null, text: processed };
+  };
+
   const formatRelativeTime = (dateString?: string) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -67,6 +107,7 @@ const NotificationCenterScreen: React.FC<NotificationCenterScreenProps> = ({
 
   const renderItem = ({ item }: { item: NotificationDto }) => {
     const icon = getNotificationIcon(item.type);
+    const { tag, text } = beautifyMessage(item.message);
     
     return (
       <TouchableOpacity
@@ -84,8 +125,11 @@ const NotificationCenterScreen: React.FC<NotificationCenterScreenProps> = ({
           <Ionicons name={icon.name as any} size={24} color={icon.color} />
         </View>
         <View style={styles.contentContainer}>
+          {tag && (
+            <Text style={[styles.tag, { color: icon.color }]}>{tag.toUpperCase()}</Text>
+          )}
           <Text style={[styles.message, { color: theme.card_title }]}>
-            {item.message}
+            {text}
           </Text>
           <Text style={styles.time}>{formatRelativeTime(item.createdOn)}</Text>
         </View>
@@ -256,6 +300,12 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(15),
     fontWeight: "500",
     lineHeight: moderateScale(20),
+  },
+  tag: {
+    fontSize: moderateScale(11),
+    fontWeight: "bold",
+    marginBottom: verticalScale(2),
+    letterSpacing: 0.5,
   },
   time: {
     fontSize: moderateScale(12),

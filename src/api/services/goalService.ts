@@ -1,5 +1,5 @@
 import axiosInstance from "../axiosInstance";
-import { getStoredToken, getUserId } from "./authService";
+import { getStoredToken, getUserId, getStoredCurrency } from "./authService";
 import { GoalDto, PaginatedListOfGoalHistoryDto, CreateGoalCommand, UpdateGoalCommand, GoalsTotalDto } from "../types";
 
 export const getGoals = async (pageNumber: number = 1, pageSize: number = 10): Promise<PaginatedListOfGoalHistoryDto> => {
@@ -8,11 +8,12 @@ export const getGoals = async (pageNumber: number = 1, pageSize: number = 10): P
       if (!token) throw new Error("No authentication token found");
 
       const userId = await getUserId();
-      const params = { PageNumber: pageNumber, PageSize: pageSize };
+      const currency = await getStoredCurrency();
+      const params = { PageNumber: pageNumber, PageSize: pageSize, currency };
 
       console.log("Fetching goals with params:", params);
 
-      const response = await axiosInstance.get(`/api/Goals`, {
+      const response = await axiosInstance.get<PaginatedListOfGoalHistoryDto>(`/api/Goals/user`, {
          headers: {
             "Content-Type": "application/json",
          },
@@ -20,32 +21,7 @@ export const getGoals = async (pageNumber: number = 1, pageSize: number = 10): P
       });
 
       console.log("Goals API Response:", response.data);
-
-      let formattedResponse: PaginatedListOfGoalHistoryDto;
-
-      if (response.data && (response.data as any).items) {
-         formattedResponse = response.data as PaginatedListOfGoalHistoryDto;
-      } else if (Array.isArray(response.data)) {
-         formattedResponse = {
-            pageNumber,
-            totalPages: 1,
-            items: response.data,
-            hasNextPage: false,
-            hasPreviousPage: false,
-            totalCount: response.data.length,
-         };
-      } else {
-         formattedResponse = {
-            pageNumber,
-            totalPages: 0,
-            items: [],
-            hasNextPage: false,
-            hasPreviousPage: false,
-            totalCount: 0,
-         };
-      }
-
-      return formattedResponse;
+      return response.data;
    } catch (error: any) {
       console.error("Failed to fetch goals:", {
          error: error.message,
@@ -203,10 +179,12 @@ export const getGoalsTotal = async (): Promise<GoalsTotalDto> => {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
+      const currency = await getStoredCurrency();
       const response = await axiosInstance.get<GoalsTotalDto>(`/api/Goals/total`, {
          headers: {
             "Content-Type": "application/json",
          },
+         params: { currency }
       });
 
       return response.data;

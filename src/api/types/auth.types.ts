@@ -34,3 +34,18 @@ export interface RefreshTokenResponse {
    refreshToken: string;
    refreshTokenExpiration: string;
 }
+
+export interface ForgotPasswordCommand {
+   email: string;
+}
+
+export interface VerifyResetCodeCommand {
+   email: string;
+   code: string;
+}
+
+export interface ResetPasswordWithCodeCommand {
+   email: string;
+   code: string;
+   newPassword?: string;
+}

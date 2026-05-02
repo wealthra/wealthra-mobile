@@ -1,5 +1,5 @@
 import axiosInstance from "../axiosInstance";
-import { getStoredToken, getUserId } from "./authService";
+import { getStoredToken, getUserId, getStoredCurrency } from "./authService";
 import { getUserCategories } from "./categoryService";
 import { BudgetDto, CreateBudgetCommand, UpdateBudgetCommand, BudgetOverviewDto, MonthlyBudgetSummaryDto, PaginatedListOfBudgetDto, BudgetAlertDto } from "../types";
 
@@ -9,7 +9,8 @@ export const getBudgets = async (pageNumber: number = 1, pageSize: number = 10):
       if (!token) throw new Error("No authentication token found");
 
       const userId = await getUserId();
-      const params = { PageNumber: pageNumber, PageSize: pageSize };
+      const currency = await getStoredCurrency();
+      const params = { PageNumber: pageNumber, PageSize: pageSize, currency };
 
       console.log("Fetching budgets with params:", params);
 
@@ -167,10 +168,12 @@ export const getBudgetOverview = async (): Promise<BudgetOverviewDto> => {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
+      const currency = await getStoredCurrency();
       const response = await axiosInstance.get<BudgetOverviewDto>(`/api/Budgets/overview`, {
          headers: {
             "Content-Type": "application/json",
          },
+         params: { currency }
       });
 
       console.log("Budget Overview Data:", response.data);
@@ -185,39 +188,18 @@ export const getBudgetOverview = async (): Promise<BudgetOverviewDto> => {
    }
 };
 
-export const getBudgetAlerts = async (): Promise<BudgetAlertDto[]> => {
-   try {
-      const token = await getStoredToken();
-      if (!token) throw new Error("No authentication token found");
-
-      const response = await axiosInstance.get<BudgetAlertDto[]>(`/api/Budgets/alerts`, {
-         headers: {
-            "Content-Type": "application/json",
-         },
-      });
-
-      console.log("Budget Alerts Data:", response.data);
-      return response.data;
-   } catch (error: any) {
-      console.error("Failed to fetch budget alerts:", {
-         error: error.message,
-         response: error.response?.data,
-      });
-
-      // Default to empty on fail based on existing fallback logic
-      return [];
-   }
-};
 
 export const getMonthlyBudgetSummary = async (): Promise<MonthlyBudgetSummaryDto> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
+      const currency = await getStoredCurrency();
       const response = await axiosInstance.get<MonthlyBudgetSummaryDto>(`/api/Budgets/monthly`, {
          headers: {
             "Content-Type": "application/json",
          },
+         params: { currency }
       });
 
       console.log("Monthly Budget Summary:", response.data);

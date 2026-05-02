@@ -83,6 +83,9 @@ export const getUserInfo = async (): Promise<UserDto> => {
       });
 
       console.log("User info fetched successfully");
+      if (response.data.preferredCurrency) {
+         await AsyncStorage.setItem("preferredCurrency", response.data.preferredCurrency);
+      }
       return response.data;
    } catch (error: any) {
       console.error("Failed to get user information:", {
@@ -225,6 +228,7 @@ export const updatePreferredCurrency = async (currencyCode: string): Promise<voi
       });
 
       console.log("Preferred currency updated successfully:", response.status);
+      await AsyncStorage.setItem("preferredCurrency", currencyCode);
       return;
    } catch (error: any) {
       console.error("Failed to update preferred currency:", {

@@ -23,6 +23,12 @@ axiosInstance.interceptors.request.use(
       if (token && config.headers && !isPublicRoute) {
          config.headers.Authorization = `Bearer ${token}`;
       }
+
+      console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${config.url}`, {
+         params: config.params,
+         data: config.data
+      });
+
       return config;
    }) as any,
    (error) => Promise.reject(error)
@@ -46,9 +52,18 @@ const processQueue = (error: any, token: string | null = null) => {
 
 axiosInstance.interceptors.response.use(
    (response) => {
+      console.log(`✅ [API Response] ${response.config.method?.toUpperCase()} ${response.config.url}`, {
+         status: response.status,
+         data: response.data
+      });
       return response;
    },
    async (error) => {
+      console.log(`❌ [API Error] ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
+         status: error.response?.status,
+         data: error.response?.data,
+         message: error.message
+      });
       const originalRequest = error.config;
 
       if (

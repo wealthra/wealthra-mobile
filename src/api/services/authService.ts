@@ -1,6 +1,13 @@
 import axiosInstance from "../axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AuthResponse, RegisterUserCommand, LoginUserCommand } from "../types";
+import {
+   AuthResponse,
+   RegisterUserCommand,
+   LoginUserCommand,
+   ForgotPasswordCommand,
+   VerifyResetCodeCommand,
+   ResetPasswordWithCodeCommand
+} from "../types";
 
 export const loginUser = async (loginData: LoginUserCommand): Promise<AuthResponse> => {
    try {
@@ -102,9 +109,8 @@ export const signUp = async (firstName: string, surname: string, email: string, 
 
 export const forgotPassword = async (email: string): Promise<void> => {
    try {
-      await axiosInstance.post('/api/Account/forgot-password', {
-         email: email,
-      });
+      const command: ForgotPasswordCommand = { email };
+      await axiosInstance.post('/api/Account/forgot-password', command);
       return;
    } catch (error: any) {
       console.error("API Request failed:", {
@@ -117,6 +123,35 @@ export const forgotPassword = async (email: string): Promise<void> => {
          throw new Error(error.response.data.message || "Forgot password failed");
       }
       throw new Error("Network error occurred");
+   }
+};
+
+export const verifyResetCode = async (email: string, code: string): Promise<void> => {
+   try {
+      const command: VerifyResetCodeCommand = { email, code };
+      await axiosInstance.post('/api/Account/verify-reset-code', command);
+      return;
+   } catch (error: any) {
+      console.error("API Request failed:", {
+         url: '/api/Account/verify-reset-code',
+         error: error.message,
+         response: error.response?.data,
+      });
+      throw error;
+   }
+};
+
+export const resetPassword = async (command: ResetPasswordWithCodeCommand): Promise<void> => {
+   try {
+      await axiosInstance.post('/api/Account/reset-password', command);
+      return;
+   } catch (error: any) {
+      console.error("API Request failed:", {
+         url: '/api/Account/reset-password',
+         error: error.message,
+         response: error.response?.data,
+      });
+      throw error;
    }
 };
 
@@ -145,5 +180,14 @@ export const getUserId = async (): Promise<string> => {
    } catch (error) {
       console.error("Failed to get user ID from storage:", error);
       throw new Error("Could not retrieve user ID");
+   }
+};
+export const getStoredCurrency = async (): Promise<string> => {
+   try {
+      const currency = await AsyncStorage.getItem("preferredCurrency");
+      return currency || "USD";
+   } catch (error) {
+      console.error("Failed to get stored currency:", error);
+      return "USD";
    }
 };
