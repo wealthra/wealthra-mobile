@@ -1,9 +1,11 @@
+import React, { useState } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import SideDrawer from "./SideDrawer";
 import NotificationBell from "./NotificationBell";
 import { horizontalScale, verticalScale, moderateScale } from "../src/utils/scaling";
 import { usePrivacy } from "../src/context/PrivacyContext";
 import { Ionicons } from "@expo/vector-icons";
+import ExportModal from "./ExportModal";
 
 interface ScreenHeaderProps {
    isDarkMode: boolean;
@@ -13,11 +15,19 @@ interface ScreenHeaderProps {
 
 const ScreenHeader: React.FC<ScreenHeaderProps> = ({ isDarkMode, onNavigate, currentRoute }) => {
    const { isPrivacyMode, togglePrivacyMode } = usePrivacy();
+   const [isExportVisible, setIsExportVisible] = useState(false);
 
    return (
       <View style={styles.headerContainer}>
          <SideDrawer isDarkMode={isDarkMode} onNavigate={onNavigate} currentRoute={currentRoute} />
          <View style={styles.rightContainer}>
+            <TouchableOpacity onPress={() => setIsExportVisible(true)} style={styles.iconButton} activeOpacity={0.7}>
+               <Ionicons
+                  name="download-outline"
+                  size={moderateScale(28)}
+                  color={isDarkMode ? "#FFFFFF" : "#333333"}
+               />
+            </TouchableOpacity>
             <TouchableOpacity onPress={togglePrivacyMode} style={styles.iconButton} activeOpacity={0.7}>
                <Ionicons
                   name={isPrivacyMode ? "eye-off-outline" : "eye-outline"}
@@ -27,6 +37,12 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({ isDarkMode, onNavigate, cur
             </TouchableOpacity>
             <NotificationBell isDarkMode={isDarkMode} />
          </View>
+
+         <ExportModal 
+            visible={isExportVisible} 
+            onClose={() => setIsExportVisible(false)} 
+            isDarkMode={isDarkMode} 
+         />
       </View>
    );
 };
