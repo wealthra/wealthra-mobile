@@ -10,3 +10,4 @@ export * from './analyticService';
 export * from './ocrService';
 export * from './recommendationService';
 export * from './notificationService';
+export * from './copilotService';

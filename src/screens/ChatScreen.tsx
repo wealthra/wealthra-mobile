@@ -31,7 +31,7 @@ import {
 import ResultReviewModal from "../../components/ResultReviewModal";
 import VoiceRecordingModal from "../../components/VoiceRecordingModal";
 import { ExpenseDto } from "../api/types";
-import { bulkAddExpenses } from "../services/api";
+import { bulkAddExpenses, sendCopilotMessage } from "../services/api";
 
 interface Message {
   id: string;
@@ -96,7 +96,7 @@ const ChatScreen = ({
     };
   }, []);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (inputText.trim() === "") return;
 
     const newUserMessage: Message = {
@@ -112,12 +112,14 @@ const ChatScreen = ({
 
     setMessages((prev) => [...prev, newUserMessage]);
     setInputText("");
+    setIsExtracting(true); // Reuse the existing loading state to show a spinner
 
-    // Simulate bot response
-    setTimeout(() => {
+    try {
+      const response = await sendCopilotMessage(inputText);
+      
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I'm here to help with your expenses. You can upload a receipt or send a voice note for faster tracking!",
+        text: response.message,
         sender: "bot",
         timestamp: new Date().toLocaleTimeString([], {
           hour: "2-digit",
@@ -126,7 +128,22 @@ const ChatScreen = ({
         }),
       };
       setMessages((prev) => [...prev, botResponse]);
-    }, 1000);
+    } catch (error) {
+      console.error("Error communicating with copilot:", error);
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm sorry, I'm having trouble connecting to the server right now. Please try again.",
+        sender: "bot",
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }),
+      };
+      setMessages((prev) => [...prev, errorResponse]);
+    } finally {
+      setIsExtracting(false);
+    }
   };
 
   const handlePickImage = async () => {
@@ -300,9 +317,6 @@ const ChatScreen = ({
             <Text style={styles.headerStatus}>Online</Text>
           </View>
         </View>
-        <TouchableOpacity>
-          <Entypo name="chevron-small-down" size={24} color="white" />
-        </TouchableOpacity>
       </View>
 
       {/* Replaced KeyboardAvoidingView with manual flex container */}
