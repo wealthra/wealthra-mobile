@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     zIndex: 999,
     borderRightWidth: 1,
 
-    height: Dimensions.get("window").height,
+    height: Dimensions.get("screen").height,
   },
   menuContainer: {
     flex: 1,
