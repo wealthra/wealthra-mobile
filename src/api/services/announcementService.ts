@@ -2,6 +2,6 @@ import axiosInstance from "../axiosInstance";
 import { AnnouncementDto } from "../types/announcement.types";
 
 export const getActiveAnnouncements = async (): Promise<AnnouncementDto[]> => {
-  const response = await axiosInstance.get<AnnouncementDto[]>("/Announcements/active");
+  const response = await axiosInstance.get<AnnouncementDto[]>("/api/Announcements/active");
   return response.data;
 };

@@ -338,27 +338,31 @@ function DashboardScreen({
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch financial data, user info, categories and announcements in parallel
-        const [finData, user, catData, announcements] = await Promise.all([
+        // Fetch financial data, user info and categories in parallel
+        const [finData, user, catData] = await Promise.all([
           getFinancialSummary(),
           getCurrentUser(),
           getUserCategories(),
-          getActiveAnnouncements(),
         ]);
         setFinancialData(finData);
         setUserInfo(user);
         setCategories(catData);
 
-        // Show the first active announcement if any
-        if (announcements && announcements.length > 0) {
-          const firstAnnouncement = announcements[0];
-          const lastSeenId = await AsyncStorage.getItem("lastSeenAnnouncementId");
-          
-          if (lastSeenId !== firstAnnouncement.id.toString()) {
-            setActiveAnnouncement(firstAnnouncement);
-            setIsAnnouncementVisible(true);
-            await AsyncStorage.setItem("lastSeenAnnouncementId", firstAnnouncement.id.toString());
+        // Fetch announcements separately to not block main dashboard data
+        try {
+          const announcements = await getActiveAnnouncements();
+          if (announcements && announcements.length > 0) {
+            const firstAnnouncement = announcements[0];
+            const lastSeenId = await AsyncStorage.getItem("lastSeenAnnouncementId");
+            
+            if (lastSeenId !== firstAnnouncement.id.toString()) {
+              setActiveAnnouncement(firstAnnouncement);
+              setIsAnnouncementVisible(true);
+              await AsyncStorage.setItem("lastSeenAnnouncementId", firstAnnouncement.id.toString());
+            }
           }
+        } catch (announcementError) {
+          console.error("Non-critical error: Failed to fetch announcements", announcementError);
         }
 
         // Calculate goals summary after financial data is loaded
