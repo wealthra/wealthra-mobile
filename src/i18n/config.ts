@@ -126,6 +126,9 @@ const resources = {
       dashboard: {
         dashboardWelcome: "Welcome Back",
         dashboardSubtext: "Here's what's happening in your finances today",
+        allSpendings: "All Spendings",
+        tapToSeeMore: "Tap to see all categories",
+        tapToSeeChart: "Tap to return to chart",
       },
       fab: {
         scan: "Scan Receipt",
@@ -515,6 +518,9 @@ const resources = {
       dashboard: {
         dashboardWelcome: "Tekrar Hoşgeldin",
         dashboardSubtext: "Bugün finansal durumunuzda olup bitenler şöyle",
+        allSpendings: "Tüm Harcamalar",
+        tapToSeeMore: "Tüm kategorileri görmek için dokunun",
+        tapToSeeChart: "Grafiğe dönmek için dokunun",
       },
       fab: {
         scan: "Fiş Tara",

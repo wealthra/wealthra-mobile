@@ -270,6 +270,7 @@ function DashboardScreen({
     }
   };
 
+
   const transformSpendingData = (data: FinancialDashboardDto) => {
     // Only use actual API data, don't fall back to mock data
     if (
@@ -279,10 +280,9 @@ function DashboardScreen({
       return []; // Return empty array when no spending data is available
     }
 
-    // Sort categories by amount and take top 4
+    // Sort categories by amount
     const topCategories = [...data.topSpendingCategories]
-      .sort((a, b) => b.totalAmount - a.totalAmount)
-      .slice(0, 4);
+      .sort((a, b) => b.totalAmount - a.totalAmount);
 
     // Map categories to their proper colors based on category name
     return topCategories.map((category) => {
