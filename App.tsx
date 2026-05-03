@@ -33,6 +33,7 @@ import CategoriesScreen from "./src/screens/CategoriesScreen";
 import NotificationCenterScreen from "./src/screens/NotificationCenterScreen";
 import ChatScreen from "./src/screens/ChatScreen";
 import SupportTicketsScreen from "./src/screens/SupportTicketsScreen";
+import RecommendationsScreen from "./src/screens/RecommendationsScreen";
 import { NotificationProvider } from "./src/context/NotificationContext";
 import { PrivacyProvider } from "./src/context/PrivacyContext";
 import { UserProvider } from "./src/context/UserContext";
@@ -51,7 +52,14 @@ function AppNavigator({
 
   if (isAuthLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: theme.page_background }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: theme.page_background,
+        }}
+      >
         <Text style={{ color: theme.card_title }}>Loading...</Text>
       </View>
     );
@@ -67,55 +75,142 @@ function AppNavigator({
       {!isAuthenticated ? (
         <>
           <Stack.Screen name="Landing">
-            {(props) => <LandingScreen {...props} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />}
+            {(props) => (
+              <LandingScreen
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen name="SignUp">
-            {(props) => <SignUpScreen {...props} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />}
+            {(props) => (
+              <SignUpScreen
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen name="Login">
-            {(props) => <LoginScreen {...props} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />}
+            {(props) => (
+              <LoginScreen
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen name="ForgotPassword">
-            {(props) => <ForgotPasswordScreen {...props} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />}
+            {(props) => (
+              <ForgotPasswordScreen
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
           </Stack.Screen>
         </>
       ) : (
         <>
           <Stack.Screen name="Dashboard">
-            {(props) => <DashboardScreen {...props} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />}
+            {(props) => (
+              <DashboardScreen
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen name="Income">
-            {(props) => <IncomeScreen {...props} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />}
+            {(props) => (
+              <IncomeScreen
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen name="Expenses">
-            {(props) => <ExpenseScreen {...props} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />}
+            {(props) => (
+              <ExpenseScreen
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen name="Budget">
-            {(props) => <BudgetScreen {...props} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />}
+            {(props) => (
+              <BudgetScreen
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen name="Goals">
-            {(props) => <GoalsScreen {...props} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />}
+            {(props) => (
+              <GoalsScreen
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen name="Analytics">
-            {(props) => <AnalyticsScreen {...props} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />}
+            {(props) => (
+              <AnalyticsScreen
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen name="Settings">
-            {(props) => <SettingsScreen {...props} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />}
+            {(props) => (
+              <SettingsScreen
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen name="changeCredentials">
-            {(props) => <ChangeCredentials {...props} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />}
+            {(props) => (
+              <ChangeCredentials
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen name="changePassword">
-            {(props) => <ChangePassword {...props} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />}
+            {(props) => (
+              <ChangePassword
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
           </Stack.Screen>
           <Stack.Screen name="NotificationCenter">
-            {(props) => <NotificationCenterScreen {...props} isDarkMode={isDarkMode} />}
+            {(props) => (
+              <NotificationCenterScreen {...props} isDarkMode={isDarkMode} />
+            )}
           </Stack.Screen>
           <Stack.Screen name="Chat">
             {(props) => <ChatScreen {...props} isDarkMode={isDarkMode} />}
           </Stack.Screen>
           <Stack.Screen name="SupportTickets">
-            {(props) => <SupportTicketsScreen {...props} isDarkMode={isDarkMode} />}
+            {(props) => (
+              <SupportTicketsScreen {...props} isDarkMode={isDarkMode} />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="Recommendations">
+            {(props) => (
+              <RecommendationsScreen {...props} isDarkMode={isDarkMode} />
+            )}
           </Stack.Screen>
         </>
       )}

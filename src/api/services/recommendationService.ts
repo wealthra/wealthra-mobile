@@ -1,23 +1,23 @@
 import axiosInstance from "../axiosInstance";
-import { getStoredToken, getStoredCurrency } from "./authService";
+import { PersonalizedRecommendationsDto } from "../types/recommendation.types";
 
-export const getFinancialRecommendations = async (): Promise<string[]> => {
-   try {
-      const token = await getStoredToken();
-      if (!token) throw new Error("No authentication token found");
+/**
+ * Triggers analysis for a specific month and year.
+ * @returns Array of strings containing analysis results.
+ */
+export const analyzeRecommendations = async (year: number, month: number, language: string = 'en'): Promise<string[]> => {
+  const response = await axiosInstance.post<string[]>("/api/Recommendations/analyze", null, {
+    params: { year, month, language }
+  });
+  return response.data;
+};
 
-      const currency = await getStoredCurrency();
-      const response = await axiosInstance.get<string[]>(`/api/Recommendations/personalized`, {
-         headers: {
-            "Content-Type": "application/json",
-         },
-         params: { currency }
-      });
-
-      return response.data;
-   } catch (error: any) {
-      console.error("Failed to fetch recommendations:", error);
-      // Return empty array on failure as fallback
-      return [];
-   }
+/**
+ * Fetches personalized recommendations including signals, collaborative suggestions, and semantic tips.
+ */
+export const getPersonalizedRecommendations = async (year: number, month: number, language: string = 'en'): Promise<PersonalizedRecommendationsDto> => {
+  const response = await axiosInstance.get<PersonalizedRecommendationsDto>("/api/Recommendations/personalized", {
+    params: { year, month, language }
+  });
+  return response.data;
 };

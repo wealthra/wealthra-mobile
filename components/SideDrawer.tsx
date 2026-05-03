@@ -44,6 +44,7 @@ const SideDrawer: React.FC<SideDrawerProps> = ({
     { icon: data[8].budgetIcon, label: "Budget", route: "Budget" },
     { icon: data[9].goalsIcon, label: "Goals", route: "Goals" },
     { icon: data[10].analyticsIcon, label: "Analytics", route: "Analytics" },
+    { materialIcon: "chart-timeline-variant", label: "Recommendations", route: "Recommendations" },
     { materialIcon: "robot", label: "Copilot", route: "Chat" },
     { icon: data[11].settingsIcon, label: "Settings", route: "Settings" },
   ];
