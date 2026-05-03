@@ -167,6 +167,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleThe
                   <SettingItem title={t("settings.changeTheme")} onPress={toggleTheme} />
 
                   <SettingItem title={`${t("settings.changeCurrency")} (${preferredCurrency})`} onPress={handleChangeCurrency} />
+
+                  <SettingItem title={t("support.title")} onPress={() => navigation.navigate("SupportTickets")} />
                </View>
 
                {/* Session & Account Section */}

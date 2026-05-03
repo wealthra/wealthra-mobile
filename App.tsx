@@ -32,6 +32,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import CategoriesScreen from "./src/screens/CategoriesScreen";
 import NotificationCenterScreen from "./src/screens/NotificationCenterScreen";
 import ChatScreen from "./src/screens/ChatScreen";
+import SupportTicketsScreen from "./src/screens/SupportTicketsScreen";
 import { NotificationProvider } from "./src/context/NotificationContext";
 import { PrivacyProvider } from "./src/context/PrivacyContext";
 import { UserProvider } from "./src/context/UserContext";
@@ -112,6 +113,9 @@ function AppNavigator({
           </Stack.Screen>
           <Stack.Screen name="Chat">
             {(props) => <ChatScreen {...props} isDarkMode={isDarkMode} />}
+          </Stack.Screen>
+          <Stack.Screen name="SupportTickets">
+            {(props) => <SupportTicketsScreen {...props} isDarkMode={isDarkMode} />}
           </Stack.Screen>
         </>
       )}
