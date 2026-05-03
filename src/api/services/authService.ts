@@ -168,7 +168,7 @@ export const getStoredUserId = async (): Promise<string | null> => {
 };
 
 export const clearAuthData = async (): Promise<void> => {
-   await AsyncStorage.multiRemove(["userId", "jwToken", "refreshToken", "userRoles"]);
+   await AsyncStorage.multiRemove(["userId", "jwToken", "refreshToken", "userRoles", "lastSeenAnnouncementId"]);
 };
 
 export const getUserId = async (): Promise<string> => {

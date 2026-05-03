@@ -67,7 +67,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setJwToken(null);
       setRefreshToken(null);
       setIsAuthenticated(false);
-      await AsyncStorage.multiRemove(["userId", "jwToken", "refreshToken", "userRoles", "preferredCurrency"]);
+      await AsyncStorage.multiRemove([
+        "userId",
+        "jwToken",
+        "refreshToken",
+        "userRoles",
+        "preferredCurrency",
+        "lastSeenAnnouncementId",
+      ]);
    };
 
    return (

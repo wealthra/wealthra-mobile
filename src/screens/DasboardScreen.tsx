@@ -75,6 +75,7 @@ function DashboardScreen({
   const [isVoiceModalVisible, setIsVoiceModalVisible] = useState(false);
   const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
   const [extractedExpenses, setExtractedExpenses] = useState<ExpenseDto[]>([]);
+  const [pendingAnnouncements, setPendingAnnouncements] = useState<AnnouncementDto[]>([]);
   const [activeAnnouncement, setActiveAnnouncement] = useState<AnnouncementDto | null>(null);
   const [isAnnouncementVisible, setIsAnnouncementVisible] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -352,13 +353,16 @@ function DashboardScreen({
         try {
           const announcements = await getActiveAnnouncements();
           if (announcements && announcements.length > 0) {
-            const firstAnnouncement = announcements[0];
             const lastSeenId = await AsyncStorage.getItem("lastSeenAnnouncementId");
             
-            if (lastSeenId !== firstAnnouncement.id.toString()) {
-              setActiveAnnouncement(firstAnnouncement);
+            // Filter out announcements the user has already seen in this session/device
+            const unseen = announcements.filter(a => a.id.toString() !== lastSeenId);
+            
+            if (unseen.length > 0) {
+              setPendingAnnouncements(unseen);
+              setActiveAnnouncement(unseen[0]);
               setIsAnnouncementVisible(true);
-              await AsyncStorage.setItem("lastSeenAnnouncementId", firstAnnouncement.id.toString());
+              // Mark the very first one as seen for now, or we can mark them as they are closed
             }
           }
         } catch (announcementError) {
@@ -491,7 +495,28 @@ function DashboardScreen({
       />
       <AnnouncementModal
         visible={isAnnouncementVisible}
-        onClose={() => setIsAnnouncementVisible(false)}
+        onClose={async () => {
+          setIsAnnouncementVisible(false);
+          
+          // Store the current one as seen
+          if (activeAnnouncement) {
+            await AsyncStorage.setItem("lastSeenAnnouncementId", activeAnnouncement.id.toString());
+          }
+
+          // Check if there are more in the queue
+          const remaining = pendingAnnouncements.slice(1);
+          setPendingAnnouncements(remaining);
+          
+          if (remaining.length > 0) {
+            // Short delay for smoother transition
+            setTimeout(() => {
+              setActiveAnnouncement(remaining[0]);
+              setIsAnnouncementVisible(true);
+            }, 500);
+          } else {
+            setActiveAnnouncement(null);
+          }
+        }}
         announcement={activeAnnouncement}
         isDarkMode={isDarkMode}
       />
