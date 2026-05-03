@@ -2,7 +2,7 @@ import axiosInstance from "../axiosInstance";
 import { getStoredToken } from "./authService";
 import { NotificationDto, ClearAllNotificationsCommand, MarkNotificationsReadCommand } from "../types";
 
-export const getNotifications = async (unreadOnly: boolean = false): Promise<NotificationDto[]> => {
+export const getNotifications = async (unreadOnly: boolean = false, language: string = 'en'): Promise<NotificationDto[]> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
@@ -11,7 +11,7 @@ export const getNotifications = async (unreadOnly: boolean = false): Promise<Not
          headers: {
             "Content-Type": "application/json",
          },
-         params: { unreadOnly }
+         params: { unreadOnly, language }
       });
 
       return response.data;

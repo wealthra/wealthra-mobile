@@ -34,17 +34,28 @@ const NotificationCenterScreen: React.FC<NotificationCenterScreenProps> = ({
   const theme = getThemeColors(isDarkMode);
   const { t } = useTranslation();
 
-  const getNotificationIcon = (type?: NotificationType) => {
+  const getNotificationStyles = (type?: NotificationType) => {
     switch (type) {
       case NotificationType.Alert:
-        return { name: "alert-circle", color: theme.red };
+        return { 
+          icon: "alert-circle", 
+          color: theme.red, 
+          bgColor: isDarkMode ? "rgba(239, 100, 100, 0.15)" : "rgba(234, 157, 157, 0.2)" 
+        };
       case NotificationType.Warning:
-        return { name: "warning", color: theme.yellow };
+        return { 
+          icon: "warning", 
+          color: theme.yellow, 
+          bgColor: isDarkMode ? "rgba(243, 156, 18, 0.15)" : "rgba(255, 228, 120, 0.2)" 
+        };
       case NotificationType.Message:
-        return { name: "mail", color: theme.blue };
       case NotificationType.Info:
       default:
-        return { name: "information-circle", color: theme.green };
+        return { 
+          icon: type === NotificationType.Message ? "mail" : "information-circle", 
+          color: theme.blue, 
+          bgColor: isDarkMode ? "rgba(77, 184, 240, 0.15)" : "rgba(133, 193, 233, 0.2)" 
+        };
     }
   };
 
@@ -106,36 +117,40 @@ const NotificationCenterScreen: React.FC<NotificationCenterScreenProps> = ({
   };
 
   const renderItem = ({ item }: { item: NotificationDto }) => {
-    const icon = getNotificationIcon(item.type);
-    const { tag, text } = beautifyMessage(item.message);
+    const styles_config = getNotificationStyles(item.type);
+    const { text } = beautifyMessage(item.message);
     
     return (
       <TouchableOpacity
         style={[
           styles.notificationItem,
-          { backgroundColor: theme.card_background },
+          { 
+            backgroundColor: isDarkMode ? theme.card_background : "#FFFFFF",
+            borderLeftColor: styles_config.color,
+            borderLeftWidth: 5,
+          },
         ]}
         onPress={() => !item.isRead && markAsRead([item.id])}
         activeOpacity={0.8}
       >
-        {!item.isRead && (
-          <View style={[styles.unreadIndicator, { backgroundColor: theme.blue }]} />
-        )}
-        <View style={[styles.iconContainer, { backgroundColor: icon.color + "20" }]}>
-          <Ionicons name={icon.name as any} size={24} color={icon.color} />
+        <View style={[styles.innerContent, { backgroundColor: styles_config.bgColor }]}>
+          <View style={[styles.iconContainer, { backgroundColor: styles_config.color + "20" }]}>
+            <Ionicons name={styles_config.icon as any} size={24} color={styles_config.color} />
+          </View>
+          <View style={styles.contentContainer}>
+            <Text style={[styles.message, { color: theme.card_title }]} numberOfLines={3}>
+              {text}
+            </Text>
+            <View style={styles.footer}>
+              <Text style={styles.time}>{formatRelativeTime(item.createdOn)}</Text>
+              {!item.isRead && (
+                <View style={[styles.unreadBadge, { backgroundColor: styles_config.color }]}>
+                  <Text style={styles.unreadText}>{t("notifications.new") || "NEW"}</Text>
+                </View>
+              )}
+            </View>
+          </View>
         </View>
-        <View style={styles.contentContainer}>
-          {tag && (
-            <Text style={[styles.tag, { color: icon.color }]}>{tag.toUpperCase()}</Text>
-          )}
-          <Text style={[styles.message, { color: theme.card_title }]}>
-            {text}
-          </Text>
-          <Text style={styles.time}>{formatRelativeTime(item.createdOn)}</Text>
-        </View>
-        {!item.isRead && (
-          <View style={[styles.unreadDot, { backgroundColor: theme.blue }]} />
-        )}
       </TouchableOpacity>
     );
   };
@@ -263,12 +278,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   notificationItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: horizontalScale(15),
     borderRadius: horizontalScale(12),
-    marginBottom: verticalScale(10),
-    
+    marginBottom: verticalScale(12),
+    overflow: "hidden",
     // Shadow for iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -276,14 +288,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     // Elevation for Android
     elevation: 3,
-    overflow: "hidden", // Ensures internal elements don't bleed out of corners
   },
-  unreadIndicator: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: horizontalScale(5),
+  innerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: horizontalScale(15),
   },
   iconContainer: {
     width: horizontalScale(48),
@@ -298,25 +307,29 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: moderateScale(15),
-    fontWeight: "500",
+    fontWeight: "600",
     lineHeight: moderateScale(20),
+    marginBottom: verticalScale(4),
   },
-  tag: {
-    fontSize: moderateScale(11),
-    fontWeight: "bold",
-    marginBottom: verticalScale(2),
-    letterSpacing: 0.5,
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: verticalScale(2),
   },
   time: {
     fontSize: moderateScale(12),
-    color: "#999999",
-    marginTop: verticalScale(4),
+    color: "#888888",
   },
-  unreadDot: {
-    width: horizontalScale(10),
-    height: horizontalScale(10),
-    borderRadius: horizontalScale(5),
-    marginLeft: horizontalScale(10),
+  unreadBadge: {
+    paddingHorizontal: horizontalScale(8),
+    paddingVertical: verticalScale(2),
+    borderRadius: moderateScale(4),
+  },
+  unreadText: {
+    color: "white",
+    fontSize: moderateScale(10),
+    fontWeight: "bold",
   },
   centerContainer: {
     flex: 1,

@@ -32,7 +32,8 @@ import {
 import ResultReviewModal from "../../components/ResultReviewModal";
 import VoiceRecordingModal from "../../components/VoiceRecordingModal";
 import { ExpenseDto } from "../api/types";
-import { bulkAddExpenses, sendCopilotMessage, getUserUsage, UserUsageDto } from "../services/api";
+import { bulkAddExpenses, sendCopilotMessage, getUserUsage } from "../services/api";
+import { UserUsageDto } from "../api/types";
 
 interface Message {
   id: string;

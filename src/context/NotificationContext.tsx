@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { NotificationDto } from "../api/types";
 import { getNotifications, markNotificationsRead, deleteNotifications as apiDeleteNotifications } from "../api/services/notificationService";
+import i18n from "../i18n/config";
 
 interface NotificationContextType {
   notifications: NotificationDto[];
@@ -14,6 +16,7 @@ interface NotificationContextType {
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { i18n } = useTranslation();
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -21,7 +24,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const fetchNotifications = useCallback(async (unreadOnly: boolean = false) => {
     setLoading(true);
     try {
-      const data = await getNotifications(unreadOnly);
+      const data = await getNotifications(unreadOnly, i18n.language);
       setNotifications(data);
       setUnreadCount(data.filter((n) => !n.isRead).length);
     } catch (error) {
@@ -29,7 +32,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [i18n.language]);
 
   const markAsRead = async (notificationIds?: number[], markAll?: boolean) => {
     try {
@@ -54,13 +57,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     fetchNotifications();
     
-    // Optional: Set up an interval to refresh notifications
+    // Set up an interval to refresh notifications
     const interval = setInterval(() => {
       fetchNotifications();
     }, 60000); // Every minute
 
     return () => clearInterval(interval);
-  }, [fetchNotifications]);
+  }, [fetchNotifications, i18n.language]);
 
   return (
     <NotificationContext.Provider

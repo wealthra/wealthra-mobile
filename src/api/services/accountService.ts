@@ -1,13 +1,13 @@
 import axiosInstance from "../axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getStoredToken, getUserId, clearAuthData, getStoredRefreshToken } from "./authService";
-import { UserDto, RefreshTokenRequest, RefreshTokenResponse, UpdateUserCommand } from "../types";
+import { UserDto, RefreshTokenRequest, RefreshTokenResponse, UpdateUserCommand, UserUsageDto } from "../types";
 
 export const updateUserProfile = async (profileData: UpdateUserCommand): Promise<void> => {
    try {
       console.log("Updating user profile with data:", profileData);
 
-      const response = await axiosInstance.put('/api/Account/update-user', profileData, {
+      const response = await axiosInstance.put('/api/Account/update-profile', profileData, {
          headers: {
             "Content-Type": "application/json",
          },
@@ -231,4 +231,14 @@ export const updatePreferredCurrency = async (currencyCode: string): Promise<voi
       const errorMessage = error.response?.data?.message || "Failed to update preferred currency";
       throw new Error(errorMessage);
    }
+};
+
+export const getUserUsage = async (): Promise<UserUsageDto | null> => {
+  try {
+    const response = await axiosInstance.get<UserUsageDto>("/api/Account/me/usage");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user usage limits:", error);
+    return null;
+  }
 };

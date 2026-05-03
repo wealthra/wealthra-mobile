@@ -320,6 +320,7 @@ const resources = {
         clearAll: "Clear all",
         now: "Just now",
         empty: "No notifications yet",
+        new: "NEW",
       },
       copilot: {
         botName: "Owlaris",
@@ -667,6 +668,7 @@ const resources = {
         clearAll: "Tümünü temizle",
         now: "Şimdi",
         empty: "Henüz bildirim yok",
+        new: "YENİ",
       },
       copilot: {
         botName: "Owlaris",
