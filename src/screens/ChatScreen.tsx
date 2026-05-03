@@ -32,7 +32,11 @@ import {
 import ResultReviewModal from "../../components/ResultReviewModal";
 import VoiceRecordingModal from "../../components/VoiceRecordingModal";
 import { ExpenseDto } from "../api/types";
-import { bulkAddExpenses, sendCopilotMessage, getUserUsage } from "../services/api";
+import {
+  bulkAddExpenses,
+  sendCopilotMessage,
+  getUserUsage,
+} from "../services/api";
 import { UserUsageDto } from "../api/types";
 
 interface Message {
@@ -83,6 +87,7 @@ const ChatScreen = ({
       setIsUsageLoading(true);
       try {
         const data = await getUserUsage();
+        console.log("DEBUG - AI Usage Data:", data);
         setUsage(data);
       } catch (error) {
         console.error("Failed to fetch AI usage limits", error);
@@ -97,18 +102,18 @@ const ChatScreen = ({
     const showSub = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
       (e) => {
-        // Only apply manual height on Android, iOS KeyboardAvoidingView handles it well usually, 
-        // but since we are replacing it, let's use it for both for consistency, 
+        // Only apply manual height on Android, iOS KeyboardAvoidingView handles it well usually,
+        // but since we are replacing it, let's use it for both for consistency,
         // OR we can specifically target Android if that's the only one failing.
         // Given the strict requirement, let's apply it fully to Android.
         if (Platform.OS === "android") {
-           setKeyboardHeight(e.endCoordinates.height);
+          setKeyboardHeight(e.endCoordinates.height);
         }
-      }
+      },
     );
     const hideSub = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
-      () => setKeyboardHeight(0)
+      () => setKeyboardHeight(0),
     );
 
     return () => {
@@ -137,7 +142,7 @@ const ChatScreen = ({
 
     try {
       const response = await sendCopilotMessage(inputText);
-      
+
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
         text: response.message || t("copilot.errorUnderstanding"),
@@ -167,10 +172,12 @@ const ChatScreen = ({
     }
   };
 
-  const renderLimit = (limit: number | null) => {
-    if (limit === null || limit === undefined) return "0";
-    if (limit === 0 || limit === -1 || limit >= 99999) return "∞";
-    return limit.toString();
+  const renderLimit = (limit: any) => {
+    console.log("DEBUG - renderLimit received:", limit, typeof limit);
+    if (limit === null || limit === undefined) return "∞"; // Changed from "0" to "∞"
+    const numLimit = Number(limit);
+    if (numLimit === 0 || numLimit === -1 || numLimit >= 99999) return "∞";
+    return numLimit.toString();
   };
 
   const handlePickImage = async () => {
@@ -218,7 +225,7 @@ const ChatScreen = ({
 
   const handleVoiceRecordComplete = async (uri: string) => {
     setIsVoiceModalVisible(false);
-    
+
     const audioMessage: Message = {
       id: Date.now().toString(),
       text: t("copilot.uploadedAudio"),
@@ -265,7 +272,7 @@ const ChatScreen = ({
       // Add success message
       const successMessage: Message = {
         id: Date.now().toString(),
-        text: isImageExtraction 
+        text: isImageExtraction
           ? t("copilot.successReceipt", { count: expenses.length })
           : t("copilot.successAudio", { count: expenses.length }),
         sender: "bot",
@@ -344,20 +351,15 @@ const ChatScreen = ({
           </View>
           <View>
             <Text style={styles.headerTitle}>{t("copilot.title")}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text style={styles.headerStatus}>{t("copilot.online")}</Text>
-              {usage && (
-                <Text style={[styles.headerStatus, { marginLeft: 8, opacity: 0.8, fontSize: moderateScale(11) }]}>
-                  {t("copilot.limitsLeft", { 
-                    ocr: (usage.monthlyOcrLimit === 0 || usage.monthlyOcrLimit === -1 || usage.monthlyOcrLimit >= 99999) ? "∞" : Math.max(0, usage.monthlyOcrLimit - usage.ocrRequestsThisMonth), 
-                    stt: (usage.monthlySttLimit === 0 || usage.monthlySttLimit === -1 || usage.monthlySttLimit >= 99999) ? "∞" : Math.max(0, usage.monthlySttLimit - usage.sttRequestsThisMonth) 
-                  })}
-                </Text>
-              )}
             </View>
           </View>
         </View>
-        <TouchableOpacity onPress={() => setIsUsageModalVisible(true)} style={{ padding: 4 }}>
+        <TouchableOpacity
+          onPress={() => setIsUsageModalVisible(true)}
+          style={{ padding: 4 }}
+        >
           <MaterialCommunityIcons name="information" size={24} color="white" />
         </TouchableOpacity>
       </View>
@@ -374,41 +376,114 @@ const ChatScreen = ({
           activeOpacity={1}
           onPress={() => setIsUsageModalVisible(false)}
         >
-          <View style={[styles.usageModalContent, { backgroundColor: theme.card_background, borderColor: theme.frame_stroke }]}>
+          <View
+            style={[
+              styles.usageModalContent,
+              {
+                backgroundColor: theme.card_background,
+                borderColor: theme.frame_stroke,
+              },
+            ]}
+          >
             <View style={styles.usageModalHeader}>
-              <Text style={[styles.usageModalTitle, { color: theme.card_title }]}>{t("copilot.myPlan")}</Text>
+              <Text
+                style={[styles.usageModalTitle, { color: theme.card_title }]}
+              >
+                {t("copilot.myPlan")}
+              </Text>
               <TouchableOpacity onPress={() => setIsUsageModalVisible(false)}>
-                <MaterialCommunityIcons name="close" size={24} color={theme.card_description} />
+                <MaterialCommunityIcons
+                  name="close"
+                  size={24}
+                  color={theme.card_description}
+                />
               </TouchableOpacity>
             </View>
 
             {isUsageLoading ? (
-              <ActivityIndicator color={theme.green} style={{ marginVertical: 20 }} />
+              <ActivityIndicator
+                color={theme.green}
+                style={{ marginVertical: 20 }}
+              />
             ) : usage ? (
               <View style={styles.usageDetails}>
                 <View style={styles.usageRow}>
-                  <Text style={[styles.usageLabel, { color: theme.card_description }]}>{t("copilot.planTier")}</Text>
-                  <Text style={[styles.usageValue, { color: theme.card_title }]}>{usage.subscriptionPlanName}</Text>
+                  <Text
+                    style={[
+                      styles.usageLabel,
+                      { color: theme.card_description },
+                    ]}
+                  >
+                    {t("copilot.planTier")}
+                  </Text>
+                  <Text
+                    style={[styles.usageValue, { color: theme.card_title }]}
+                  >
+                    {usage.subscriptionPlanName}
+                  </Text>
                 </View>
                 <View style={styles.usageRow}>
-                  <Text style={[styles.usageLabel, { color: theme.card_description }]}>{t("copilot.ocrLimit")}</Text>
-                  <Text style={[styles.usageValue, { color: theme.card_title }]}>{usage.ocrRequestsThisMonth} / {renderLimit(usage.monthlyOcrLimit)}</Text>
+                  <Text
+                    style={[
+                      styles.usageLabel,
+                      { color: theme.card_description },
+                    ]}
+                  >
+                    {t("copilot.ocrLimit")}
+                  </Text>
+                  <Text
+                    style={[styles.usageValue, { color: theme.card_title }]}
+                  >
+                    {usage.ocrRequestsThisMonth} /{" "}
+                    {renderLimit(usage.monthlyOcrLimit)}
+                  </Text>
                 </View>
                 <View style={styles.usageRow}>
-                  <Text style={[styles.usageLabel, { color: theme.card_description }]}>{t("copilot.sttLimit")}</Text>
-                  <Text style={[styles.usageValue, { color: theme.card_title }]}>{usage.sttRequestsThisMonth} / {renderLimit(usage.monthlySttLimit)}</Text>
+                  <Text
+                    style={[
+                      styles.usageLabel,
+                      { color: theme.card_description },
+                    ]}
+                  >
+                    {t("copilot.sttLimit")}
+                  </Text>
+                  <Text
+                    style={[styles.usageValue, { color: theme.card_title }]}
+                  >
+                    {usage.sttRequestsThisMonth} /{" "}
+                    {renderLimit(usage.monthlySttLimit)}
+                  </Text>
                 </View>
                 {usage.lastUsageActivityDate && (
                   <View style={styles.usageRow}>
-                    <Text style={[styles.usageLabel, { color: theme.card_description }]}>{t("copilot.lastActivity")}</Text>
-                    <Text style={[styles.usageValue, { color: theme.card_title }]}>
-                      {new Date(usage.lastUsageActivityDate).toLocaleDateString()}
+                    <Text
+                      style={[
+                        styles.usageLabel,
+                        { color: theme.card_description },
+                      ]}
+                    >
+                      {t("copilot.lastActivity")}
+                    </Text>
+                    <Text
+                      style={[styles.usageValue, { color: theme.card_title }]}
+                    >
+                      {new Date(
+                        usage.lastUsageActivityDate,
+                      ).toLocaleDateString()}
                     </Text>
                   </View>
                 )}
               </View>
             ) : (
-              <Text style={[{ color: theme.card_description, textAlign: "center", marginVertical: 20 }]}>
+              <Text
+                style={[
+                  {
+                    color: theme.card_description,
+                    textAlign: "center",
+                    marginVertical: 20,
+                  },
+                ]}
+              >
                 {t("copilot.loadError")}
               </Text>
             )}
@@ -469,7 +544,10 @@ const ChatScreen = ({
               onChangeText={setInputText}
               onSubmitEditing={handleSend}
             />
-            <TouchableOpacity style={styles.iconButton} onPress={() => setIsVoiceModalVisible(true)}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => setIsVoiceModalVisible(true)}
+            >
               <Ionicons name="mic-outline" size={24} color="#999" />
             </TouchableOpacity>
           </View>
