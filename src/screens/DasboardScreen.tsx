@@ -34,7 +34,7 @@ import { useTranslation } from "react-i18next";
 import ScreenHeader from "../../components/ScreenHeader";
 import AddExpenseModal from "../../components/AddExpenseModal";
 import AddIncomeModal from "../../components/AddIncomeModal";
-import { Alert } from "react-native";
+import ConfirmationModal, { ModalButton } from "../../components/ConfirmationModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   horizontalScale,
@@ -82,7 +82,37 @@ function DashboardScreen({
   const [activeAnnouncement, setActiveAnnouncement] = useState<AnnouncementDto | null>(null);
   const [isAnnouncementVisible, setIsAnnouncementVisible] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+    onConfirm?: () => void;
+    buttons?: ModalButton[];
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
   const { t } = useTranslation();
+
+  const showAlert = (
+    title: string, 
+    message: string, 
+    type: "success" | "error" | "warning" | "info" = "info", 
+    onConfirm?: () => void,
+    buttons?: ModalButton[]
+  ) => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      type,
+      onConfirm: onConfirm || (() => setAlertConfig(prev => ({ ...prev, visible: false }))),
+      buttons,
+    });
+  };
 
   const handleAddExpense = async (newExpense: {
     description: string;
@@ -100,9 +130,10 @@ function DashboardScreen({
       const finData = await getFinancialSummary();
       setFinancialData(finData);
       setIsExpenseModalVisible(false);
+      showAlert(t("common.success") || "Success", t("expense.added") || "Expense added successfully", "success");
     } catch (error) {
       console.error("Error adding expense from dashboard:", error);
-      Alert.alert("Error", "Failed to add expense");
+      showAlert(t("common.error") || "Error", t("expense.addFailed") || "Failed to add expense", "error");
     }
   };
 
@@ -118,28 +149,40 @@ function DashboardScreen({
       const finData = await getFinancialSummary();
       setFinancialData(finData);
       setIsIncomeModalVisible(false);
+      showAlert(t("common.success") || "Success", t("income.added") || "Income added successfully", "success");
     } catch (error) {
       console.error("Error adding income from dashboard:", error);
-      Alert.alert("Error", "Failed to add income");
+      showAlert(t("common.error") || "Error", t("income.addFailed") || "Failed to add income", "error");
     }
   };
 
   const handleScanReceipt = async () => {
-    Alert.alert(
+    showAlert(
       t("scan.title") || "Scan Receipt",
       t("scan.message") || "Choose a source",
+      "info",
+      undefined,
       [
         {
           text: t("scan.camera") || "Camera",
-          onPress: () => processImage(ImagePicker.launchCameraAsync),
+          onPress: () => {
+            setAlertConfig(prev => ({ ...prev, visible: false }));
+            processImage(ImagePicker.launchCameraAsync);
+          },
+          type: "confirm"
         },
         {
           text: t("scan.gallery") || "Gallery",
-          onPress: () => processImage(ImagePicker.launchImageLibraryAsync),
+          onPress: () => {
+            setAlertConfig(prev => ({ ...prev, visible: false }));
+            processImage(ImagePicker.launchImageLibraryAsync);
+          },
+          type: "confirm"
         },
         {
           text: t("common.cancel") || "Cancel",
-          style: "cancel",
+          onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+          type: "cancel"
         },
       ]
     );
@@ -168,7 +211,7 @@ function DashboardScreen({
       }
     } catch (error) {
       console.error("Image processing error:", error);
-      Alert.alert("Error", "Failed to process receipt image");
+      showAlert(t("common.error") || "Error", t("scan.error") || "Failed to process receipt image", "error");
     } finally {
       setIsExtracting(false);
     }
@@ -187,7 +230,7 @@ function DashboardScreen({
       setIsReviewModalVisible(true);
     } catch (error) {
       console.error("Voice processing error:", error);
-      Alert.alert("Error", "Failed to process voice command");
+      showAlert(t("common.error") || "Error", t("voice.error") || "Failed to process voice command", "error");
     } finally {
       setIsExtracting(false);
     }
@@ -218,10 +261,10 @@ function DashboardScreen({
       setFinancialData(finData);
       await calculateGoalsSummary();
       
-      Alert.alert("Success", `Added ${expenses.length} expenses`);
+      showAlert(t("common.success") || "Success", `${t("expense.addedCount", { count: expenses.length }) || `Added ${expenses.length} expenses`}`, "success");
     } catch (error) {
       console.error("Bulk add error:", error);
-      Alert.alert("Error", "Failed to add expenses");
+      showAlert(t("common.error") || "Error", t("expense.addFailed") || "Failed to add expenses", "error");
     } finally {
       setLoading(false);
     }
@@ -446,7 +489,7 @@ function DashboardScreen({
               if (categories.length > 0) {
                 setIsExpenseModalVisible(true);
               } else {
-                Alert.alert("Error", "Please wait for categories to load");
+                showAlert(t("common.error") || "Error", t("categories.loadingError") || "Please wait for categories to load", "warning");
               }
             },
             color: themeColors.red,
@@ -537,6 +580,18 @@ function DashboardScreen({
           </Text>
         </View>
       )}
+      <ConfirmationModal
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        isDarkMode={isDarkMode}
+        buttons={alertConfig.buttons}
+        onConfirm={() => {
+          if (alertConfig.onConfirm) alertConfig.onConfirm();
+          setAlertConfig(prev => ({ ...prev, visible: false }));
+        }}
+      />
     </View>
   );
 }

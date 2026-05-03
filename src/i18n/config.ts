@@ -281,6 +281,7 @@ const resources = {
         changeLanguage: "Change Language",
         changeTheme: "Change Theme",
         changeCurrency: "Change Preferred Currency",
+        chooseCurrency: "Select your preferred currency",
         sessionAccount: "Session",
       },
       changePassword: {
@@ -670,6 +671,7 @@ const resources = {
         changeLanguage: "Dil Değiştir",
         changeTheme: "Tema Değiştir",
         changeCurrency: "Tercih Edilen Para Birimi",
+        chooseCurrency: "Tercih ettiğiniz para birimini seçin",
         sessionAccount: "Oturum",
       },
       changePassword: {

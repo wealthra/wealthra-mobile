@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, FlatList, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, FlatList, ActivityIndicator } from "react-native";
+import ConfirmationModal, { ModalButton } from "../../components/ConfirmationModal";
 import { getThemeColors } from "../utils/getThemeColors";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
@@ -50,11 +51,41 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
    const [currentPage, setCurrentPage] = useState(1);
    const [isLoadingMore, setIsLoadingMore] = useState(false);
    const [hasMoreData, setHasMoreData] = useState(true);
+   const [alertConfig, setAlertConfig] = useState<{
+      visible: boolean;
+      title: string;
+      message: string;
+      type: "success" | "error" | "warning" | "info";
+      onConfirm?: () => void;
+      buttons?: ModalButton[];
+   }>({
+      visible: false,
+      title: "",
+      message: "",
+      type: "info",
+   });
 
    // Calculate totals for goal overview
    const totalTarget = savingGoals.reduce((sum, goal) => sum + goal.target, 0);
    const totalSaved = savingGoals.reduce((sum, goal) => sum + goal.saved, 0);
    const savingPercentage = totalTarget > 0 ? Math.round((totalSaved / totalTarget) * 100) : 0;
+
+   const showAlert = (
+      title: string, 
+      message: string, 
+      type: "success" | "error" | "warning" | "info" = "info", 
+      onConfirm?: () => void,
+      buttons?: ModalButton[]
+   ) => {
+      setAlertConfig({
+         visible: true,
+         title,
+         message,
+         type,
+         onConfirm: onConfirm || (() => setAlertConfig(prev => ({ ...prev, visible: false }))),
+         buttons,
+      });
+   };
 
    // Fetch goals from API
    const fetchGoals = async () => {
@@ -84,7 +115,7 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
       } catch (err: any) {
          console.error("Error fetching goals:", err);
          setError("Failed to load goals. Please try again.");
-         Alert.alert("Error", "Failed to load goals. Please try again.");
+         showAlert("Error", "Failed to load goals. Please try again.", "error");
       } finally {
          setIsLoading(false);
          setIsRefreshing(false);
@@ -115,18 +146,21 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
          }
 
          // Show a confirmation dialog before deletion
-         Alert.alert(
-            t("alert.deletionTitle"), // "Delete Goal"
-            t("alert.deletionMessage"), // "Are you sure you want to delete this goal?"
+         showAlert(
+            t("alert.deletionTitle") || "Delete Goal",
+            t("alert.deletionMessage") || "Are you sure you want to delete this goal?",
+            "warning",
+            undefined,
             [
                {
-                  text: t("alert.cancel"), // "Cancel"
-                  style: "cancel",
+                  text: t("alert.cancel") || "Cancel",
+                  onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+                  type: "cancel"
                },
                {
-                  text: t("alert.confirm"), // "Delete"
-                  style: "destructive",
+                  text: t("alert.confirm") || "Delete",
                   onPress: async () => {
+                     setAlertConfig(prev => ({ ...prev, visible: false }));
                      try {
                         // Delete from API
                         await deleteGoal(goalToDelete.apiId!);
@@ -135,15 +169,17 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
                         setSavingGoals((goals) => goals.filter((goal) => goal.id !== id));
                      } catch (err: any) {
                         console.error("Error deleting goal:", err);
-                        Alert.alert(t("alert.genericErrorTitle"), t("alert.failedToDelete"));
+                        showAlert(t("alert.genericErrorTitle") || "Error", t("alert.failedToDelete") || "Failed to delete goal", "error");
                      }
                   },
+                  type: "confirm",
+                  color: themeColors.red
                },
             ]
          );
       } catch (error) {
          console.error("Error in handleDelete:", error);
-         Alert.alert(t("alerts.titles.error"), t("alerts.error.generic"));
+         showAlert(t("alerts.titles.error") || "Error", t("alerts.error.generic") || "An unexpected error occurred.", "error");
       }
    };
 
@@ -216,9 +252,10 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
          console.log("Creating new goal with saved amount:", newGoal.saved);
          setSavingGoals((prev) => [...prev, newGoal]);
          setIsModalVisible(false);
+         showAlert(t("common.success") || "Success", t("goal.added") || "Goal added successfully", "success");
       } catch (err: any) {
          console.error("Error adding goal:", err);
-         Alert.alert("Error", "Failed to add goal. Please try again.");
+         showAlert("Error", "Failed to add goal. Please try again.", "error");
       }
    };
 
@@ -337,6 +374,20 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
             isDarkMode={isDarkMode}
          />
          <ActionFAB isDarkMode={isDarkMode} onPress={() => setIsModalVisible(true)} />
+
+         <ConfirmationModal
+            visible={alertConfig.visible}
+            title={alertConfig.title}
+            message={alertConfig.message}
+            type={alertConfig.type}
+            isDarkMode={isDarkMode}
+            buttons={alertConfig.buttons}
+            onConfirm={() => {
+               if (alertConfig.onConfirm) alertConfig.onConfirm();
+               setAlertConfig(prev => ({ ...prev, visible: false }));
+            }}
+            onCancel={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+         />
       </View>
    );
 };

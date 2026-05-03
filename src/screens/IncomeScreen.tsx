@@ -5,11 +5,11 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
 import { getThemeColors } from "../utils/getThemeColors";
+import ConfirmationModal, { ModalButton } from "../../components/ConfirmationModal";
 import ScreenHeader from "../../components/ScreenHeader";
 import {
   addIncome,
@@ -74,7 +74,37 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMoreData, setHasMoreData] = useState(true);
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+    onConfirm?: () => void;
+    buttons?: ModalButton[];
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
   const pageSize = 10;
+
+  const showAlert = (
+    title: string, 
+    message: string, 
+    type: "success" | "error" | "warning" | "info" = "info", 
+    onConfirm?: () => void,
+    buttons?: ModalButton[]
+  ) => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      type,
+      onConfirm: onConfirm || (() => setAlertConfig(prev => ({ ...prev, visible: false }))),
+      buttons,
+    });
+  };
 
   useEffect(() => {
     fetchIncomeData();
@@ -159,7 +189,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
       }
     } catch (error) {
       console.error("Error fetching income data:", error);
-      Alert.alert("Error", "Failed to load income data. Please try again.");
+      showAlert(t("common.error") || "Error", t("income.loadError") || "Failed to load income data. Please try again.", "error");
       setHasMoreData(false);
     } finally {
       setLoading(false);
@@ -230,9 +260,10 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
 
       // Close the modal
       setIsAddModalVisible(false);
+      showAlert(t("common.success") || "Success", t("income.added") || "Income added successfully", "success");
     } catch (error) {
       console.error("Error adding income:", error);
-      Alert.alert(t("alert.failedtoAdd"));
+      showAlert(t("common.error") || "Error", t("alert.failedtoAdd") || "Failed to add income", "error");
     }
   };
 
@@ -244,57 +275,70 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
       }
 
       // Show a confirmation dialog before deletion
-      Alert.alert(t("alert.deletionTitle"), t("alert.deletionMessage"), [
-        { text: t("alert.cancel"), style: "cancel" },
-        {
-          text: t("alert.confirm"),
-          style: "destructive",
-          onPress: async () => {
-            try {
-              // Delete from API
-              await deleteIncome(id);
-
-              // Remove from local state
-              const remainingIncomes = incomeSources.filter(
-                (source) => source.id !== id,
-              );
-              setIncomeSources(remainingIncomes);
-
-              // Get up to 2 most recent remaining incomes for transactions
-              const recentRemainingIncomes = remainingIncomes.slice(0, 2);
-              setTransactions(
-                recentRemainingIncomes.map((income) => ({
-                  date: new Date().toISOString().split("T")[0],
-                  source: income.title,
-                  amount: income.amount,
-                  currency: income.currency,
-                })),
-              );
-
-              // Update financial summary in the background
-              getFinancialSummary(preferredCurrency)
-                .then((updatedData) => {
-                  setFinancialData(updatedData);
-                })
-                .catch((err) => {
-                  console.error(
-                    "Failed to update financial summary after deletion:",
-                    err,
-                  );
-                });
-            } catch (error) {
-              console.error("Error deleting income:", error);
-              Alert.alert(
-                t("alert.genericErrorTitle"),
-                t("alert.failedtoDelete"),
-              );
-            }
+      showAlert(
+        t("alert.deletionTitle") || "Delete Income",
+        t("alert.deletionMessage") || "Are you sure you want to delete this income?",
+        "warning",
+        undefined,
+        [
+          {
+            text: t("alert.cancel") || "Cancel",
+            onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+            type: "cancel"
           },
-        },
-      ]);
+          {
+            text: t("alert.confirm") || "Delete",
+            onPress: async () => {
+              setAlertConfig(prev => ({ ...prev, visible: false }));
+              try {
+                // Delete from API
+                await deleteIncome(id);
+
+                // Remove from local state
+                const remainingIncomes = incomeSources.filter(
+                  (source) => source.id !== id,
+                );
+                setIncomeSources(remainingIncomes);
+
+                // Get up to 2 most recent remaining incomes for transactions
+                const recentRemainingIncomes = remainingIncomes.slice(0, 2);
+                setTransactions(
+                  recentRemainingIncomes.map((income) => ({
+                    date: new Date().toISOString().split("T")[0],
+                    source: income.title,
+                    amount: income.amount,
+                    currency: income.currency,
+                  })),
+                );
+
+                // Update financial summary in the background
+                getFinancialSummary(preferredCurrency)
+                  .then((updatedData) => {
+                    setFinancialData(updatedData);
+                  })
+                  .catch((err) => {
+                    console.error(
+                      "Failed to update financial summary after deletion:",
+                      err,
+                    );
+                  });
+              } catch (error) {
+                console.error("Error deleting income:", error);
+                showAlert(
+                  t("alert.genericErrorTitle") || "Error",
+                  t("alert.failedtoDelete") || "Failed to delete income",
+                  "error"
+                );
+              }
+            },
+            type: "confirm",
+            color: themeColors.red
+          }
+        ]
+      );
     } catch (error) {
       console.error("Error in handleDeleteIncome:", error);
-      Alert.alert("Error", "An unexpected error occurred. Please try again.");
+      showAlert(t("common.error") || "Error", "An unexpected error occurred. Please try again.", "error");
     }
   };
 
@@ -531,6 +575,20 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
       <ActionFAB
         isDarkMode={isDarkMode}
         onPress={() => setIsAddModalVisible(true)}
+      />
+
+      <ConfirmationModal
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        isDarkMode={isDarkMode}
+        buttons={alertConfig.buttons}
+        onConfirm={() => {
+          if (alertConfig.onConfirm) alertConfig.onConfirm();
+          setAlertConfig(prev => ({ ...prev, visible: false }));
+        }}
+        onCancel={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
       />
     </View>
   );

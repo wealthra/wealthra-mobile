@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import ConfirmationModal, { ModalButton } from "../../components/ConfirmationModal";
 import { getThemeColors } from "../utils/getThemeColors";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -47,6 +48,36 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleThe
    const [isLoading, setIsLoading] = React.useState(false);
    const { refreshUser } = useUser();
    const { logout } = useAuth();
+   const [alertConfig, setAlertConfig] = React.useState<{
+      visible: boolean;
+      title: string;
+      message: string;
+      type: "success" | "error" | "warning" | "info";
+      onConfirm?: () => void;
+      buttons?: ModalButton[];
+   }>({
+      visible: false,
+      title: "",
+      message: "",
+      type: "info",
+   });
+
+   const showAlert = (
+      title: string, 
+      message: string, 
+      type: "success" | "error" | "warning" | "info" = "info", 
+      onConfirm?: () => void,
+      buttons?: ModalButton[]
+   ) => {
+      setAlertConfig({
+         visible: true,
+         title,
+         message,
+         type,
+         onConfirm: onConfirm || (() => setAlertConfig(prev => ({ ...prev, visible: false }))),
+         buttons,
+      });
+   };
 
    function handleNavigate(screen: string): void {
       navigation.navigate(screen);
@@ -71,29 +102,37 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleThe
 
    // Handle currency change
    const handleChangeCurrency = () => {
-      const currencies = ["USD", "EUR", "TRY", "GBP"];
+      const currencies = ["USD", "EUR", "TRY"];
       
-      Alert.alert(
+      showAlert(
          t("settings.changeCurrency"),
-         "",
+         t("settings.chooseCurrency"),
+         "info",
+         undefined,
          [
             ...currencies.map(curr => ({
                text: curr,
                onPress: async () => {
+                  setAlertConfig(prev => ({ ...prev, visible: false }));
                   try {
                      setIsLoading(true);
                      await updatePreferredCurrency(curr);
                      setPreferredCurrency(curr);
                      await refreshUser();
-                     Alert.alert(t("alert.genericSuccessTitle"), t("alert.currencyUpdated"));
+                     showAlert(t("alert.genericSuccessTitle") || "Success", t("alert.currencyUpdated") || "Currency updated successfully", "success");
                   } catch (error) {
-                     Alert.alert(t("alert.genericErrorTitle"), t("alert.currencyUpdateError"));
+                     showAlert(t("alert.genericErrorTitle") || "Error", t("alert.currencyUpdateError") || "Failed to update currency", "error");
                   } finally {
                      setIsLoading(false);
                   }
-               }
+               },
+               type: "confirm" as const
             })),
-            { text: t("alert.cancel"), style: "cancel" }
+            { 
+               text: t("alert.cancel") || "Cancel", 
+               onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+               type: "cancel" as const
+            }
          ]
       );
    };
@@ -124,23 +163,35 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleThe
 
    // Handle logout
    const handleLogout = () => {
-      Alert.alert(t("settings.logoutTitle"), t("settings.logoutMessage"), [
-         { text: t("settings.logoutCancel"), style: "cancel" },
-         {
-            text: t("settings.logout"),
-            style: "destructive",
-            onPress: async () => {
-               try {
-                  // Clear tokens globally
-                  await logout();
-                  // App will automatically redirect to Login due to AppNavigator logic
-               } catch (error) {
-                  console.error("Error during logout:", error);
-                  Alert.alert(t("alerts.titles.error"), t("settings.logoutError"));
-               }
+      showAlert(
+         t("settings.logoutTitle") || "Logout",
+         t("settings.logoutMessage") || "Are you sure you want to logout?",
+         "warning",
+         undefined,
+         [
+            { 
+               text: t("settings.logoutCancel") || "Cancel", 
+               onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+               type: "cancel" as const
             },
-         },
-      ]);
+            {
+               text: t("settings.logout") || "Logout",
+               onPress: async () => {
+                  setAlertConfig(prev => ({ ...prev, visible: false }));
+                  try {
+                     // Clear tokens globally
+                     await logout();
+                     // App will automatically redirect to Login due to AppNavigator logic
+                  } catch (error) {
+                     console.error("Error during logout:", error);
+                     showAlert(t("alerts.titles.error") || "Error", t("settings.logoutError") || "Failed to logout", "error");
+                  }
+               },
+               type: "confirm" as const,
+               color: themeColors.red
+            },
+         ]
+      );
    };
 
    return (
@@ -179,6 +230,20 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ isDarkMode, onToggleThe
                </View>
             </ScrollView>
          </View>
+
+         <ConfirmationModal
+            visible={alertConfig.visible}
+            title={alertConfig.title}
+            message={alertConfig.message}
+            type={alertConfig.type}
+            isDarkMode={isDarkMode}
+            buttons={alertConfig.buttons}
+            onConfirm={() => {
+               if (alertConfig.onConfirm) alertConfig.onConfirm();
+               setAlertConfig(prev => ({ ...prev, visible: false }));
+            }}
+            onCancel={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+         />
       </ThemeContext.Provider>
    );
 };

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, FlatList, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, FlatList, ActivityIndicator } from "react-native";
+import ConfirmationModal, { ModalButton } from "../../components/ConfirmationModal";
 import { SvgXml } from "react-native-svg";
 import { getThemeColors } from "../utils/getThemeColors";
 import { LinearGradient } from "expo-linear-gradient";
@@ -48,6 +49,36 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
    const [isLoadingMore, setIsLoadingMore] = useState(false);
    const [hasMoreData, setHasMoreData] = useState(true);
    const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+   const [alertConfig, setAlertConfig] = useState<{
+      visible: boolean;
+      title: string;
+      message: string;
+      type: "success" | "error" | "warning" | "info";
+      onConfirm?: () => void;
+      buttons?: ModalButton[];
+   }>({
+      visible: false,
+      title: "",
+      message: "",
+      type: "info",
+   });
+
+   const showAlert = (
+      title: string, 
+      message: string, 
+      type: "success" | "error" | "warning" | "info" = "info", 
+      onConfirm?: () => void,
+      buttons?: ModalButton[]
+   ) => {
+      setAlertConfig({
+         visible: true,
+         title,
+         message,
+         type,
+         onConfirm: onConfirm || (() => setAlertConfig(prev => ({ ...prev, visible: false }))),
+         buttons,
+      });
+   };
 
    // Calculate totals for the budget overview
    const totalBudgeted = budgetCategories.reduce((sum, category) => sum + category.budgeted, 0);
@@ -107,7 +138,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
       } catch (err: any) {
          console.error("Error fetching budgets:", err);
          setError("Failed to load budgets. Please try again.");
-         Alert.alert("Error", "Failed to load budgets. Please try again.");
+         showAlert("Error", "Failed to load budgets. Please try again.", "error");
          setHasMoreData(false);
       } finally {
          setIsLoading(false);
@@ -162,36 +193,45 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
 
          if (!budgetToDelete || !budgetToDelete.apiId) {
             console.error("Cannot delete budget: Invalid ID or missing API ID");
-            Alert.alert(t("alerts.titles.error"), t("alerts.error.invalidId"));
+            showAlert(t("alerts.titles.error") || "Error", t("alerts.error.invalidId") || "Invalid ID", "error");
             return;
          }
 
          // Show a confirmation dialog before deletion
-         Alert.alert(t("alert.deletionTitle"), t("alert.deletionMessage"), [
-            {
-               text: t("alert.cancel"),
-               style: "cancel",
-            },
-            {
-               text: t("alert.confirm"),
-               style: "destructive",
-               onPress: async () => {
-                  try {
-                     // Delete from API
-                     await deleteBudget(budgetToDelete.apiId!);
-
-                     // Update local state
-                     setBudgetCategories((categories) => categories.filter((category) => category.id !== id));
-                  } catch (err: any) {
-                     console.error("Error deleting budget:", err);
-                     Alert.alert(t("alert.genericErrorTitle"), t("alert.failedToDelete"));
-                  }
+         showAlert(
+            t("alert.deletionTitle") || "Delete Budget",
+            t("alert.deletionMessage") || "Are you sure you want to delete this budget?",
+            "warning",
+            undefined,
+            [
+               {
+                  text: t("alert.cancel") || "Cancel",
+                  onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+                  type: "cancel"
                },
-            },
-         ]);
+               {
+                  text: t("alert.confirm") || "Delete",
+                  onPress: async () => {
+                     setAlertConfig(prev => ({ ...prev, visible: false }));
+                     try {
+                        // Delete from API
+                        await deleteBudget(budgetToDelete.apiId!);
+
+                        // Update local state
+                        setBudgetCategories((categories) => categories.filter((category) => category.id !== id));
+                     } catch (err: any) {
+                        console.error("Error deleting budget:", err);
+                        showAlert(t("alert.genericErrorTitle") || "Error", t("alert.failedToDelete") || "Failed to delete budget", "error");
+                     }
+                  },
+                  type: "confirm",
+                  color: themeColors.red
+               },
+            ]
+         );
       } catch (error) {
          console.error("Error in handleDelete:", error);
-         Alert.alert(t("alerts.titles.error"), t("alerts.error.generic"));
+         showAlert(t("alerts.titles.error") || "Error", t("alerts.error.generic") || "An unexpected error occurred.", "error");
       }
    };
 
@@ -274,7 +314,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
          setIsModalVisible(false);
       } catch (err: any) {
          console.error("Error adding budget:", err);
-         Alert.alert(t("alert.genericErrorTitle"), t("alert.failedToAdd"));
+         showAlert(t("alert.genericErrorTitle") || "Error", t("alert.failedToAdd") || "Failed to add budget", "error");
       }
    };
 
@@ -366,6 +406,20 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
             categories={availableCategories}
          />
          <ActionFAB isDarkMode={isDarkMode} onPress={() => setIsModalVisible(true)} />
+         
+         <ConfirmationModal
+            visible={alertConfig.visible}
+            title={alertConfig.title}
+            message={alertConfig.message}
+            type={alertConfig.type}
+            isDarkMode={isDarkMode}
+            buttons={alertConfig.buttons}
+            onConfirm={() => {
+               if (alertConfig.onConfirm) alertConfig.onConfirm();
+               setAlertConfig(prev => ({ ...prev, visible: false }));
+            }}
+            onCancel={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+         />
       </View>
    );
 };

@@ -7,9 +7,9 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   FlatList,
-  Alert,
 } from "react-native";
 import { getThemeColors } from "../utils/getThemeColors";
+import ConfirmationModal, { ModalButton } from "../../components/ConfirmationModal";
 import {
   getExpenses,
   deleteExpense,
@@ -109,6 +109,19 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
   const [expenses, setExpenses] = useState<ExpenseSource[]>([]);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+    onConfirm?: () => void;
+    buttons?: ModalButton[];
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -119,6 +132,23 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
   const [isExtracting, setIsExtracting] = useState(false);
   const pageSize = 10;
   const { t, i18n } = useTranslation();
+
+  const showAlert = (
+    title: string, 
+    message: string, 
+    type: "success" | "error" | "warning" | "info" = "info", 
+    onConfirm?: () => void,
+    buttons?: ModalButton[]
+  ) => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      type,
+      onConfirm: onConfirm || (() => setAlertConfig(prev => ({ ...prev, visible: false }))),
+      buttons,
+    });
+  };
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -186,20 +216,35 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
   }, [preferredCurrency]);
 
   const handleScanReceipt = async () => {
-    Alert.alert(t("scan.title") || "Scan Receipt", t("scan.message") || "Choose a source", [
-      {
-        text: t("scan.camera") || "Camera",
-        onPress: () => processImage(ImagePicker.launchCameraAsync),
-      },
-      {
-        text: t("scan.gallery") || "Gallery",
-        onPress: () => processImage(ImagePicker.launchImageLibraryAsync),
-      },
-      {
-        text: t("common.cancel") || "Cancel",
-        style: "cancel",
-      },
-    ]);
+    showAlert(
+      t("scan.title") || "Scan Receipt",
+      t("scan.message") || "Choose a source",
+      "info",
+      undefined,
+      [
+        {
+          text: t("scan.camera") || "Camera",
+          onPress: () => {
+            setAlertConfig(prev => ({ ...prev, visible: false }));
+            processImage(ImagePicker.launchCameraAsync);
+          },
+          type: "confirm"
+        },
+        {
+          text: t("scan.gallery") || "Gallery",
+          onPress: () => {
+            setAlertConfig(prev => ({ ...prev, visible: false }));
+            processImage(ImagePicker.launchImageLibraryAsync);
+          },
+          type: "confirm"
+        },
+        {
+          text: t("common.cancel") || "Cancel",
+          onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+          type: "cancel"
+        },
+      ]
+    );
   };
 
   const processImage = async (launcher: typeof ImagePicker.launchCameraAsync) => {
@@ -223,7 +268,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
       }
     } catch (error) {
       console.error("Image processing error:", error);
-      Alert.alert("Error", "Failed to process receipt image");
+      showAlert(t("common.error") || "Error", t("scan.error") || "Failed to process receipt image", "error");
     } finally {
       setIsExtracting(false);
     }
@@ -238,7 +283,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
       setIsReviewModalVisible(true);
     } catch (error) {
       console.error("Voice processing error:", error);
-      Alert.alert("Error", "Failed to process voice command");
+      showAlert(t("common.error") || "Error", t("voice.error") || "Failed to process voice command", "error");
     } finally {
       setIsExtracting(false);
     }
@@ -269,10 +314,10 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
       const finData = await getFinancialSummary();
       setFinancialData(finData);
 
-      Alert.alert("Success", `Added ${expensesToAdd.length} expenses`);
+      showAlert(t("common.success") || "Success", `${t("expense.addedCount", { count: expensesToAdd.length }) || `Added ${expensesToAdd.length} expenses`}`, "success");
     } catch (error) {
       console.error("Bulk add error:", error);
-      Alert.alert("Error", "Failed to add expenses");
+      showAlert(t("common.error") || "Error", t("expense.addFailed") || "Failed to add expenses", "error");
     } finally {
       setIsExtracting(false);
     }
@@ -369,20 +414,29 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
     try {
       if (!id) {
         console.error("Cannot delete expense: Invalid ID");
-        Alert.alert(t("alerts.titles.error"), t("alerts.error.invalidId"));
+        showAlert(t("alerts.titles.error") || "Error", t("alerts.error.invalidId") || "Invalid ID", "error");
         return;
       }
 
       // Show a confirmation dialog before deletion
-      Alert.alert(t("alert.deletionTitle"), t("alert.deletionMessage"), [
-        { text: t("alert.cancel"), style: "cancel" },
-        {
-          text: t("alert.confirm"),
-          style: "destructive",
-          onPress: async () => {
-            try {
-              // Delete from API
-              await deleteExpense(id);
+      showAlert(
+        t("alert.deletionTitle") || "Delete Expense",
+        t("alert.deletionMessage") || "Are you sure you want to delete this expense?",
+        "warning",
+        undefined,
+        [
+          {
+            text: t("alert.cancel") || "Cancel",
+            onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+            type: "cancel"
+          },
+          {
+            text: t("alert.confirm") || "Delete",
+            onPress: async () => {
+              setAlertConfig(prev => ({ ...prev, visible: false }));
+              try {
+                // Delete from API
+                await deleteExpense(id);
 
               // Remove from local state
               const deletedExpense = expenses.find((item) => item.id === id);
@@ -439,17 +493,20 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
               }
             } catch (error) {
               console.error("Error deleting expense:", error);
-              Alert.alert(
-                t("alert.genericErrorTitle"),
-                t("alert.failedToDelete"),
+              showAlert(
+                t("alert.genericErrorTitle") || "Error",
+                t("alert.failedToDelete") || "Failed to delete expense",
+                "error"
               );
             }
           },
+          type: "confirm",
+          color: themeColors.red
         },
       ]);
     } catch (error) {
       console.error("Error in handleDelete:", error);
-      Alert.alert(t("alerts.titles.error"), t("alerts.error.generic"));
+      showAlert(t("alerts.titles.error") || "Error", t("alerts.error.generic") || "An unexpected error occurred.", "error");
     }
   };
 
@@ -466,17 +523,17 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
 
       // Validate inputs before sending to API
       if (!newExpense.description) {
-        Alert.alert("Error", "Please enter a description");
+        showAlert(t("common.error") || "Error", t("expense.errorDescription") || "Please enter a description", "error");
         return;
       }
 
       if (!newExpense.amount || newExpense.amount <= 0) {
-        Alert.alert("Error", "Please enter a valid amount");
+        showAlert(t("common.error") || "Error", t("expense.errorAmount") || "Please enter a valid amount", "error");
         return;
       }
 
       if (!newExpense.categoryId) {
-        Alert.alert("Error", "Please select a category");
+        showAlert(t("common.error") || "Error", t("expense.errorCategory") || "Please select a category", "error");
         return;
       }
 
@@ -529,11 +586,11 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
       });
 
       // Show a more user-friendly error message
-      Alert.alert(
-        "Error Adding Expense",
+      showAlert(
+        t("expense.errorAddTitle") || "Error Adding Expense",
         error.message ||
-          "There was a problem adding your expense. Please try again.",
-        [{ text: "OK" }],
+          (t("expense.errorAddMessage") || "There was a problem adding your expense. Please try again."),
+        "error"
       );
     }
   };
@@ -639,7 +696,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
       }
     } catch (error) {
       console.error("Failed to fetch expenses:", error);
-      Alert.alert(t("alerts.titles.error"), t("alerts.error.failedToLoad"));
+      showAlert(t("alerts.titles.error") || "Error", t("alerts.error.failedToLoad") || "Failed to load expenses", "error");
       setHasMoreData(false);
     } finally {
       setLoading(false);
@@ -799,7 +856,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
               if (categories.length > 0) {
                 setIsAddModalVisible(true);
               } else {
-                Alert.alert("Error", "Please wait for categories to load");
+                showAlert(t("common.error") || "Error", t("categories.loadingError") || "Please wait for categories to load", "warning");
               }
             },
             color: themeColors.green,
@@ -838,6 +895,19 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
           </Text>
         </View>
       )}
+      <ConfirmationModal
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        isDarkMode={isDarkMode}
+        buttons={alertConfig.buttons}
+        onConfirm={() => {
+          if (alertConfig.onConfirm) alertConfig.onConfirm();
+          setAlertConfig(prev => ({ ...prev, visible: false }));
+        }}
+        onCancel={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+      />
     </View>
   );
 };
