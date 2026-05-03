@@ -62,7 +62,7 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
          setIsLoading(true);
          setError(null);
 
-         const response = await getGoals(1, 10); // Get up to 10 goals
+         const response = await getGoals(1, 10, preferredCurrency); // Get up to 10 goals
          console.log("Fetched goals:", response);
 
          // Transform API data to our component format
@@ -94,7 +94,7 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
    // Initial data fetch
    useEffect(() => {
       fetchGoals();
-   }, []);
+   }, [preferredCurrency]);
 
    const handleNavigate = (screen: string) => {
       navigation.navigate(screen);

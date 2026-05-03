@@ -10,6 +10,7 @@ import {
   getUserCategories,
   getFinancialSummary,
   getGoals,
+  getGoalsTotal,
   getCurrentUser,
   bulkAddExpenses,
   extractExpenseFromImage,
@@ -253,19 +254,11 @@ function DashboardScreen({
   // Calculate total goals summary
   const calculateGoalsSummary = async () => {
     try {
-      // Fetch all goals
-      const goalsResponse = await getGoals(1, 50); // Get up to 50 goals
-      const goals = goalsResponse.items || [];
-
-      // Calculate total goal amounts
-      const totalSaved = goals.reduce(
-        (sum: number, goal: GoalHistoryDto) => sum + (goal.currentAmount || 0),
-        0,
-      );
-      const totalTarget = goals.reduce(
-        (sum: number, goal: GoalHistoryDto) => sum + (goal.targetAmount || 0),
-        0,
-      );
+      // Fetch total goal amounts directly from the API (backend handles conversion)
+      const totalData = await getGoalsTotal(preferredCurrency);
+      
+      const totalSaved = totalData.totalCurrentAmount || 0;
+      const totalTarget = totalData.totalTargetAmount || 0;
 
       // For monthly savings, you can either:
       // 1. Use an API endpoint if you have one specifically for monthly goals
@@ -322,7 +315,7 @@ function DashboardScreen({
         try {
           // Parallel fetch
           const [summary, user] = await Promise.all([
-            getFinancialSummary(),
+            getFinancialSummary(preferredCurrency),
             refreshUser()
           ]);
           if (summary) {
@@ -334,7 +327,7 @@ function DashboardScreen({
         }
       };
       fetchData();
-    }, [refreshUser])
+    }, [refreshUser, preferredCurrency])
   );
 
   useEffect(() => {
@@ -343,7 +336,7 @@ function DashboardScreen({
         setLoading(true);
         // Fetch financial data, user info and categories in parallel
         const [finData, user, catData] = await Promise.all([
-          getFinancialSummary(),
+          getFinancialSummary(preferredCurrency),
           getCurrentUser(),
           getUserCategories(),
         ]);
@@ -383,7 +376,7 @@ function DashboardScreen({
     };
 
     fetchData();
-  }, []);
+  }, [preferredCurrency]);
 
   if (loading) {
     return (

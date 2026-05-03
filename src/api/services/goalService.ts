@@ -13,7 +13,7 @@ export const getGoals = async (pageNumber: number = 1, pageSize: number = 10, cu
 
       console.log("Fetching goals with params:", params);
 
-      const response = await axiosInstance.get<PaginatedListOfGoalHistoryDto>(`/api/Goals/user`, {
+      const response = await axiosInstance.get<any>(`/api/Goals`, {
          headers: {
             "Content-Type": "application/json",
          },
@@ -21,6 +21,19 @@ export const getGoals = async (pageNumber: number = 1, pageSize: number = 10, cu
       });
 
       console.log("Goals API Response:", response.data);
+
+      // Normalize array response to Paginated object if necessary
+      if (Array.isArray(response.data)) {
+         return {
+            items: response.data,
+            pageNumber: 1,
+            totalPages: 1,
+            totalCount: response.data.length,
+            hasNextPage: false,
+            hasPreviousPage: false,
+         } as PaginatedListOfGoalHistoryDto;
+      }
+
       return response.data;
    } catch (error: any) {
       console.error("Failed to fetch goals:", {

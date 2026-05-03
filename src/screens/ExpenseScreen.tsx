@@ -128,7 +128,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
         // Fetch categories first
         await fetchCategories();
 
-        const [finData] = await Promise.all([getFinancialSummary()]);
+        const [finData] = await Promise.all([getFinancialSummary(preferredCurrency)]);
 
         setFinancialData(finData);
       } catch (error) {
@@ -139,7 +139,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
     };
 
     fetchInitialData();
-  }, []);
+  }, [preferredCurrency]);
 
   useEffect(() => {
     const fetchExpenses = async () => {
@@ -147,7 +147,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
         setLoading(true);
 
         // Use the updated getExpenses function that now includes userId in the path
-        const response = await getExpenses(1, 10);
+        const response = await getExpenses(1, 10, preferredCurrency);
 
         const items = response.items || [];
         const mappedExpenses = items.map((expense: any) => ({
@@ -183,7 +183,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
     };
 
     fetchExpenses();
-  }, []);
+  }, [preferredCurrency]);
 
   const handleScanReceipt = async () => {
     Alert.alert(t("scan.title") || "Scan Receipt", t("scan.message") || "Choose a source", [
@@ -429,7 +429,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
 
               // Update financial summary
               try {
-                const updatedFinancialData = await getFinancialSummary();
+                const updatedFinancialData = await getFinancialSummary(preferredCurrency);
                 setFinancialData(updatedFinancialData);
               } catch (err) {
                 console.error(
@@ -510,7 +510,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
 
         // Refresh financial data
         try {
-          const updatedFinancialData = await getFinancialSummary();
+          const updatedFinancialData = await getFinancialSummary(preferredCurrency);
           setFinancialData(updatedFinancialData);
         } catch (err) {
           console.error(
@@ -588,7 +588,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
       }
 
       // Use the updated getExpenses function that now includes pagination
-      const response = await getExpenses(page, pageSize);
+      const response = await getExpenses(page, pageSize, preferredCurrency);
 
       const items = response.items || [];
       const mappedExpenses = items.map((expense: any) => ({

@@ -64,7 +64,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
          }
          setError(null);
 
-         const response = await getBudgets(page, 10);
+         const response = await getBudgets(page, 10, preferredCurrency);
          const categories = await getUserCategories();
          console.log(`Fetched budgets (Page ${page}):`, JSON.stringify(response, null, 2));
 
@@ -145,7 +145,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
    useEffect(() => {
       fetchBudgets();
       fetchCategories();
-   }, []);
+   }, [preferredCurrency]);
 
    const handleNavigate = (screen: string) => {
       navigation.navigate(screen);

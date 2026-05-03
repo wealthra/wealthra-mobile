@@ -78,7 +78,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
 
   useEffect(() => {
     fetchIncomeData();
-  }, []);
+  }, [preferredCurrency]);
 
   useEffect(() => {
     // Update transactions whenever incomeSources changes
@@ -107,7 +107,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
       }
 
       // Fetch income data using the new API function with current page
-      const response = await getIncomes(page, pageSize);
+      const response = await getIncomes(page, pageSize, preferredCurrency);
 
       // Map the response data to your local format with timestamps
       const incomes = response.items || [];
@@ -154,7 +154,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
 
       // Also fetch financial summary if needed
       if (page === 1) {
-        const financialSummaryData = await getFinancialSummary();
+        const financialSummaryData = await getFinancialSummary(preferredCurrency);
         setFinancialData(financialSummaryData);
       }
     } catch (error) {
@@ -220,7 +220,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
       updateRecentTransactions(mappedIncome);
 
       // Optionally, update financial summary in background without full page reload
-      getFinancialSummary()
+      getFinancialSummary(preferredCurrency)
         .then((updatedData) => {
           setFinancialData(updatedData);
         })
@@ -272,7 +272,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
               );
 
               // Update financial summary in the background
-              getFinancialSummary()
+              getFinancialSummary(preferredCurrency)
                 .then((updatedData) => {
                   setFinancialData(updatedData);
                 })

@@ -65,11 +65,11 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
    useEffect(() => {
       fetchAnalyticsData();
       fetchMetricsData();
-   }, [startDate, endDate]); // Fetch data when date range changes
+   }, [startDate, endDate, preferredCurrency]); // Fetch data when date range or currency changes
 
    const fetchMetricsData = async () => {
       try {
-         const metrics = await getMonthlyMetrics(new Date().toISOString().split("T")[0]);
+         const metrics = await getMonthlyMetrics(new Date().toISOString().split("T")[0], preferredCurrency);
          console.log("Monthly metrics fetched:", metrics);
          // You can add state to display these metrics if needed
       } catch (error) {
@@ -82,8 +82,8 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
       try {
          // Fetch all data in parallel for better performance
          const [categoryResult, trendsResult] = await Promise.all([
-            getSpendingBreakdown(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]),
-            getMonthlyTrends(new Date().getFullYear()),
+            getSpendingBreakdown(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0], preferredCurrency),
+            getMonthlyTrends(new Date().getFullYear(), preferredCurrency),
          ]);
 
          console.log("All API data fetched successfully");
@@ -135,7 +135,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
 
    const fetchCategorySpendingData = async () => {
       try {
-         const result = await getSpendingBreakdown(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
+         const result = await getSpendingBreakdown(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0], preferredCurrency);
 
          console.log("Category spending API response:", result);
 
@@ -161,7 +161,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
 
    const fetchMonthlyTrendsData = async () => {
       try {
-         const result = await getMonthlyTrends(new Date().getFullYear());
+         const result = await getMonthlyTrends(new Date().getFullYear(), preferredCurrency);
          console.log("Monthly trends API response:", result);
 
          if (!result || !result.monthlyData) {
