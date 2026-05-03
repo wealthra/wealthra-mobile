@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { setAnnouncementsShown } from "../api/services/announcementService";
 
 interface AuthContextType {
    isAuthenticated: boolean;
@@ -67,6 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setJwToken(null);
       setRefreshToken(null);
       setIsAuthenticated(false);
+      setAnnouncementsShown(false);
       await AsyncStorage.multiRemove([
         "userId",
         "jwToken",

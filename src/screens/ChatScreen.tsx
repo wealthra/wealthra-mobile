@@ -167,6 +167,12 @@ const ChatScreen = ({
     }
   };
 
+  const renderLimit = (limit: number | null) => {
+    if (limit === null || limit === undefined) return "0";
+    if (limit === 0 || limit === -1 || limit >= 99999) return "∞";
+    return limit.toString();
+  };
+
   const handlePickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -342,7 +348,10 @@ const ChatScreen = ({
               <Text style={styles.headerStatus}>{t("copilot.online")}</Text>
               {usage && (
                 <Text style={[styles.headerStatus, { marginLeft: 8, opacity: 0.8, fontSize: moderateScale(11) }]}>
-                  {t("copilot.limitsLeft", { ocr: Math.max(0, usage.monthlyOcrLimit - usage.ocrRequestsThisMonth), stt: Math.max(0, usage.monthlySttLimit - usage.sttRequestsThisMonth) })}
+                  {t("copilot.limitsLeft", { 
+                    ocr: (usage.monthlyOcrLimit === 0 || usage.monthlyOcrLimit === -1 || usage.monthlyOcrLimit >= 99999) ? "∞" : Math.max(0, usage.monthlyOcrLimit - usage.ocrRequestsThisMonth), 
+                    stt: (usage.monthlySttLimit === 0 || usage.monthlySttLimit === -1 || usage.monthlySttLimit >= 99999) ? "∞" : Math.max(0, usage.monthlySttLimit - usage.sttRequestsThisMonth) 
+                  })}
                 </Text>
               )}
             </View>
@@ -383,11 +392,11 @@ const ChatScreen = ({
                 </View>
                 <View style={styles.usageRow}>
                   <Text style={[styles.usageLabel, { color: theme.card_description }]}>{t("copilot.ocrLimit")}</Text>
-                  <Text style={[styles.usageValue, { color: theme.card_title }]}>{usage.ocrRequestsThisMonth} / {usage.monthlyOcrLimit}</Text>
+                  <Text style={[styles.usageValue, { color: theme.card_title }]}>{usage.ocrRequestsThisMonth} / {renderLimit(usage.monthlyOcrLimit)}</Text>
                 </View>
                 <View style={styles.usageRow}>
                   <Text style={[styles.usageLabel, { color: theme.card_description }]}>{t("copilot.sttLimit")}</Text>
-                  <Text style={[styles.usageValue, { color: theme.card_title }]}>{usage.sttRequestsThisMonth} / {usage.monthlySttLimit}</Text>
+                  <Text style={[styles.usageValue, { color: theme.card_title }]}>{usage.sttRequestsThisMonth} / {renderLimit(usage.monthlySttLimit)}</Text>
                 </View>
                 {usage.lastUsageActivityDate && (
                   <View style={styles.usageRow}>

@@ -15,6 +15,8 @@ import {
   extractExpenseFromImage,
   extractExpenseFromAudio,
   getActiveAnnouncements,
+  hasShownAnnouncements,
+  setAnnouncementsShown,
   type FinancialDashboardDto,
   type GoalHistoryDto,
   type UserDto,
@@ -350,20 +352,22 @@ function DashboardScreen({
         setCategories(catData);
 
         // Fetch announcements separately to not block main dashboard data
+        // Fetch announcements separately to not block main dashboard data
         try {
-          const announcements = await getActiveAnnouncements();
-          if (announcements && announcements.length > 0) {
-            const lastSeenId = await AsyncStorage.getItem("lastSeenAnnouncementId");
-            
-            // Filter out announcements the user has already seen in this session/device
-            const unseen = announcements.filter(a => a.id.toString() !== lastSeenId);
-            
-            if (unseen.length > 0) {
-              setPendingAnnouncements(unseen);
-              setActiveAnnouncement(unseen[0]);
-              setIsAnnouncementVisible(true);
-              // Mark the very first one as seen for now, or we can mark them as they are closed
+          if (!hasShownAnnouncements()) {
+            const announcements = await getActiveAnnouncements();
+            if (announcements && announcements.length > 0) {
+              const lastSeenId = await AsyncStorage.getItem("lastSeenAnnouncementId");
+              
+              const unseen = announcements.filter(a => a.id && a.id.toString() !== lastSeenId);
+              
+              if (unseen.length > 0) {
+                setPendingAnnouncements(unseen);
+                setActiveAnnouncement(unseen[0]);
+                setIsAnnouncementVisible(true);
+              }
             }
+            setAnnouncementsShown(true);
           }
         } catch (announcementError) {
           console.error("Non-critical error: Failed to fetch announcements", announcementError);
