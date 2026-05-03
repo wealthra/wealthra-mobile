@@ -1,6 +1,7 @@
 import axiosInstance from "../axiosInstance";
 import { getStoredToken, getUserId, getStoredCurrency } from "./authService";
 import { IncomeDto, PaginatedListOfIncomeDto, CreateIncomeCommand, UpdateIncomeCommand, IncomeSummaryDto, IncomeGeneralInfoDto } from "../types";
+import { roundFinancialData } from "../../utils/roundingUtils";
 
 export const getIncomes = async (pageNumber: number = 1, pageSize: number = 10, currencyOverride?: string): Promise<PaginatedListOfIncomeDto> => {
    try {
@@ -19,7 +20,7 @@ export const getIncomes = async (pageNumber: number = 1, pageSize: number = 10, 
       });
 
       console.log("✅ [DEBUG] Income List API Response:", JSON.stringify(response.data, null, 2));
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error("Failed to fetch incomes:", error);
       return {
@@ -75,7 +76,7 @@ export const getIncomeById = async (id: number, currencyOverride?: string): Prom
          params: { currency }
       });
 
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error(`Failed to fetch income ${id}:`, error);
       throw new Error(error.response?.data?.message || `Failed to fetch income ${id}`);
@@ -139,7 +140,7 @@ export const getIncomeSummary = async (currencyOverride?: string): Promise<Incom
       });
 
       console.log("✅ [DEBUG] Income Summary API Response:", JSON.stringify(response.data, null, 2));
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error("Failed to fetch income summary:", error);
       throw new Error(error.response?.data?.message || "Failed to fetch income summary");
@@ -159,7 +160,7 @@ export const getIncomeGeneralInfo = async (currencyOverride?: string): Promise<I
          params: { currency }
       });
 
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error("Failed to fetch income general info:", error);
       throw new Error(error.response?.data?.message || "Failed to fetch income general info");

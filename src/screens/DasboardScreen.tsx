@@ -254,11 +254,19 @@ function DashboardScreen({
   // Calculate total goals summary
   const calculateGoalsSummary = async () => {
     try {
-      // Fetch total goal amounts directly from the API (backend handles conversion)
-      const totalData = await getGoalsTotal(preferredCurrency);
-      
-      const totalSaved = totalData.totalCurrentAmount || 0;
-      const totalTarget = totalData.totalTargetAmount || 0;
+      // Fetch all goals with the current preferred currency (now using the fixed endpoint)
+      const goalsResponse = await getGoals(1, 50, preferredCurrency); 
+      const goals = goalsResponse.items || [];
+
+      // Calculate total goal amounts
+      const totalSaved = goals.reduce(
+        (sum: number, goal: GoalHistoryDto) => sum + (goal.currentAmount || 0),
+        0,
+      );
+      const totalTarget = goals.reduce(
+        (sum: number, goal: GoalHistoryDto) => sum + (goal.targetAmount || 0),
+        0,
+      );
 
       // For monthly savings, you can either:
       // 1. Use an API endpoint if you have one specifically for monthly goals

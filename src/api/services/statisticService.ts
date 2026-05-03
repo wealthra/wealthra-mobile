@@ -1,6 +1,7 @@
 import axiosInstance from "../axiosInstance";
 import { getStoredToken, getStoredCurrency } from "./authService";
 import { FinancialDashboardDto, SpendingBreakdownDto, MonthlyTrendsDto } from "../types";
+import { roundFinancialData } from "../../utils/roundingUtils";
 
 export const getFinancialSummary = async (currencyOverride?: string): Promise<FinancialDashboardDto> => {
    try {
@@ -17,8 +18,7 @@ export const getFinancialSummary = async (currencyOverride?: string): Promise<Fi
          params: { currency }
       });
 
-      console.log("✅ [DEBUG] Financial Summary API Response:", JSON.stringify(response.data, null, 2));
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error("Failed to fetch dashboard summary:", error);
       throw new Error(error.response?.data?.message || "Failed to fetch dashboard summary");
@@ -40,8 +40,7 @@ export const getFinancialSummaryWeb = async (currencyOverride?: string): Promise
          params: { currency }
       });
 
-      console.log("✅ [DEBUG] Financial Summary Web API Response:", JSON.stringify(response.data, null, 2));
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error("Failed to fetch dashboard web summary:", error);
       throw new Error(error.response?.data?.message || "Failed to fetch dashboard web summary");
@@ -61,7 +60,7 @@ export const getSpendingBreakdown = async (startDate?: string, endDate?: string,
          params: { startDate, endDate, currency }
       });
 
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error("Failed to fetch spending breakdown:", error);
       throw new Error(error.response?.data?.message || "Failed to fetch spending breakdown");
@@ -81,7 +80,7 @@ export const getMonthlyTrends = async (year?: number, currencyOverride?: string)
          params: { year, currency }
       });
 
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error("Failed to fetch monthly trends:", error);
       throw new Error(error.response?.data?.message || "Failed to fetch monthly trends");

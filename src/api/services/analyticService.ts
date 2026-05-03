@@ -1,6 +1,7 @@
 import axiosInstance from "../axiosInstance";
 import { getStoredToken, getStoredCurrency } from "./authService";
 import { MonthlyCategoryMetricDto, SpendingBreakdownDto, MonthlyTrendsDto } from "../types";
+import { roundFinancialData } from "../../utils/roundingUtils";
 
 export const getMonthlyMetrics = async (date?: string, currencyOverride?: string): Promise<MonthlyCategoryMetricDto[]> => {
    try {
@@ -15,7 +16,7 @@ export const getMonthlyMetrics = async (date?: string, currencyOverride?: string
          params: { date, currency }
       });
 
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error("Failed to fetch monthly metrics:", error);
       throw new Error(error.response?.data?.message || "Failed to fetch monthly metrics");

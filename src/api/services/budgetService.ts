@@ -2,6 +2,7 @@ import axiosInstance from "../axiosInstance";
 import { getStoredToken, getUserId, getStoredCurrency } from "./authService";
 import { getUserCategories } from "./categoryService";
 import { BudgetDto, CreateBudgetCommand, UpdateBudgetCommand, BudgetOverviewDto, MonthlyBudgetSummaryDto, PaginatedListOfBudgetDto, BudgetAlertDto } from "../types";
+import { roundFinancialData } from "../../utils/roundingUtils";
 
 export const getBudgets = async (pageNumber: number = 1, pageSize: number = 10, currencyOverride?: string): Promise<PaginatedListOfBudgetDto> => {
    try {
@@ -55,7 +56,7 @@ export const getBudgets = async (pageNumber: number = 1, pageSize: number = 10, 
          });
       }
 
-      return normalizedData;
+      return roundFinancialData(normalizedData);
    } catch (error: any) {
       console.error("Failed to fetch budgets:", {
          error: error.message,
@@ -129,7 +130,7 @@ export const getBudgetById = async (id: number, currencyOverride?: string): Prom
          params: { currency }
       });
 
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error(`Failed to fetch budget ${id}:`, error);
       throw new Error(error.response?.data?.message || `Failed to fetch budget ${id}`);
@@ -201,7 +202,7 @@ export const getBudgetOverview = async (currencyOverride?: string): Promise<Budg
       });
 
       console.log("Budget Overview Data:", response.data);
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error("Failed to fetch budget overview:", {
          error: error.message,
@@ -227,7 +228,7 @@ export const getMonthlyBudgetSummary = async (currencyOverride?: string): Promis
       });
 
       console.log("Monthly Budget Summary:", response.data);
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error("Failed to fetch monthly budget summary:", {
          error: error.message,

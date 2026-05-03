@@ -1,6 +1,7 @@
 import axiosInstance from "../axiosInstance";
 import { getStoredToken, getUserId, getStoredCurrency } from "./authService";
 import { GoalDto, PaginatedListOfGoalHistoryDto, CreateGoalCommand, UpdateGoalCommand, GoalsTotalDto } from "../types";
+import { roundFinancialData } from "../../utils/roundingUtils";
 
 export const getGoals = async (pageNumber: number = 1, pageSize: number = 10, currencyOverride?: string): Promise<PaginatedListOfGoalHistoryDto> => {
    try {
@@ -20,21 +21,27 @@ export const getGoals = async (pageNumber: number = 1, pageSize: number = 10, cu
          params,
       });
 
-      console.log("Goals API Response:", response.data);
+      // Normalize and round values
+      let items = Array.isArray(response.data) ? response.data : (response.data.items || []);
+      
+      // Round all values using central utility
+      items = roundFinancialData(items);
 
-      // Normalize array response to Paginated object if necessary
       if (Array.isArray(response.data)) {
          return {
-            items: response.data,
+            items: items,
             pageNumber: 1,
             totalPages: 1,
-            totalCount: response.data.length,
+            totalCount: items.length,
             hasNextPage: false,
             hasPreviousPage: false,
          } as PaginatedListOfGoalHistoryDto;
       }
 
-      return response.data;
+      return {
+         ...response.data,
+         items: items
+      };
    } catch (error: any) {
       console.error("Failed to fetch goals:", {
          error: error.message,
@@ -108,7 +115,7 @@ export const getGoalById = async (id: number, currencyOverride?: string): Promis
          params: { currency }
       });
 
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error(`Failed to fetch goal ${id}:`, error);
       throw new Error(error.response?.data?.message || `Failed to fetch goal ${id}`);
@@ -224,7 +231,7 @@ export const getGoalsTotal = async (currencyOverride?: string): Promise<GoalsTot
          params: { currency }
       });
 
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error("Failed to fetch goals total:", error);
       throw new Error(error.response?.data?.message || "Failed to fetch goals total");

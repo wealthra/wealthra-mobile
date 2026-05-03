@@ -23,3 +23,11 @@ export const getCurrencySymbol = (code?: string): string => {
    
    return currencyMap[code.toUpperCase()] || code;
 };
+
+/**
+ * Rounds a financial amount to the nearest whole number.
+ */
+export const roundAmount = (amount: number | null | undefined): number => {
+   if (amount === null || amount === undefined) return 0;
+   return Math.round(amount);
+};

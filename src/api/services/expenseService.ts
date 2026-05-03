@@ -8,6 +8,7 @@ import {
   ExpenseSummaryDto,
   ExpenseGeneralInfoDto,
 } from "../types";
+import { roundFinancialData } from "../../utils/roundingUtils";
 
 export const getExpenses = async (
   pageNumber: number = 1,
@@ -32,7 +33,7 @@ export const getExpenses = async (
     );
 
     console.log("Expense API Response:", response.data);
-    return response.data;
+    return roundFinancialData(response.data);
   } catch (error: any) {
     console.error("Failed to fetch expenses:", {
       error: error.message,
@@ -116,7 +117,7 @@ export const getExpenseById = async (id: number, currencyOverride?: string): Pro
          params: { currency }
       });
 
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error(`Failed to fetch expense ${id}:`, error);
       throw new Error(error.response?.data?.message || `Failed to fetch expense ${id}`);
@@ -135,7 +136,7 @@ export const getUserExpenses = async (pageNumber: number = 1, pageSize: number =
          params,
       });
 
-      return response.data;
+      return roundFinancialData(response.data);
    } catch (error: any) {
       console.error("Failed to fetch user expenses:", error);
       throw new Error(error.response?.data?.message || "Failed to fetch user expenses");
@@ -210,7 +211,7 @@ export const getExpenseSummary = async (currencyOverride?: string): Promise<Expe
       },
     );
 
-    return response.data;
+    return roundFinancialData(response.data);
   } catch (error: any) {
     console.error("Failed to fetch expense summary:", error);
     throw new Error(
@@ -236,7 +237,7 @@ export const getExpenseGeneralInfo =
         },
       );
 
-      return response.data;
+      return roundFinancialData(response.data);
     } catch (error: any) {
       console.error("Failed to fetch expense general info:", error);
       throw new Error(
