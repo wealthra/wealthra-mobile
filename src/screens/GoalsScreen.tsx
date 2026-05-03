@@ -301,7 +301,7 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
          setSelectedGoal(null);
       } catch (err: any) {
          console.error("Error updating goal:", err);
-         Alert.alert("Error", "Failed to update goal. Please try again.");
+         showAlert("Error", "Failed to update goal. Please try again.", "error");
       }
    };
 

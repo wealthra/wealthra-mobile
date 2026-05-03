@@ -6,8 +6,8 @@ import {
    FlatList,
    TouchableOpacity,
    ActivityIndicator,
-   Alert,
 } from "react-native";
+import ConfirmationModal, { ModalButton } from "../../components/ConfirmationModal";
 import { useTranslation } from "react-i18next";
 import { getThemeColors } from "../utils/getThemeColors";
 import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
@@ -30,6 +30,36 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ isDarkMode, navigat
    const [loading, setLoading] = useState(true);
    const [modalVisible, setModalVisible] = useState(false);
    const [selectedCategory, setSelectedCategory] = useState<CategoryDto | null>(null);
+   const [alertConfig, setAlertConfig] = useState<{
+      visible: boolean;
+      title: string;
+      message: string;
+      type: "success" | "error" | "warning" | "info";
+      onConfirm?: () => void;
+      buttons?: ModalButton[];
+   }>({
+      visible: false,
+      title: "",
+      message: "",
+      type: "info",
+   });
+
+   const showAlert = (
+      title: string, 
+      message: string, 
+      type: "success" | "error" | "warning" | "info" = "info", 
+      onConfirm?: () => void,
+      buttons?: ModalButton[]
+   ) => {
+      setAlertConfig({
+         visible: true,
+         title,
+         message,
+         type,
+         onConfirm: onConfirm || (() => setAlertConfig(prev => ({ ...prev, visible: false }))),
+         buttons,
+      });
+   };
 
    const fetchCategories = async () => {
       try {
@@ -38,7 +68,7 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ isDarkMode, navigat
          setCategories(data);
       } catch (error) {
          console.error("Error fetching categories:", error);
-         Alert.alert(t("alert.genericErrorTitle"), t("alert.failedtoFetch"));
+         showAlert(t("alert.genericErrorTitle") || "Error", t("alert.failedtoFetch") || "Failed to fetch categories", "error");
       } finally {
          setLoading(false);
       }
@@ -52,41 +82,48 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ isDarkMode, navigat
       try {
          if (selectedCategory) {
             await updateCategory(selectedCategory.id, name);
-            Alert.alert(t("success") || "Success", t("categoryManagement.categoryUpdated"));
+            showAlert(t("success") || "Success", t("categoryManagement.categoryUpdated") || "Category updated successfully", "success");
          } else {
             await addCategory(name);
-            Alert.alert(t("success") || "Success", t("categoryManagement.categoryAdded"));
+            showAlert(t("success") || "Success", t("categoryManagement.categoryAdded") || "Category added successfully", "success");
          }
          fetchCategories();
       } catch (error) {
          console.error("Error saving category:", error);
-         Alert.alert(t("error") || "Error", t("alert.genericErrorTitle"));
+         showAlert(t("error") || "Error", t("alert.genericErrorTitle") || "An error occurred", "error");
       }
       setModalVisible(false);
    };
 
    const handleDeleteCategory = (id: number) => {
-      Alert.alert(
-         t("categoryManagement.deleteConfirm"),
-         "",
+      showAlert(
+         t("categoryManagement.deleteConfirm") || "Delete Category",
+         t("categoryManagement.deleteMessage") || "Are you sure you want to delete this category?",
+         "warning",
+         undefined,
          [
-            { text: t("alert.cancel"), style: "cancel" },
+            { 
+               text: t("alert.cancel") || "Cancel", 
+               onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+               type: "cancel" as const
+            },
             {
-               text: t("alert.confirm"),
-               style: "destructive",
+               text: t("alert.confirm") || "Delete",
                onPress: async () => {
+                  setAlertConfig(prev => ({ ...prev, visible: false }));
                   try {
                      await deleteCategory(id);
                      setCategories(categories.filter((c) => c.id !== id));
-                     Alert.alert(t("success") || "Success", t("categoryManagement.categoryDeleted"));
+                     showAlert(t("success") || "Success", t("categoryManagement.categoryDeleted") || "Category deleted", "success");
                   } catch (error) {
                      console.error("Error deleting category:", error);
-                     Alert.alert(t("error") || "Error", t("alert.failedtoDelete"));
+                     showAlert(t("error") || "Error", t("alert.failedtoDelete") || "Failed to delete category", "error");
                   }
                },
+               type: "confirm" as const,
+               color: themeColors.red
             },
-         ],
-         { cancelable: true }
+         ]
       );
    };
 
@@ -189,6 +226,20 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ isDarkMode, navigat
             onSave={handleSaveCategory}
             category={selectedCategory}
             isDarkMode={isDarkMode}
+         />
+
+         <ConfirmationModal
+            visible={alertConfig.visible}
+            title={alertConfig.title}
+            message={alertConfig.message}
+            type={alertConfig.type}
+            isDarkMode={isDarkMode}
+            buttons={alertConfig.buttons}
+            onConfirm={() => {
+               if (alertConfig.onConfirm) alertConfig.onConfirm();
+               setAlertConfig(prev => ({ ...prev, visible: false }));
+            }}
+            onCancel={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
          />
       </View>
    );

@@ -12,8 +12,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from "react-native";
+import ConfirmationModal, { ModalButton } from "../../components/ConfirmationModal";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { getThemeColors } from "../utils/getThemeColors";
 import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
@@ -38,6 +38,36 @@ const SupportTicketsScreen: React.FC<SupportTicketsScreenProps> = ({
   const [newBody, setNewBody] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedTicketId, setExpandedTicketId] = useState<number | null>(null);
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+    onConfirm?: () => void;
+    buttons?: ModalButton[];
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showAlert = (
+    title: string, 
+    message: string, 
+    type: "success" | "error" | "warning" | "info" = "info", 
+    onConfirm?: () => void,
+    buttons?: ModalButton[]
+  ) => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      type,
+      onConfirm: onConfirm || (() => setAlertConfig(prev => ({ ...prev, visible: false }))),
+      buttons,
+    });
+  };
 
   const theme = getThemeColors(isDarkMode);
   const { t } = useTranslation();
@@ -49,7 +79,7 @@ const SupportTicketsScreen: React.FC<SupportTicketsScreenProps> = ({
       setTickets(data);
     } catch (error) {
       console.error("Failed to fetch tickets:", error);
-      Alert.alert(t("common.error"), t("support.loadError"));
+      showAlert(t("common.error") || "Error", t("support.loadError") || "Failed to load tickets", "error");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -62,7 +92,7 @@ const SupportTicketsScreen: React.FC<SupportTicketsScreenProps> = ({
 
   const handleCreateTicket = async () => {
     if (!newSubject.trim() || !newBody.trim()) {
-      Alert.alert(t("common.error"), t("alert.invalidInputs"));
+      showAlert(t("common.error") || "Error", t("alert.invalidInputs") || "Please fill all fields", "warning");
       return;
     }
 
@@ -72,14 +102,14 @@ const SupportTicketsScreen: React.FC<SupportTicketsScreenProps> = ({
         subject: newSubject,
         body: newBody,
       });
-      Alert.alert(t("common.success"), t("support.createSuccess"));
+      showAlert(t("common.success") || "Success", t("support.createSuccess") || "Ticket created successfully", "success");
       setNewSubject("");
       setNewBody("");
       setIsModalVisible(false);
       fetchTickets();
     } catch (error) {
       console.error("Failed to create ticket:", error);
-      Alert.alert(t("common.error"), t("support.createError"));
+      showAlert(t("common.error") || "Error", t("support.createError") || "Failed to create ticket", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -323,6 +353,20 @@ const SupportTicketsScreen: React.FC<SupportTicketsScreenProps> = ({
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <ConfirmationModal
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        isDarkMode={isDarkMode}
+        buttons={alertConfig.buttons}
+        onConfirm={() => {
+          if (alertConfig.onConfirm) alertConfig.onConfirm();
+          setAlertConfig(prev => ({ ...prev, visible: false }));
+        }}
+        onCancel={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+      />
     </View>
   );
 };

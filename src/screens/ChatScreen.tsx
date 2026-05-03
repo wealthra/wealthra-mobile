@@ -10,10 +10,10 @@ import {
   Platform,
   Image,
   ActivityIndicator,
-  Alert,
   Keyboard,
   Modal,
 } from "react-native";
+import ConfirmationModal, { ModalButton } from "../../components/ConfirmationModal";
 import { Ionicons, MaterialCommunityIcons, Entypo } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getThemeColors } from "../utils/getThemeColors";
@@ -83,6 +83,36 @@ const ChatScreen = ({
   const [isUsageLoading, setIsUsageLoading] = useState(true);
   const [isUsageModalVisible, setIsUsageModalVisible] = useState(false);
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+    onConfirm?: () => void;
+    buttons?: ModalButton[];
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
+  const showAlert = (
+    title: string, 
+    message: string, 
+    type: "success" | "error" | "warning" | "info" = "info", 
+    onConfirm?: () => void,
+    buttons?: ModalButton[]
+  ) => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      type,
+      onConfirm: onConfirm || (() => setAlertConfig(prev => ({ ...prev, visible: false }))),
+      buttons,
+    });
+  };
 
   useEffect(() => {
     const fetchUsage = async () => {
@@ -120,10 +150,6 @@ const ChatScreen = ({
     const showSub = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
       (e) => {
-        // Only apply manual height on Android, iOS KeyboardAvoidingView handles it well usually,
-        // but since we are replacing it, let's use it for both for consistency,
-        // OR we can specifically target Android if that's the only one failing.
-        // Given the strict requirement, let's apply it fully to Android.
         if (Platform.OS === "android") {
           setKeyboardHeight(e.endCoordinates.height);
         }
@@ -156,7 +182,7 @@ const ChatScreen = ({
 
     setMessages((prev) => [...prev, newUserMessage]);
     setInputText("");
-    setIsExtracting(true); // Reuse the existing loading state to show a spinner
+    setIsExtracting(true);
 
     try {
       const response = await sendCopilotMessage(inputText);
@@ -191,8 +217,7 @@ const ChatScreen = ({
   };
 
   const renderLimit = (limit: any) => {
-    console.log("DEBUG - renderLimit received:", limit, typeof limit);
-    if (limit === null || limit === undefined) return "∞"; // Changed from "0" to "∞"
+    if (limit === null || limit === undefined) return "∞";
     const numLimit = Number(limit);
     if (numLimit === 0 || numLimit === -1 || numLimit >= 99999) return "∞";
     return numLimit.toString();
@@ -209,7 +234,6 @@ const ChatScreen = ({
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
 
-        // Add image message to chat
         const imageMessage: Message = {
           id: Date.now().toString(),
           text: t("copilot.uploadedReceipt"),
@@ -235,7 +259,7 @@ const ChatScreen = ({
       }
     } catch (error) {
       console.error("Image extraction error:", error);
-      Alert.alert(t("copilot.error"), t("copilot.errorImage"));
+      showAlert(t("copilot.error") || "Error", t("copilot.errorImage") || "Failed to process image", "error");
     } finally {
       setIsExtracting(false);
     }
@@ -265,7 +289,7 @@ const ChatScreen = ({
       setIsReviewModalVisible(true);
     } catch (error) {
       console.error("Audio extraction error:", error);
-      Alert.alert(t("copilot.error"), t("copilot.errorAudio"));
+      showAlert(t("copilot.error") || "Error", t("copilot.errorAudio") || "Failed to process audio", "error");
     } finally {
       setIsExtracting(false);
     }
@@ -287,7 +311,6 @@ const ChatScreen = ({
 
       setIsReviewModalVisible(false);
 
-      // Add success message
       const successMessage: Message = {
         id: Date.now().toString(),
         text: isImageExtraction
@@ -303,7 +326,7 @@ const ChatScreen = ({
       setMessages((prev) => [...prev, successMessage]);
     } catch (error) {
       console.error("Bulk add error:", error);
-      Alert.alert(t("copilot.error"), t("copilot.errorAddExpenses"));
+      showAlert(t("copilot.error") || "Error", t("copilot.errorAddExpenses") || "Failed to add expenses", "error");
     } finally {
       setIsExtracting(false);
     }
@@ -352,8 +375,10 @@ const ChatScreen = ({
   }, [messages]);
 
   return (
-    <View
+    <KeyboardAvoidingView 
       style={[styles.container, { backgroundColor: theme.page_background }]}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
       <ScreenHeader
         isDarkMode={isDarkMode}
@@ -361,7 +386,6 @@ const ChatScreen = ({
         currentRoute="Chat"
       />
 
-      {/* Copilot Header */}
       <View style={styles.copilotHeader}>
         <View style={styles.headerInfo}>
           <View style={styles.headerIconContainer}>
@@ -382,7 +406,6 @@ const ChatScreen = ({
         </TouchableOpacity>
       </View>
 
-      {/* Usage Info Modal */}
       <Modal
         visible={isUsageModalVisible}
         transparent={true}
@@ -509,7 +532,6 @@ const ChatScreen = ({
         </TouchableOpacity>
       </Modal>
 
-      {/* Replaced KeyboardAvoidingView with manual flex container */}
       <View style={styles.keyboardView}>
         <FlatList
           ref={flatListRef}
@@ -577,7 +599,6 @@ const ChatScreen = ({
         </View>
       </View>
 
-      {/* Manual Keyboard Spacer for Android */}
       {Platform.OS === "android" && <View style={{ height: keyboardHeight }} />}
 
       <ResultReviewModal
@@ -595,7 +616,21 @@ const ChatScreen = ({
         onRecordingComplete={handleVoiceRecordComplete}
         isDarkMode={isDarkMode}
       />
-    </View>
+
+      <ConfirmationModal
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        isDarkMode={isDarkMode}
+        buttons={alertConfig.buttons}
+        onConfirm={() => {
+          if (alertConfig.onConfirm) alertConfig.onConfirm();
+          setAlertConfig(prev => ({ ...prev, visible: false }));
+        }}
+        onCancel={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+      />
+    </KeyboardAvoidingView>
   );
 };
 
