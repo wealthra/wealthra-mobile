@@ -2,13 +2,13 @@ import axiosInstance from "../axiosInstance";
 import { getStoredToken, getUserId, getStoredCurrency } from "./authService";
 import { IncomeDto, PaginatedListOfIncomeDto, CreateIncomeCommand, UpdateIncomeCommand, IncomeSummaryDto, IncomeGeneralInfoDto } from "../types";
 
-export const getIncomes = async (pageNumber: number = 1, pageSize: number = 10): Promise<PaginatedListOfIncomeDto> => {
+export const getIncomes = async (pageNumber: number = 1, pageSize: number = 10, currencyOverride?: string): Promise<PaginatedListOfIncomeDto> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
       const userId = await getUserId();
-      const currency = await getStoredCurrency();
+      const currency = currencyOverride || await getStoredCurrency();
       const params = { PageNumber: pageNumber, PageSize: pageSize, currency };
 
       console.log("Fetching incomes:", params);
@@ -33,7 +33,7 @@ export const getIncomes = async (pageNumber: number = 1, pageSize: number = 10):
    }
 };
 
-export const addIncome = async (income: { name: string; amount: number; method: string; isRecurring: boolean }): Promise<number> => {
+export const addIncome = async (income: { name: string; amount: number; method: string; isRecurring: boolean; currency?: string }): Promise<number> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
@@ -43,6 +43,7 @@ export const addIncome = async (income: { name: string; amount: number; method: 
          amount: income.amount,
          method: income.method,
          isRecurring: income.isRecurring,
+         currency: income.currency,
       };
 
       console.log("Adding income:", JSON.stringify(requestData, null, 2));
@@ -58,6 +59,26 @@ export const addIncome = async (income: { name: string; amount: number; method: 
    } catch (error: any) {
       console.error("Failed to add income:", error);
       throw new Error(error.response?.data?.message || "Failed to add income");
+   }
+};
+
+export const getIncomeById = async (id: number, currencyOverride?: string): Promise<IncomeDto> => {
+   try {
+      const token = await getStoredToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const currency = currencyOverride || await getStoredCurrency();
+      const response = await axiosInstance.get<IncomeDto>(`/api/Incomes/${id}`, {
+         headers: {
+            "Content-Type": "application/json",
+         },
+         params: { currency }
+      });
+
+      return response.data;
+   } catch (error: any) {
+      console.error(`Failed to fetch income ${id}:`, error);
+      throw new Error(error.response?.data?.message || `Failed to fetch income ${id}`);
    }
 };
 
@@ -80,6 +101,7 @@ export const updateIncome = async (id: number, income: {
    method?: string;
    isRecurring?: boolean;
    transactionDate?: string;
+   currency?: string;
 }): Promise<void> => {
    try {
       const token = await getStoredToken();
@@ -102,12 +124,12 @@ export const updateIncome = async (id: number, income: {
    }
 };
 
-export const getIncomeSummary = async (): Promise<IncomeSummaryDto> => {
+export const getIncomeSummary = async (currencyOverride?: string): Promise<IncomeSummaryDto> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
-      const currency = await getStoredCurrency();
+      const currency = currencyOverride || await getStoredCurrency();
       console.log(`🚀 [DEBUG] Fetching income summary for currency: ${currency}`);
       const response = await axiosInstance.get<IncomeSummaryDto>(`/api/Incomes/summary`, {
          headers: {
@@ -124,12 +146,12 @@ export const getIncomeSummary = async (): Promise<IncomeSummaryDto> => {
    }
 };
 
-export const getIncomeGeneralInfo = async (): Promise<IncomeGeneralInfoDto> => {
+export const getIncomeGeneralInfo = async (currencyOverride?: string): Promise<IncomeGeneralInfoDto> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
-      const currency = await getStoredCurrency();
+      const currency = currencyOverride || await getStoredCurrency();
       const response = await axiosInstance.get<IncomeGeneralInfoDto>(`/api/Incomes/generalinfo`, {
          headers: {
             "Content-Type": "application/json",

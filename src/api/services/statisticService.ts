@@ -2,12 +2,12 @@ import axiosInstance from "../axiosInstance";
 import { getStoredToken, getStoredCurrency } from "./authService";
 import { FinancialDashboardDto, SpendingBreakdownDto, MonthlyTrendsDto } from "../types";
 
-export const getFinancialSummary = async (): Promise<FinancialDashboardDto> => {
+export const getFinancialSummary = async (currencyOverride?: string): Promise<FinancialDashboardDto> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
-      const currency = await getStoredCurrency();
+      const currency = currencyOverride || await getStoredCurrency();
       console.log(`🚀 [DEBUG] Fetching financial summary for currency: ${currency}`);
 
       const response = await axiosInstance.get<FinancialDashboardDto>('/api/Summary/dashboard', {
@@ -25,12 +25,35 @@ export const getFinancialSummary = async (): Promise<FinancialDashboardDto> => {
    }
 };
 
-export const getSpendingBreakdown = async (startDate?: string, endDate?: string): Promise<SpendingBreakdownDto> => {
+export const getFinancialSummaryWeb = async (currencyOverride?: string): Promise<FinancialDashboardDto> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
-      const currency = await getStoredCurrency();
+      const currency = currencyOverride || await getStoredCurrency();
+      console.log(`🚀 [DEBUG] Fetching financial summary web for currency: ${currency}`);
+
+      const response = await axiosInstance.get<FinancialDashboardDto>('/api/Summary/dashboard-web', {
+         headers: {
+            "Content-Type": "application/json",
+         },
+         params: { currency }
+      });
+
+      console.log("✅ [DEBUG] Financial Summary Web API Response:", JSON.stringify(response.data, null, 2));
+      return response.data;
+   } catch (error: any) {
+      console.error("Failed to fetch dashboard web summary:", error);
+      throw new Error(error.response?.data?.message || "Failed to fetch dashboard web summary");
+   }
+};
+
+export const getSpendingBreakdown = async (startDate?: string, endDate?: string, currencyOverride?: string): Promise<SpendingBreakdownDto> => {
+   try {
+      const token = await getStoredToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const currency = currencyOverride || await getStoredCurrency();
       const response = await axiosInstance.get<SpendingBreakdownDto>(`/api/Statistics/breakdown`, {
          headers: {
             "Content-Type": "application/json",
@@ -45,12 +68,12 @@ export const getSpendingBreakdown = async (startDate?: string, endDate?: string)
    }
 };
 
-export const getMonthlyTrends = async (year?: number): Promise<MonthlyTrendsDto> => {
+export const getMonthlyTrends = async (year?: number, currencyOverride?: string): Promise<MonthlyTrendsDto> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
-      const currency = await getStoredCurrency();
+      const currency = currencyOverride || await getStoredCurrency();
       const response = await axiosInstance.get<MonthlyTrendsDto>(`/api/Statistics/trends`, {
          headers: {
             "Content-Type": "application/json",

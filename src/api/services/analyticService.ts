@@ -2,12 +2,12 @@ import axiosInstance from "../axiosInstance";
 import { getStoredToken, getStoredCurrency } from "./authService";
 import { MonthlyCategoryMetricDto, SpendingBreakdownDto, MonthlyTrendsDto } from "../types";
 
-export const getMonthlyMetrics = async (date?: string): Promise<MonthlyCategoryMetricDto[]> => {
+export const getMonthlyMetrics = async (date?: string, currencyOverride?: string): Promise<MonthlyCategoryMetricDto[]> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
-      const currency = await getStoredCurrency();
+      const currency = currencyOverride || await getStoredCurrency();
       const response = await axiosInstance.get<MonthlyCategoryMetricDto[]>(`/api/Analytics/metrics`, {
          headers: {
             "Content-Type": "application/json",

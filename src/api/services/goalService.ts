@@ -2,13 +2,13 @@ import axiosInstance from "../axiosInstance";
 import { getStoredToken, getUserId, getStoredCurrency } from "./authService";
 import { GoalDto, PaginatedListOfGoalHistoryDto, CreateGoalCommand, UpdateGoalCommand, GoalsTotalDto } from "../types";
 
-export const getGoals = async (pageNumber: number = 1, pageSize: number = 10): Promise<PaginatedListOfGoalHistoryDto> => {
+export const getGoals = async (pageNumber: number = 1, pageSize: number = 10, currencyOverride?: string): Promise<PaginatedListOfGoalHistoryDto> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
       const userId = await getUserId();
-      const currency = await getStoredCurrency();
+      const currency = currencyOverride || await getStoredCurrency();
       const params = { PageNumber: pageNumber, PageSize: pageSize, currency };
 
       console.log("Fetching goals with params:", params);
@@ -44,6 +44,7 @@ export const addGoal = async (goal: {
    targetAmount: number;
    initialAmount: number;
    daysToTarget: number;
+   currency?: string;
 }): Promise<number> => {
    try {
       const token = await getStoredToken();
@@ -59,6 +60,7 @@ export const addGoal = async (goal: {
          targetAmount: goal.targetAmount,
          currentAmount: goal.initialAmount,
          deadline: formattedDeadline,
+         currency: goal.currency,
       };
 
       console.log("Adding goal with API format:", JSON.stringify(requestData, null, 2));
@@ -77,6 +79,26 @@ export const addGoal = async (goal: {
       });
 
       throw new Error(error.response?.data?.message || "Failed to add goal");
+   }
+};
+
+export const getGoalById = async (id: number, currencyOverride?: string): Promise<GoalDto> => {
+   try {
+      const token = await getStoredToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const currency = currencyOverride || await getStoredCurrency();
+      const response = await axiosInstance.get<GoalDto>(`/api/Goals/${id}`, {
+         headers: {
+            "Content-Type": "application/json",
+         },
+         params: { currency }
+      });
+
+      return response.data;
+   } catch (error: any) {
+      console.error(`Failed to fetch goal ${id}:`, error);
+      throw new Error(error.response?.data?.message || `Failed to fetch goal ${id}`);
    }
 };
 
@@ -104,6 +126,7 @@ export const updateGoal = async (
       initialAmount: number;
       daysToTarget?: number;
       currentAmount?: number;
+      currency?: string;
    }
 ): Promise<void> => {
    try {
@@ -133,6 +156,7 @@ export const updateGoal = async (
          targetAmount: goal.targetAmount,
          currentAmount: goal.currentAmount !== undefined ? goal.currentAmount : goal.initialAmount,
          deadline: formattedDeadline,
+         currency: goal.currency,
       };
 
       console.log(`Updating goal ${id}:`, JSON.stringify(requestData, null, 2));
@@ -174,12 +198,12 @@ export const calculateDaysRemaining = (deadlineDate: string): number => {
    return Math.max(0, differenceInDays);
 };
 
-export const getGoalsTotal = async (): Promise<GoalsTotalDto> => {
+export const getGoalsTotal = async (currencyOverride?: string): Promise<GoalsTotalDto> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
-      const currency = await getStoredCurrency();
+      const currency = currencyOverride || await getStoredCurrency();
       const response = await axiosInstance.get<GoalsTotalDto>(`/api/Goals/total`, {
          headers: {
             "Content-Type": "application/json",

@@ -12,13 +12,14 @@ import {
 export const getExpenses = async (
   pageNumber: number = 1,
   pageSize: number = 10,
+  currencyOverride?: string,
 ): Promise<PaginatedListOfExpenseDto> => {
   try {
     const token = await getStoredToken();
     if (!token) throw new Error("No authentication token found");
 
     const userId = await getUserId();
-    const currency = await getStoredCurrency();
+    const currency = currencyOverride || await getStoredCurrency();
     const params = { PageNumber: pageNumber, PageSize: pageSize, currency };
 
     console.log("Fetching expenses:", params);
@@ -55,6 +56,7 @@ export const addExpense = async (expense: {
   paymentMethod: string;
   isRecurring: boolean;
   categoryId: number;
+  currency?: string;
 }): Promise<number> => {
   try {
     const token = await getStoredToken();
@@ -66,6 +68,7 @@ export const addExpense = async (expense: {
       paymentMethod: expense.paymentMethod,
       isRecurring: Boolean(expense.isRecurring),
       categoryId: Number(expense.categoryId),
+      currency: expense.currency,
     };
 
     console.log(
@@ -100,6 +103,45 @@ export const addExpense = async (expense: {
   }
 };
 
+export const getExpenseById = async (id: number, currencyOverride?: string): Promise<ExpenseDto> => {
+   try {
+      const token = await getStoredToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const currency = currencyOverride || await getStoredCurrency();
+      const response = await axiosInstance.get<ExpenseDto>(`/api/Expenses/${id}`, {
+         headers: {
+            "Content-Type": "application/json",
+         },
+         params: { currency }
+      });
+
+      return response.data;
+   } catch (error: any) {
+      console.error(`Failed to fetch expense ${id}:`, error);
+      throw new Error(error.response?.data?.message || `Failed to fetch expense ${id}`);
+   }
+};
+
+export const getUserExpenses = async (pageNumber: number = 1, pageSize: number = 10, currencyOverride?: string): Promise<PaginatedListOfExpenseDto> => {
+   try {
+      const token = await getStoredToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const currency = currencyOverride || await getStoredCurrency();
+      const params = { PageNumber: pageNumber, PageSize: pageSize, currency };
+
+      const response = await axiosInstance.get<PaginatedListOfExpenseDto>(`/api/Expenses/user`, {
+         params,
+      });
+
+      return response.data;
+   } catch (error: any) {
+      console.error("Failed to fetch user expenses:", error);
+      throw new Error(error.response?.data?.message || "Failed to fetch user expenses");
+   }
+};
+
 export const deleteExpense = async (id: number): Promise<void> => {
   try {
     const token = await getStoredToken();
@@ -126,6 +168,7 @@ export const updateExpense = async (
     isRecurring?: boolean;
     categoryId?: number;
     transactionDate?: string;
+    currency?: string;
   },
 ): Promise<void> => {
   try {
@@ -151,12 +194,12 @@ export const updateExpense = async (
   }
 };
 
-export const getExpenseSummary = async (): Promise<ExpenseSummaryDto> => {
+export const getExpenseSummary = async (currencyOverride?: string): Promise<ExpenseSummaryDto> => {
   try {
     const token = await getStoredToken();
     if (!token) throw new Error("No authentication token found");
 
-    const currency = await getStoredCurrency();
+    const currency = currencyOverride || await getStoredCurrency();
     const response = await axiosInstance.get<ExpenseSummaryDto>(
       `/api/Expenses/summary`,
       {
@@ -177,12 +220,12 @@ export const getExpenseSummary = async (): Promise<ExpenseSummaryDto> => {
 };
 
 export const getExpenseGeneralInfo =
-  async (): Promise<ExpenseGeneralInfoDto> => {
+  async (currencyOverride?: string): Promise<ExpenseGeneralInfoDto> => {
     try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
-      const currency = await getStoredCurrency();
+      const currency = currencyOverride || await getStoredCurrency();
       const response = await axiosInstance.get<ExpenseGeneralInfoDto>(
         `/api/Expenses/generalinfo`,
         {

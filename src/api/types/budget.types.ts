@@ -6,16 +6,19 @@ export interface BudgetDto {
    status?: string;
    categoryId: number;
    categoryName?: string;
+   currency?: string;
 }
 
 export interface CreateBudgetCommand {
    categoryId?: number;
    limitAmount?: number;
+   currency?: string;
 }
 
 export interface UpdateBudgetCommand {
    id?: number;
    limitAmount?: number;
+   currency?: string;
 }
 
 export interface BudgetAlertDto {

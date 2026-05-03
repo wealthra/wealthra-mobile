@@ -8,7 +8,7 @@ export interface ExportParams {
   startDate: string;
   endDate: string;
   format: "pdf" | "excel";
-  currency: "USD" | "TRY" | "EUR";
+  currency: string;
   lang: "en" | "tr";
 }
 

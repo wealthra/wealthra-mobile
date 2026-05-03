@@ -3,13 +3,13 @@ import { getStoredToken, getUserId, getStoredCurrency } from "./authService";
 import { getUserCategories } from "./categoryService";
 import { BudgetDto, CreateBudgetCommand, UpdateBudgetCommand, BudgetOverviewDto, MonthlyBudgetSummaryDto, PaginatedListOfBudgetDto, BudgetAlertDto } from "../types";
 
-export const getBudgets = async (pageNumber: number = 1, pageSize: number = 10): Promise<PaginatedListOfBudgetDto> => {
+export const getBudgets = async (pageNumber: number = 1, pageSize: number = 10, currencyOverride?: string): Promise<PaginatedListOfBudgetDto> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
       const userId = await getUserId();
-      const currency = await getStoredCurrency();
+      const currency = currencyOverride || await getStoredCurrency();
       const params = { PageNumber: pageNumber, PageSize: pageSize, currency };
 
       console.log("Fetching budgets with params:", params);
@@ -77,6 +77,7 @@ export const addBudget = async (budget: {
    category: string;
    budgetLimit: number;
    currentAmount?: number;
+   currency?: string;
 }): Promise<number> => {
    try {
       const token = await getStoredToken();
@@ -94,6 +95,7 @@ export const addBudget = async (budget: {
       const requestData: CreateBudgetCommand = {
          limitAmount: budget.budgetLimit,
          categoryId: categoryMatch.id,
+         currency: budget.currency,
       };
 
       console.log("Adding budget with API format:", JSON.stringify(requestData, null, 2));
@@ -111,6 +113,26 @@ export const addBudget = async (budget: {
          response: error.response?.data,
       });
       throw new Error(error.response?.data?.message || "Failed to add budget");
+   }
+};
+
+export const getBudgetById = async (id: number, currencyOverride?: string): Promise<BudgetDto> => {
+   try {
+      const token = await getStoredToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const currency = currencyOverride || await getStoredCurrency();
+      const response = await axiosInstance.get<BudgetDto>(`/api/Budgets/${id}`, {
+         headers: {
+            "Content-Type": "application/json",
+         },
+         params: { currency }
+      });
+
+      return response.data;
+   } catch (error: any) {
+      console.error(`Failed to fetch budget ${id}:`, error);
+      throw new Error(error.response?.data?.message || `Failed to fetch budget ${id}`);
    }
 };
 
@@ -134,6 +156,7 @@ export const updateBudget = async (
    id: number,
    budget: {
       budgetLimit: number;
+      currency?: string;
    }
 ): Promise<void> => {
    try {
@@ -143,6 +166,7 @@ export const updateBudget = async (
       const requestData: UpdateBudgetCommand = {
          id,
          limitAmount: budget.budgetLimit,
+         currency: budget.currency,
       };
 
       console.log(`Updating budget ${id}:`, JSON.stringify(requestData, null, 2));
@@ -163,12 +187,12 @@ export const updateBudget = async (
    }
 };
 
-export const getBudgetOverview = async (): Promise<BudgetOverviewDto> => {
+export const getBudgetOverview = async (currencyOverride?: string): Promise<BudgetOverviewDto> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
-      const currency = await getStoredCurrency();
+      const currency = currencyOverride || await getStoredCurrency();
       const response = await axiosInstance.get<BudgetOverviewDto>(`/api/Budgets/overview`, {
          headers: {
             "Content-Type": "application/json",
@@ -189,12 +213,12 @@ export const getBudgetOverview = async (): Promise<BudgetOverviewDto> => {
 };
 
 
-export const getMonthlyBudgetSummary = async (): Promise<MonthlyBudgetSummaryDto> => {
+export const getMonthlyBudgetSummary = async (currencyOverride?: string): Promise<MonthlyBudgetSummaryDto> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
-      const currency = await getStoredCurrency();
+      const currency = currencyOverride || await getStoredCurrency();
       const response = await axiosInstance.get<MonthlyBudgetSummaryDto>(`/api/Budgets/monthly`, {
          headers: {
             "Content-Type": "application/json",
