@@ -287,7 +287,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
         setCategories(
           response.map((category: any) => ({
             id: category.id,
-            name: category.name, // Use current language
+            name: category.name || category.categoryName || "Miscellaneous",
           })),
         );
       }
@@ -828,6 +828,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
         onConfirm={handleConfirmBulkAdd}
         onCancel={() => setIsReviewModalVisible(false)}
         isDarkMode={isDarkMode}
+        categories={categories}
       />
       {isExtracting && (
         <View style={styles.loadingOverlay}>

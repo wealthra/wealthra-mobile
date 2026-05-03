@@ -85,6 +85,8 @@ const resources = {
         addButton: "Add Expense",
         unknownMethod: "Unknown Method",
         untitled: "Untitled Expense",
+        descriptionPlaceholder: "Description",
+        amountPlaceholder: "Amount",
       },
       analytics: {
         expenseDistribution: "Expense Distribution",
@@ -322,6 +324,7 @@ const resources = {
         loadingMore: "Loading more...",
         cancel: "Cancel",
         confirm: "Confirm",
+        save: "Save",
         addAll: "Add All",
         error: "Error",
         success: "Success",
@@ -345,6 +348,7 @@ const resources = {
         title: "Review Extracted Expenses",
         subtitle: "Verify the details below before saving them to your account",
         empty: "No expenses found",
+        editTitle: "Edit Expense",
       },
       voice: {
         recordingTitle: "Voice Command",
@@ -469,6 +473,8 @@ const resources = {
         addButton: "Gider Ekle",
         unknownMethod: "Bilinmeyen Yöntem",
         untitled: "Başlıksız Gider",
+        descriptionPlaceholder: "Açıklama",
+        amountPlaceholder: "Tutar",
       },
       analytics: {
         expenseDistribution: "Gider Dağılımı",
@@ -707,6 +713,7 @@ const resources = {
         loadingMore: "Daha fazla yükleniyor...",
         cancel: "İptal",
         confirm: "Onayla",
+        save: "Kaydet",
         addAll: "Tümünü Ekle",
         error: "Hata",
         success: "Başarılı",
@@ -730,6 +737,7 @@ const resources = {
         title: "Çıkarılan Giderleri İncele",
         subtitle: "Hesabınıza kaydetmeden önce aşağıdaki detayları doğrulayın",
         empty: "Gider bulunamadı",
+        editTitle: "Gideri Düzenle",
       },
       voice: {
         recordingTitle: "Sesli Komut",

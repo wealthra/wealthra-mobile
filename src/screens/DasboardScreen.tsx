@@ -475,7 +475,7 @@ function DashboardScreen({
         isDarkMode={isDarkMode}
         categories={categories.map((c) => ({
           id: c.id,
-          name: c.name || "Other",
+          name: c.name || c.categoryName || "Miscellaneous",
         }))}
       />
       <AddIncomeModal
@@ -496,6 +496,10 @@ function DashboardScreen({
         onConfirm={handleConfirmBulkAdd}
         onCancel={() => setIsReviewModalVisible(false)}
         isDarkMode={isDarkMode}
+        categories={categories.map((c) => ({
+          id: c.id,
+          name: c.name || c.categoryName || "Miscellaneous",
+        }))}
       />
       <AnnouncementModal
         visible={isAnnouncementVisible}

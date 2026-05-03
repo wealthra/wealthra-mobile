@@ -6,11 +6,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   FlatList,
+  TextInput,
+  ScrollView,
 } from "react-native";
 import { getThemeColors } from "../src/utils/getThemeColors";
 import { useTranslation } from "react-i18next";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ExpenseDto } from "../src/api/types";
+import { Picker } from "@react-native-picker/picker";
 import {
   horizontalScale,
   verticalScale,
@@ -23,6 +26,7 @@ interface ResultReviewModalProps {
   onConfirm: (expenses: ExpenseDto[]) => void;
   onCancel: () => void;
   isDarkMode: boolean;
+  categories: { id: number; name: string }[];
 }
 
 const ResultReviewModal: React.FC<ResultReviewModalProps> = ({
@@ -31,10 +35,17 @@ const ResultReviewModal: React.FC<ResultReviewModalProps> = ({
   onConfirm,
   onCancel,
   isDarkMode,
+  categories,
 }) => {
   const themeColors = getThemeColors(isDarkMode);
   const { t } = useTranslation();
   const [items, setItems] = useState<(ExpenseDto & { tempId: string })[]>([]);
+  const [editingItem, setEditingItem] = useState<(ExpenseDto & { tempId: string }) | null>(null);
+
+  // Form states for editing
+  const [editDescription, setEditDescription] = useState("");
+  const [editAmount, setEditAmount] = useState("");
+  const [editCategoryId, setEditCategoryId] = useState(0);
 
   useEffect(() => {
     setItems(
@@ -49,8 +60,53 @@ const ResultReviewModal: React.FC<ResultReviewModalProps> = ({
     setItems((prev) => prev.filter((item) => item.tempId !== tempId));
   };
 
+  const startEditing = (item: ExpenseDto & { tempId: string }) => {
+    setEditingItem(item);
+    setEditDescription(item.description || "");
+    setEditAmount(item.amount.toString());
+    
+    // Try to find category ID by name if ID is missing
+    let categoryId = item.categoryId;
+    if (!categoryId && item.categoryName && categories.length > 0) {
+      const found = categories.find(c => 
+        c.name?.toLowerCase() === item.categoryName?.toLowerCase()
+      );
+      if (found) categoryId = found.id;
+    }
+    
+    setEditCategoryId(categoryId || (categories.length > 0 ? categories[0].id : 0));
+  };
+
+  const saveEdit = () => {
+    if (!editingItem) return;
+
+    const category = categories.find(c => c.id === editCategoryId);
+
+    setItems((prev) =>
+      prev.map((item) =>
+        item.tempId === editingItem.tempId
+          ? {
+              ...item,
+              description: editDescription,
+              amount: parseFloat(editAmount) || 0,
+              categoryId: editCategoryId,
+              categoryName: category ? category.name : item.categoryName,
+            }
+          : item
+      )
+    );
+    setEditingItem(null);
+  };
+
   const handleConfirm = () => {
     onConfirm(items);
+  };
+
+  const getTranslatedCategoryName = (categoryName: string) => {
+    if (!categoryName) return t("categories.miscellaneous");
+    const translationKey = `categories.${categoryName.toLowerCase().replace(/\s+/g, "_")}`;
+    const translated = t(translationKey);
+    return translated === translationKey ? categoryName : translated;
   };
 
   const renderItem = ({ item }: { item: ExpenseDto & { tempId: string } }) => (
@@ -60,7 +116,7 @@ const ResultReviewModal: React.FC<ResultReviewModalProps> = ({
           {item.description || t("common.noDescription")}
         </Text>
         <Text style={[styles.itemSubText, { color: themeColors.card_description }]}>
-          {item.categoryName || t("common.other")} • {item.paymentMethod || t("common.unknown")}
+          {getTranslatedCategoryName(item.categoryName || "")} • {item.paymentMethod || t("common.unknown")}
         </Text>
         <Text style={[styles.itemDate, { color: themeColors.card_description }]}>
           {item.transactionDate ? new Date(item.transactionDate).toLocaleDateString() : ""}
@@ -70,9 +126,14 @@ const ResultReviewModal: React.FC<ResultReviewModalProps> = ({
         <Text style={[styles.itemAmount, { color: themeColors.red }]}>
           -{item.amount.toFixed(2)}
         </Text>
-        <TouchableOpacity onPress={() => removeItem(item.tempId)} style={styles.removeButton}>
-          <MaterialCommunityIcons name="delete" size={24} color={themeColors.red} />
-        </TouchableOpacity>
+        <View style={styles.actionButtons}>
+          <TouchableOpacity onPress={() => startEditing(item)} style={styles.actionButton}>
+            <MaterialCommunityIcons name="pencil" size={20} color={themeColors.green} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => removeItem(item.tempId)} style={styles.actionButton}>
+            <MaterialCommunityIcons name="delete" size={20} color={themeColors.red} />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -91,46 +152,105 @@ const ResultReviewModal: React.FC<ResultReviewModalProps> = ({
             { backgroundColor: themeColors.page_background },
           ]}
         >
-          <Text style={[styles.title, { color: themeColors.card_title }]}>
-            {t("review.title")}
-          </Text>
-          <Text style={[styles.subtitle, { color: themeColors.card_description }]}>
-            {t("review.subtitle")}
-          </Text>
+          {editingItem ? (
+            <View style={styles.editForm}>
+              <Text style={[styles.title, { color: themeColors.card_title, marginBottom: 20 }]}>
+                {t("review.editTitle") || "Edit Expense"}
+              </Text>
+              
+              <TextInput
+                style={[styles.input, { color: themeColors.card_title, borderColor: themeColors.frame_stroke }]}
+                value={editDescription}
+                onChangeText={setEditDescription}
+                placeholder={t("expense.descriptionPlaceholder")}
+                placeholderTextColor={themeColors.card_description}
+              />
 
-          <FlatList
-            data={items}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.tempId}
-            style={styles.list}
-            contentContainerStyle={styles.listContent}
-            ListEmptyComponent={
-              <Text style={[styles.emptyText, { color: themeColors.card_description }]}>
-                {t("review.empty")}
-              </Text>
-            }
-          />
+              <TextInput
+                style={[styles.input, { color: themeColors.card_title, borderColor: themeColors.frame_stroke }]}
+                value={editAmount}
+                onChangeText={setEditAmount}
+                keyboardType="numeric"
+                placeholder={t("expense.amountPlaceholder")}
+                placeholderTextColor={themeColors.card_description}
+              />
 
-          <View style={styles.footer}>
-            <TouchableOpacity
-              style={[styles.footerButton, styles.cancelButton, { borderColor: themeColors.frame_stroke }]}
-              onPress={onCancel}
-            >
-              <Text style={[styles.footerButtonText, { color: themeColors.card_description }]}>
-                {t("common.cancel")}
+              <View style={[styles.pickerContainer, { borderColor: themeColors.frame_stroke }]}>
+                <Picker
+                  selectedValue={editCategoryId}
+                  onValueChange={(itemValue) => setEditCategoryId(itemValue)}
+                  style={{ color: themeColors.card_title }}
+                  dropdownIconColor={themeColors.card_title}
+                >
+                  {categories.map((category) => (
+                    <Picker.Item
+                      key={category.id}
+                      label={getTranslatedCategoryName(category.name)}
+                      value={category.id}
+                    />
+                  ))}
+                </Picker>
+              </View>
+
+              <View style={styles.editFooter}>
+                <TouchableOpacity
+                  style={[styles.editButton, { borderColor: themeColors.frame_stroke }]}
+                  onPress={() => setEditingItem(null)}
+                >
+                  <Text style={{ color: themeColors.card_description }}>{t("common.cancel")}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.editButton, styles.saveButton, { backgroundColor: themeColors.green }]}
+                  onPress={saveEdit}
+                >
+                  <Text style={{ color: "white", fontWeight: "bold" }}>{t("common.save")}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <>
+              <Text style={[styles.title, { color: themeColors.card_title }]}>
+                {t("review.title")}
               </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[styles.footerButton, styles.confirmButton, { backgroundColor: themeColors.green }]}
-              onPress={handleConfirm}
-              disabled={items.length === 0}
-            >
-              <Text style={[styles.footerButtonText, { color: "white" }]}>
-                {t("common.addAll")}
+              <Text style={[styles.subtitle, { color: themeColors.card_description }]}>
+                {t("review.subtitle")}
               </Text>
-            </TouchableOpacity>
-          </View>
+
+              <FlatList
+                data={items}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.tempId}
+                style={styles.list}
+                contentContainerStyle={styles.listContent}
+                ListEmptyComponent={
+                  <Text style={[styles.emptyText, { color: themeColors.card_description }]}>
+                    {t("review.empty")}
+                  </Text>
+                }
+              />
+
+              <View style={styles.footer}>
+                <TouchableOpacity
+                  style={[styles.footerButton, styles.cancelButton, { borderColor: themeColors.frame_stroke }]}
+                  onPress={onCancel}
+                >
+                  <Text style={[styles.footerButtonText, { color: themeColors.card_description }]}>
+                    {t("common.cancel")}
+                  </Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[styles.footerButton, styles.confirmButton, { backgroundColor: themeColors.green }]}
+                  onPress={handleConfirm}
+                  disabled={items.length === 0}
+                >
+                  <Text style={[styles.footerButtonText, { color: "white" }]}>
+                    {t("common.addAll")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </View>
       </View>
     </Modal>
@@ -170,7 +290,7 @@ const styles = StyleSheet.create({
   },
   itemCard: {
     flexDirection: "row",
-    padding: moderateScale(15),
+    padding: moderateScale(12),
     borderRadius: moderateScale(15),
     marginBottom: verticalScale(10),
     alignItems: "center",
@@ -179,7 +299,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemDescription: {
-    fontSize: moderateScale(16),
+    fontSize: moderateScale(15),
     fontWeight: "600",
   },
   itemSubText: {
@@ -193,14 +313,20 @@ const styles = StyleSheet.create({
   },
   itemAction: {
     alignItems: "flex-end",
+    justifyContent: "center",
   },
   itemAmount: {
-    fontSize: moderateScale(18),
+    fontSize: moderateScale(16),
     fontWeight: "bold",
     marginBottom: verticalScale(5),
   },
-  removeButton: {
+  actionButtons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  actionButton: {
     padding: moderateScale(5),
+    marginLeft: horizontalScale(5),
   },
   emptyText: {
     textAlign: "center",
@@ -229,6 +355,40 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(16),
     fontWeight: "bold",
   },
+  editForm: {
+    width: "100%",
+  },
+  input: {
+    height: verticalScale(50),
+    borderWidth: 1,
+    borderRadius: moderateScale(25),
+    paddingHorizontal: horizontalScale(20),
+    marginBottom: verticalScale(15),
+    fontSize: moderateScale(16),
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderRadius: moderateScale(25),
+    marginBottom: verticalScale(20),
+    overflow: "hidden",
+  },
+  editFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  editButton: {
+    flex: 1,
+    height: verticalScale(50),
+    borderRadius: moderateScale(25),
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: horizontalScale(5),
+    borderWidth: 1,
+  },
+  saveButton: {
+    borderWidth: 0,
+  },
 });
 
 export default ResultReviewModal;
+

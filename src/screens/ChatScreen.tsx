@@ -36,8 +36,9 @@ import {
   bulkAddExpenses,
   sendCopilotMessage,
   getUserUsage,
+  getUserCategories,
 } from "../services/api";
-import { UserUsageDto } from "../api/types";
+import { UserUsageDto, CategoryDto } from "../api/types";
 
 interface Message {
   id: string;
@@ -81,6 +82,7 @@ const ChatScreen = ({
   const [usage, setUsage] = useState<UserUsageDto | null>(null);
   const [isUsageLoading, setIsUsageLoading] = useState(true);
   const [isUsageModalVisible, setIsUsageModalVisible] = useState(false);
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
 
   useEffect(() => {
     const fetchUsage = async () => {
@@ -95,7 +97,23 @@ const ChatScreen = ({
         setIsUsageLoading(false);
       }
     };
+
+    const fetchCategories = async () => {
+      try {
+        const data = await getUserCategories();
+        if (data && data.length > 0) {
+          setCategories(data.map((c: any) => ({ 
+            id: c.id, 
+            name: c.name || c.categoryName || "Miscellaneous" 
+          })));
+        }
+      } catch (error) {
+        console.error("Failed to fetch categories in ChatScreen", error);
+      }
+    };
+
     fetchUsage();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -568,6 +586,7 @@ const ChatScreen = ({
         onConfirm={handleConfirmBulkAdd}
         onCancel={() => setIsReviewModalVisible(false)}
         isDarkMode={isDarkMode}
+        categories={categories}
       />
 
       <VoiceRecordingModal
