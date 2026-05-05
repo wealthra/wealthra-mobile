@@ -111,10 +111,10 @@ const CategoriesScreen: React.FC<CategoriesScreenProps> = ({ isDarkMode, navigat
                text: t("alert.confirm") || "Delete",
                onPress: async () => {
                   setAlertConfig(prev => ({ ...prev, visible: false }));
-                  try {
-                     await deleteCategory(id);
-                     setCategories(categories.filter((c) => c.id !== id));
-                     showAlert(t("success") || "Success", t("categoryManagement.categoryDeleted") || "Category deleted", "success");
+                   try {
+                      await deleteCategory(id);
+                      fetchCategories();
+                      showAlert(t("success") || "Success", t("categoryManagement.categoryDeleted") || "Category deleted", "success");
                   } catch (error) {
                      console.error("Error deleting category:", error);
                      showAlert(t("error") || "Error", t("alert.failedtoDelete") || "Failed to delete category", "error");

@@ -34,7 +34,7 @@ export const getIncomes = async (pageNumber: number = 1, pageSize: number = 10, 
    }
 };
 
-export const addIncome = async (income: { name: string; amount: number; method: string; isRecurring: boolean; currency?: string }): Promise<number> => {
+export const addIncome = async (income: { name: string; amount: number; method: string; isRecurring: boolean; currency?: string; transactionDate?: string }): Promise<number> => {
    try {
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
@@ -45,6 +45,7 @@ export const addIncome = async (income: { name: string; amount: number; method: 
          method: income.method,
          isRecurring: income.isRecurring,
          currency: income.currency,
+         transactionDate: income.transactionDate,
       };
 
       console.log("Adding income:", JSON.stringify(requestData, null, 2));

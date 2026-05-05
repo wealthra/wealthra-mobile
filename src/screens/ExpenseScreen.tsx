@@ -447,48 +447,8 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
                 // Delete from API
                 await deleteExpense(id);
 
-              // Remove from local state
-              const deletedExpense = expenses.find((item) => item.id === id);
-              const remainingExpenses = expenses.filter(
-                (item) => item.id !== id,
-              );
-              setExpenses(remainingExpenses);
-
-              // Update transactions if needed
-              if (deletedExpense) {
-                setTransactions((prevTransactions) => {
-                  // Filter out the transaction related to the deleted expense
-                  const filteredTransactions = prevTransactions.filter(
-                    (t) => t.source !== deletedExpense.description,
-                  );
-
-                  // If we now have less than 2 transactions and have more expenses,
-                  // add another transaction from the remaining expenses
-                  if (
-                    filteredTransactions.length < 2 &&
-                    remainingExpenses.length > filteredTransactions.length
-                  ) {
-                    // Get expenses not already in the transactions list
-                    const expensesForTransactions = remainingExpenses.filter(
-                      (e) =>
-                        !filteredTransactions.some(
-                          (t) => t.source === e.description,
-                        ),
-                    );
-
-                    if (expensesForTransactions.length > 0) {
-                      // Add the first one to the transactions
-                      filteredTransactions.push({
-                        date: new Date().toISOString().split("T")[0],
-                        source: expensesForTransactions[0].description,
-                        amount: expensesForTransactions[0].amount,
-                      });
-                    }
-                  }
-
-                  return filteredTransactions;
-                });
-              }
+                // Re-fetch data from API
+                await fetchExpenses(1, false);
 
               // Update financial summary
               try {
@@ -560,22 +520,8 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
 
       // Only proceed if we got a valid ID back
       if (newId) {
-        // Create mapped expense for local state
-        const mappedExpense: ExpenseSource = {
-          id: newId,
-          description: newExpense.description,
-          amount: newExpense.amount,
-          paymentMethod: newExpense.method || "Other",
-          isRecurring: newExpense.isRecurring,
-          categoryId: newExpense.categoryId,
-          categoryName:
-            categories.find((c) => c.id === newExpense.categoryId)?.name ||
-            "Unknown",
-        };
-
-        // Update states
-        setExpenses((prev) => [...prev, mappedExpense]);
-        updateTransactions(mappedExpense);
+        // Re-fetch data from API
+        await fetchExpenses(1, false);
 
         // Refresh financial data
         try {
@@ -627,23 +573,8 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
         currency: preferredCurrency,
       });
 
-      // Update local state
-      setExpenses((prev) =>
-        prev.map((e) =>
-          e.id === id
-            ? {
-                ...e,
-                description: updatedExpense.description,
-                amount: updatedExpense.amount,
-                paymentMethod: updatedExpense.method,
-                isRecurring: updatedExpense.isRecurring,
-                categoryId: updatedExpense.categoryId,
-                transactionDate: updatedExpense.transactionDate,
-                categoryName: categories.find((c) => c.id === updatedExpense.categoryId)?.name || "Unknown",
-              }
-            : e
-        )
-      );
+      // Re-fetch data from API
+      await fetchExpenses(currentPage, false);
 
       // Refresh financial data
       const finData = await getFinancialSummary(preferredCurrency);

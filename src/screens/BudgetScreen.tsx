@@ -220,8 +220,8 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
                         // Delete from API
                         await deleteBudget(budgetToDelete.apiId!);
 
-                        // Update local state
-                        setBudgetCategories((categories) => categories.filter((category) => category.id !== id));
+                        // Re-fetch data from API
+                        await fetchBudgets(1, false);
                      } catch (err: any) {
                         console.error("Error deleting budget:", err);
                         showAlert(t("alert.genericErrorTitle") || "Error", t("alert.failedToDelete") || "Failed to delete budget", "error");
@@ -306,20 +306,8 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
             currentAmount: budget.currentAmount,
          });
 
-         // Store the original category name for API operations and translation
-         const originalCategoryName = budget.category;
-
-         // Add to local state with the initial spent amount
-         const newCategory: BudgetCategory = {
-            id: Date.now().toString(), // Local ID for list rendering
-            name: originalCategoryName, // Store the original name for translation
-            spent: budget.currentAmount,
-            budgeted: budget.budgetLimit,
-            color: getCategoryColor(originalCategoryName, isDarkMode),
-            apiId: newBudgetId,
-         };
-
-         setBudgetCategories((prev) => [...prev, newCategory]);
+         // Re-fetch data from API
+         await fetchBudgets(1, false);
          setIsModalVisible(false);
       } catch (err: any) {
          console.error("Error adding budget:", err);
@@ -335,17 +323,8 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
             currency: preferredCurrency,
          });
 
-         // Update local state
-         setBudgetCategories((prev) =>
-            prev.map((b) =>
-               b.apiId === id
-                  ? {
-                       ...b,
-                       budgeted: budgetLimit,
-                    }
-                  : b
-            )
-         );
+         // Re-fetch data from API
+         await fetchBudgets(currentPage, false);
 
          showAlert(t("common.success") || "Success", t("budget.updated") || "Budget updated successfully", "success");
          setIsUpdateModalVisible(false);

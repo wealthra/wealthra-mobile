@@ -222,6 +222,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
     method: string;
     isRecurring: boolean;
     currency?: string;
+    transactionDate?: string;
   }) => {
     try {
       // Add income using the API
@@ -230,30 +231,11 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         amount: newIncome.amount,
         method: newIncome.method,
         isRecurring: newIncome.isRecurring,
+        transactionDate: newIncome.transactionDate || new Date().toISOString(),
       });
 
-      // Create mapped income object with timestamp
-      const mappedIncome: IncomeSource = {
-        id: newId,
-        title: newIncome.name,
-        amount: newIncome.amount,
-        type: newIncome.isRecurring ? "Periodic" : "One-time",
-        paymentMethod: newIncome.method,
-        currency: newIncome.currency,
-        addedAt: new Date().toISOString(), // Add timestamp for tracking recency
-      };
-
-      // Keep your existing sorting logic for the list
-      setIncomeSources((prevIncomes) => {
-        // Add the new income to the array
-        const updatedIncomes = [mappedIncome, ...prevIncomes];
-        // Sort by type as before (periodic first)
-        return getSortedIncomeSources(updatedIncomes);
-      });
-
-      // Update transactions to show the new income in recent transactions
-      // This function now uses the most recently added items
-      updateRecentTransactions(mappedIncome);
+      // Re-fetch the entire list from the API to ensure correct order
+      await fetchIncomeData(1, false);
 
       // Optionally, update financial summary in background without full page reload
       getFinancialSummary(preferredCurrency)
@@ -300,22 +282,10 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
                 // Delete from API
                 await deleteIncome(id);
 
-                // Remove from local state
-                const remainingIncomes = incomeSources.filter(
-                  (source) => source.id !== id,
-                );
-                setIncomeSources(remainingIncomes);
+                // Re-fetch data from API
+                await fetchIncomeData(1, false);
 
-                // Get up to 2 most recent remaining incomes for transactions
-                const recentRemainingIncomes = remainingIncomes.slice(0, 2);
-                setTransactions(
-                  recentRemainingIncomes.map((income) => ({
-                    date: new Date().toISOString().split("T")[0],
-                    source: income.title,
-                    amount: income.amount,
-                    currency: income.currency,
-                  })),
-                );
+
 
                 // Update financial summary in the background
                 getFinancialSummary(preferredCurrency)
@@ -449,21 +419,8 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         currency: preferredCurrency,
       });
 
-      // Update local state
-      setIncomeSources((prev) =>
-        prev.map((i) =>
-          i.id === id
-            ? {
-                ...i,
-                title: updatedIncome.name,
-                amount: updatedIncome.amount,
-                paymentMethod: updatedIncome.method,
-                type: updatedIncome.isRecurring ? "Periodic" : "One-time",
-                transactionDate: updatedIncome.transactionDate,
-              }
-            : i
-        )
-      );
+      // Re-fetch data from API
+      await fetchIncomeData(currentPage, false);
 
       // Refresh financial data
       const finData = await getFinancialSummary(preferredCurrency);

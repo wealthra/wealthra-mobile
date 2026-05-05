@@ -165,8 +165,8 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
                         // Delete from API
                         await deleteGoal(goalToDelete.apiId!);
 
-                        // Update local state
-                        setSavingGoals((goals) => goals.filter((goal) => goal.id !== id));
+                        // Re-fetch data from API
+                        await fetchGoals();
                      } catch (err: any) {
                         console.error("Error deleting goal:", err);
                         showAlert(t("alert.genericErrorTitle") || "Error", t("alert.failedToDelete") || "Failed to delete goal", "error");
@@ -238,19 +238,8 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
             daysToTarget: goal.daysToTarget,
          });
 
-         // Add to local state with the returned ID
-         const newGoal: SavingGoal = {
-            id: newGoalId.toString(),
-            apiId: newGoalId,
-            name: goal.name,
-            saved: goal.initialDeposit,
-            target: goal.targetAmount,
-            daysLeft: goal.daysToTarget,
-            color: getColorForGoal(savingGoals.length % 3),
-         };
-
-         console.log("Creating new goal with saved amount:", newGoal.saved);
-         setSavingGoals((prev) => [...prev, newGoal]);
+         // Re-fetch data from API
+         await fetchGoals();
          setIsModalVisible(false);
          showAlert(t("common.success") || "Success", t("goal.added") || "Goal added successfully", "success");
       } catch (err: any) {
@@ -281,20 +270,8 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
             daysToTarget: updatedGoalData.daysToTarget,
          });
 
-         // Update the goal in local state, but keep the original name
-         setSavingGoals((prevGoals) =>
-            prevGoals.map((goal) =>
-               goal.id === selectedGoal.id
-                  ? {
-                       ...goal,
-                       // name: updatedGoalData.name, // Remove this line to keep original name
-                       target: updatedGoalData.targetAmount,
-                       saved: updatedGoalData.initialDeposit,
-                       daysLeft: updatedGoalData.daysToTarget,
-                    }
-                  : goal
-            )
-         );
+         // Re-fetch data from API
+         await fetchGoals();
 
          // Close the modal and clear the selected goal
          setIsUpdateModalVisible(false);

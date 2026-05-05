@@ -7,7 +7,7 @@ import { horizontalScale, verticalScale, moderateScale } from "../src/utils/scal
 interface AddIncomeModalProps {
    visible: boolean;
    onClose: () => void;
-   onAdd: (income: { name: string; amount: number; method: string; isRecurring: boolean }) => void;
+   onAdd: (income: { name: string; amount: number; method: string; isRecurring: boolean; transactionDate: string }) => void;
    isDarkMode: boolean;
 }
 
@@ -61,6 +61,7 @@ const AddIncomeModal: React.FC<AddIncomeModalProps> = ({ visible, onClose, onAdd
             amount: Number(amount),
             method,
             isRecurring,
+            transactionDate: new Date().toISOString(),
          });
          setName("");
          setAmount("");
