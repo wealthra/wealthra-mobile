@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { DeviceEventEmitter } from "react-native";
 import { setAnnouncementsShown } from "../api/services/announcementService";
 
 interface AuthContextType {
@@ -43,6 +44,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    useEffect(() => {
       loadTokens();
    }, [loadTokens]);
+
+   useEffect(() => {
+      const subscription = DeviceEventEmitter.addListener('forceLogout', async () => {
+         console.warn("🔔 [Auth] Force logout event received!");
+         await logout();
+      });
+
+      return () => {
+         subscription.remove();
+      };
+   }, [logout]);
 
    const login = async (token: string, refresh: string, userId: string) => {
       setJwToken(token);

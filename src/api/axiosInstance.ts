@@ -1,6 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RefreshTokenResponse } from "./types";
+import { DeviceEventEmitter } from "react-native";
 
 export const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -125,8 +126,8 @@ axiosInstance.interceptors.response.use(
                // If refresh fails, the session is truly dead
                await AsyncStorage.multiRemove(["userId", "jwToken", "refreshToken", "userRoles"]);
                
-               // You might want to trigger a global logout event here
-               // e.g., DeviceEventEmitter.emit('forceLogout');
+               // Trigger a global logout event
+               DeviceEventEmitter.emit('forceLogout');
                
                reject(err);
             } finally {

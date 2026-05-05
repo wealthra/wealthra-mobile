@@ -5,6 +5,7 @@ import { getNotifications, markNotificationsRead, deleteNotifications as apiDele
 import { createNotificationConnection, startSignalRConnection } from "../api/services/signalRService";
 import * as signalR from "@microsoft/signalr";
 import i18n from "../i18n/config";
+import { useAuth } from "./AuthContext";
 
 interface NotificationContextType {
   notifications: NotificationDto[];
@@ -22,6 +23,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
   const connectionRef = useRef<signalR.HubConnection | null>(null);
 
   const fetchNotifications = useCallback(async (unreadOnly: boolean = false) => {
@@ -58,6 +60,16 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setNotifications([]);
+      setUnreadCount(0);
+      if (connectionRef.current) {
+        connectionRef.current.stop();
+        connectionRef.current = null;
+      }
+      return;
+    }
+
     fetchNotifications();
     
     const setupSignalR = async () => {
@@ -81,7 +93,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
     };
 
-    setupSignalR();
+    if (isAuthenticated) {
+      setupSignalR();
+    } else {
+      if (connectionRef.current) {
+        connectionRef.current.stop();
+        connectionRef.current = null;
+      }
+    }
 
     return () => {
       if (connectionRef.current) {
@@ -89,7 +108,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         connectionRef.current = null;
       }
     };
-  }, [fetchNotifications, i18n.language]);
+  }, [fetchNotifications, i18n.language, isAuthenticated]);
 
   return (
     <NotificationContext.Provider

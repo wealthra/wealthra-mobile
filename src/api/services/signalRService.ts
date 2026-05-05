@@ -14,9 +14,10 @@ export const createNotificationConnection = async (): Promise<signalR.HubConnect
 
   const connection = new signalR.HubConnectionBuilder()
     .withUrl(hubUrl, {
-      accessTokenFactory: () => token,
-      // SignalR usually handles the access_token query param automatically 
-      // when using accessTokenFactory and WebSockets
+      accessTokenFactory: async () => {
+         const token = await getStoredToken();
+         return token || "";
+      },
     })
     .withAutomaticReconnect()
     .configureLogging(signalR.LogLevel.Information)
