@@ -19,6 +19,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import DashboardScreen from "./src/screens/DasboardScreen";
 import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
+import ResetPasswordScreen from "./src/screens/ResetPasswordScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 import IncomeScreen from "./src/screens/IncomeScreen";
 import ExpenseScreen from "./src/screens/ExpenseScreen";
@@ -104,6 +105,15 @@ function AppNavigator({
           <Stack.Screen name="ForgotPassword">
             {(props) => (
               <ForgotPasswordScreen
+                {...props}
+                isDarkMode={isDarkMode}
+                onToggleTheme={toggleTheme}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="ResetPassword">
+            {(props) => (
+              <ResetPasswordScreen
                 {...props}
                 isDarkMode={isDarkMode}
                 onToggleTheme={toggleTheme}

@@ -65,6 +65,7 @@ const ForgotPasswordScreen = ({ isDarkMode, onToggleTheme, navigation }: ForgotP
          await forgotPassword(email);
 
          setIsSuccess(true);
+         navigation.navigate("ResetPassword", { email });
          setEmail(""); // Clear email input
       } catch (error: any) {
          console.error("Forgot Password error details:", {
