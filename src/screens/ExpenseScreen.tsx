@@ -14,6 +14,7 @@ import {
   getExpenses,
   deleteExpense,
   addExpense,
+  updateExpense,
   getUserCategories,
   getStoredUserId,
   bulkAddExpenses,
@@ -31,6 +32,7 @@ import { transformFinancialData } from "../utils/transformFinancialData";
 import DashboardCarousel from "../../components/DashboardCarousel";
 import { getFinancialSummary } from "../services/api";
 import AddExpenseModal from "../../components/AddExpenseModal";
+import UpdateExpenseModal from "../../components/UpdateExpenseModal";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
 import axios from "axios";
 import {
@@ -58,6 +60,7 @@ interface ExpenseSource {
   categoryId: number;
   categoryName: string;
   currency?: string;
+  transactionDate?: string;
 }
 
 interface ExpenseCategory {
@@ -128,6 +131,8 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
   const [hasMoreData, setHasMoreData] = useState(true);
   const [isVoiceModalVisible, setIsVoiceModalVisible] = useState(false);
   const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
+  const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<ExpenseSource | null>(null);
   const [extractedExpenses, setExtractedExpenses] = useState<ExpenseDto[]>([]);
   const [isExtracting, setIsExtracting] = useState(false);
   const pageSize = 10;
@@ -385,6 +390,10 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
             backgroundColor: themeColors.card_background,
           },
         ]}
+        onPress={() => {
+          setSelectedExpense(source);
+          setIsUpdateModalVisible(true);
+        }}
       >
         <View style={styles.expenseDetails}>
           <Text
@@ -516,6 +525,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
     method: string;
     isRecurring: boolean;
     categoryId: number;
+    transactionDate: string;
     currency?: string;
   }) => {
     try {
@@ -544,6 +554,8 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
         paymentMethod: newExpense.method || "Other", // Provide default if missing
         isRecurring: Boolean(newExpense.isRecurring),
         categoryId: newExpense.categoryId,
+        transactionDate: newExpense.transactionDate,
+        currency: preferredCurrency,
       });
 
       // Only proceed if we got a valid ID back
@@ -592,6 +604,63 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
           (t("expense.errorAddMessage") || "There was a problem adding your expense. Please try again."),
         "error"
       );
+    }
+  };
+
+  const handleUpdateExpense = async (id: number, updatedExpense: {
+    description: string;
+    amount: number;
+    method: string;
+    isRecurring: boolean;
+    categoryId: number;
+    transactionDate: string;
+  }) => {
+    try {
+      setLoading(true);
+      await updateExpense(id, {
+        description: updatedExpense.description,
+        amount: updatedExpense.amount,
+        paymentMethod: updatedExpense.method,
+        isRecurring: updatedExpense.isRecurring,
+        categoryId: updatedExpense.categoryId,
+        transactionDate: updatedExpense.transactionDate,
+        currency: preferredCurrency,
+      });
+
+      // Update local state
+      setExpenses((prev) =>
+        prev.map((e) =>
+          e.id === id
+            ? {
+                ...e,
+                description: updatedExpense.description,
+                amount: updatedExpense.amount,
+                paymentMethod: updatedExpense.method,
+                isRecurring: updatedExpense.isRecurring,
+                categoryId: updatedExpense.categoryId,
+                transactionDate: updatedExpense.transactionDate,
+                categoryName: categories.find((c) => c.id === updatedExpense.categoryId)?.name || "Unknown",
+              }
+            : e
+        )
+      );
+
+      // Refresh financial data
+      const finData = await getFinancialSummary(preferredCurrency);
+      setFinancialData(finData);
+
+      setIsUpdateModalVisible(false);
+      setSelectedExpense(null);
+      showAlert(t("common.success") || "Success", t("expense.updated") || "Expense updated successfully", "success");
+    } catch (error: any) {
+      console.error("Error updating expense:", error);
+      showAlert(
+        t("expense.errorUpdateTitle") || "Error Updating Expense",
+        error.message || t("expense.errorUpdateMessage") || "Failed to update expense",
+        "error"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -724,6 +793,15 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
     );
   };
 
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: themeColors.page_background }]}>
+        <ActivityIndicator size="large" color={themeColors.green} />
+        <Text style={{ color: themeColors.card_title, marginTop: 10 }}>{t("common.loadingExpenses")}</Text>
+      </View>
+    );
+  }
+
   return (
     <View
       style={[
@@ -838,13 +916,34 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
         </View>
       </View>
       {categories.length > 0 && (
-        <AddExpenseModal
-          visible={isAddModalVisible}
-          onClose={() => setIsAddModalVisible(false)}
-          onAdd={handleAddExpense}
-          isDarkMode={isDarkMode}
-          categories={categories} // These should be the categories from your API
-        />
+        <>
+          <AddExpenseModal
+            visible={isAddModalVisible}
+            onClose={() => setIsAddModalVisible(false)}
+            onAdd={handleAddExpense}
+            isDarkMode={isDarkMode}
+            categories={categories} // These should be the categories from your API
+          />
+          <UpdateExpenseModal
+            visible={isUpdateModalVisible}
+            onClose={() => {
+              setIsUpdateModalVisible(false);
+              setSelectedExpense(null);
+            }}
+            onUpdate={handleUpdateExpense}
+            isDarkMode={isDarkMode}
+            categories={categories}
+            initialExpense={selectedExpense ? {
+              id: selectedExpense.id,
+              description: selectedExpense.description,
+              amount: selectedExpense.amount,
+              paymentMethod: selectedExpense.paymentMethod,
+              isRecurring: selectedExpense.isRecurring,
+              categoryId: selectedExpense.categoryId,
+              transactionDate: selectedExpense.transactionDate || new Date().toISOString()
+            } : null}
+          />
+        </>
       )}
       <ActionFAB
         isDarkMode={isDarkMode}

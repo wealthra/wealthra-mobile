@@ -13,11 +13,13 @@ import ConfirmationModal, { ModalButton } from "../../components/ConfirmationMod
 import ScreenHeader from "../../components/ScreenHeader";
 import {
   addIncome,
+  updateIncome,
   getIncomes,
   deleteIncome,
   getFinancialSummary,
 } from "../services/api";
 import AddIncomeModal from "../../components/AddIncomeModal";
+import UpdateIncomeModal from "../../components/UpdateIncomeModal";
 import { useTranslation } from "react-i18next";
 import type { FinancialSummary } from "../services/api";
 import { transformFinancialData } from "../utils/transformFinancialData";
@@ -45,7 +47,8 @@ interface IncomeSource {
   type: string;
   paymentMethod: string;
   currency?: string;
-  addedAt?: string; // Track when the item was added
+  addedAt?: string;
+  transactionDate?: string;
 }
 
 interface Transaction {
@@ -67,6 +70,8 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
   const [incomeSources, setIncomeSources] = useState<IncomeSource[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
+  const [selectedIncome, setSelectedIncome] = useState<IncomeSource | null>(null);
   const [loading, setLoading] = useState(true);
   const [financialData, setFinancialData] = useState<FinancialSummary | null>(
     null,
@@ -148,6 +153,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         type: income.isRecurring ? "Periodic" : "One-time",
         paymentMethod: income.method,
         currency: income.currency,
+        transactionDate: income.transactionDate,
         // Use a fake timestamp to simulate recency for existing items
         // Each item gets a timestamp 1 minute apart, with newer items being more recent
         addedAt: new Date(Date.now() - index * 60000).toISOString(),
@@ -377,6 +383,10 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
             backgroundColor: themeColors.card_background,
           },
         ]}
+        onPress={() => {
+          setSelectedIncome(source);
+          setIsUpdateModalVisible(true);
+        }}
       >
         <View style={styles.incomeDetails}>
           <Text style={[styles.incomeTitle, { color: themeColors.card_title }]}>
@@ -421,6 +431,59 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
       .slice(0, count);
   };
 
+  const handleUpdateIncome = async (id: number, updatedIncome: {
+    name: string;
+    amount: number;
+    method: string;
+    isRecurring: boolean;
+    transactionDate: string;
+  }) => {
+    try {
+      setLoading(true);
+      await updateIncome(id, {
+        name: updatedIncome.name,
+        amount: updatedIncome.amount,
+        method: updatedIncome.method,
+        isRecurring: updatedIncome.isRecurring,
+        transactionDate: updatedIncome.transactionDate,
+        currency: preferredCurrency,
+      });
+
+      // Update local state
+      setIncomeSources((prev) =>
+        prev.map((i) =>
+          i.id === id
+            ? {
+                ...i,
+                title: updatedIncome.name,
+                amount: updatedIncome.amount,
+                paymentMethod: updatedIncome.method,
+                type: updatedIncome.isRecurring ? "Periodic" : "One-time",
+                transactionDate: updatedIncome.transactionDate,
+              }
+            : i
+        )
+      );
+
+      // Refresh financial data
+      const finData = await getFinancialSummary(preferredCurrency);
+      setFinancialData(finData);
+
+      setIsUpdateModalVisible(false);
+      setSelectedIncome(null);
+      showAlert(t("common.success") || "Success", t("income.updated") || "Income updated successfully", "success");
+    } catch (error: any) {
+      console.error("Error updating income:", error);
+      showAlert(
+        t("common.error") || "Error",
+        error.message || t("income.updateFailed") || "Failed to update income",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLoadMore = () => {
     if (!isLoadingMore && hasMoreData) {
       fetchIncomeData(currentPage + 1, true);
@@ -440,8 +503,9 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={themeColors.green} />
+        <Text style={{ color: themeColors.card_title, marginTop: 10 }}>{t("common.loadingIncomes")}</Text>
       </View>
     );
   }
@@ -571,6 +635,23 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         onClose={() => setIsAddModalVisible(false)}
         onAdd={handleAddIncome}
         isDarkMode={isDarkMode}
+      />
+      <UpdateIncomeModal
+        visible={isUpdateModalVisible}
+        onClose={() => {
+          setIsUpdateModalVisible(false);
+          setSelectedIncome(null);
+        }}
+        onUpdate={handleUpdateIncome}
+        isDarkMode={isDarkMode}
+        initialIncome={selectedIncome ? {
+          id: selectedIncome.id,
+          name: selectedIncome.title,
+          amount: selectedIncome.amount,
+          method: selectedIncome.paymentMethod,
+          isRecurring: selectedIncome.type === "Periodic",
+          transactionDate: selectedIncome.transactionDate || new Date().toISOString()
+        } : null}
       />
       <ActionFAB
         isDarkMode={isDarkMode}

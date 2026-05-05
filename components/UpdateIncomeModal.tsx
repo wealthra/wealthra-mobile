@@ -1,64 +1,56 @@
 import React, { useState, useEffect } from "react";
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from "react-native";
 import { getThemeColors } from "../src/utils/getThemeColors";
 import { useTranslation } from "react-i18next";
-import { Picker } from "@react-native-picker/picker";
 import { horizontalScale, verticalScale, moderateScale } from "../src/utils/scaling";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Platform } from "react-native";
 
-interface AddExpenseModalProps {
+interface UpdateIncomeModalProps {
    visible: boolean;
    onClose: () => void;
-   onAdd: (expense: { description: string; amount: number; method: string; isRecurring: boolean; categoryId: number; transactionDate: string }) => void;
+   onUpdate: (id: number, income: { name: string; amount: number; method: string; isRecurring: boolean; transactionDate: string }) => void;
    isDarkMode: boolean;
-   categories: { id: number; name: string }[]; // Update to match API structure - just simple string
+   initialIncome: {
+      id: number;
+      name: string;
+      amount: number;
+      method: string;
+      isRecurring: boolean;
+      transactionDate: string;
+   } | null;
 }
 
-const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, onAdd, isDarkMode, categories }) => {
+const UpdateIncomeModal: React.FC<UpdateIncomeModalProps> = ({ visible, onClose, onUpdate, isDarkMode, initialIncome }) => {
    const themeColors = getThemeColors(isDarkMode);
    const { t, i18n } = useTranslation();
-   const [description, setDescription] = useState("");
+   const [name, setName] = useState("");
    const [amount, setAmount] = useState("");
    const [method, setMethod] = useState("");
    const [isRecurring, setIsRecurring] = useState(true);
-   const [categoryId, setCategoryId] = useState(categories[0]?.id || 0);
    const [transactionDate, setTransactionDate] = useState(new Date());
    const [showDatePicker, setShowDatePicker] = useState(false);
 
-   // Update component state when language changes
    useEffect(() => {
-      // This will force a re-render when language changes
-      console.log("Language changed to:", i18n.language);
-   }, [i18n.language]);
+      if (initialIncome) {
+         setName(initialIncome.name || "");
+         setAmount(initialIncome.amount?.toString() || "");
+         setMethod(initialIncome.method || "");
+         setIsRecurring(initialIncome.isRecurring ?? true);
+         setTransactionDate(initialIncome.transactionDate ? new Date(initialIncome.transactionDate) : new Date());
+      }
+   }, [initialIncome, visible]);
 
-   const handleAdd = () => {
-      if (description && amount && method && categoryId > 0) {
-         onAdd({
-            description,
+   const handleUpdate = () => {
+      if (initialIncome && name && amount && method) {
+         onUpdate(initialIncome.id, {
+            name,
             amount: Number(amount),
             method,
             isRecurring,
-            categoryId,
             transactionDate: transactionDate.toISOString(),
          });
-         resetForm();
          onClose();
       }
-   };
-
-   const resetForm = () => {
-      setDescription("");
-      setAmount("");
-      setMethod("");
-      setIsRecurring(true);
-      setCategoryId(categories[0]?.id || 0);
-      setTransactionDate(new Date());
-   };
-
-   const handleClose = () => {
-      resetForm();
-      onClose();
    };
 
    const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -76,37 +68,24 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, onA
       });
    };
 
-   // Get translated category names based on the original English names
-   const getTranslatedCategoryName = (categoryName: string) => {
-      // Add safety check for undefined/null names
-      if (!categoryName) return t("categories.miscellaneous");
-
-      // Use the original name as the translation key
-      const translationKey = `categories.${categoryName.toLowerCase().replace(/\s+/g, "_")}`;
-      const translated = t(translationKey);
-
-      // If no translation found (returns the key), use the original name
-      return translated === translationKey ? categoryName : translated;
-   };
-
    return (
-      <Modal visible={visible} transparent={true} animationType="fade" onRequestClose={handleClose} statusBarTranslucent={true}>
-         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={handleClose}>
+      <Modal visible={visible} transparent={true} animationType="fade" onRequestClose={onClose} statusBarTranslucent={true}>
+         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
             <TouchableOpacity
                activeOpacity={1}
                onPress={(e) => e.stopPropagation()}
                style={[styles.modalContent, { backgroundColor: themeColors.page_background }]}>
-               <Text style={[styles.modalTitle, { color: themeColors.card_title }]}>{t("addExpenseModalTitle")}</Text>
+               <Text style={[styles.modalTitle, { color: themeColors.card_title }]}>{t("updateIncomeModalTitle")}</Text>
 
                <TextInput
                   style={[
                      styles.input,
                      { backgroundColor: themeColors.page_background, color: themeColors.card_title, borderColor: themeColors.frame_stroke },
                   ]}
-                  placeholder={t("expense.enterDescription")}
+                  placeholder={t("income.enterIncomeName") || "Enter income name"}
                   placeholderTextColor={themeColors.card_title}
-                  value={description}
-                  onChangeText={setDescription}
+                  value={name}
+                  onChangeText={setName}
                />
 
                <TextInput
@@ -114,7 +93,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, onA
                      styles.input,
                      { backgroundColor: themeColors.page_background, color: themeColors.card_title, borderColor: themeColors.frame_stroke },
                   ]}
-                  placeholder={t("expense.enterAmount")}
+                  placeholder={t("income.enterIncomeAmount") || "Enter income amount"}
                   placeholderTextColor={themeColors.card_title}
                   keyboardType="numeric"
                   value={amount}
@@ -126,7 +105,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, onA
                      styles.input,
                      { backgroundColor: themeColors.page_background, color: themeColors.card_title, borderColor: themeColors.frame_stroke },
                   ]}
-                  placeholder={t("expense.enterPaymentMethod")}
+                  placeholder={t("income.enterIncomePaymentMethod") || "Enter payment method"}
                   placeholderTextColor={themeColors.card_title}
                   value={method}
                   onChangeText={setMethod}
@@ -175,38 +154,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, onA
                   />
                )}
 
-               <View style={[styles.pickerContainer, { borderColor: themeColors.frame_stroke }]}>
-                  <Picker
-                     selectedValue={categoryId}
-                     onValueChange={(itemValue) => setCategoryId(Number(itemValue))}
-                     style={[
-                        styles.picker,
-                        {
-                           color: themeColors.card_title,
-                           fontSize: 14,
-                        },
-                     ]}
-                     dropdownIconColor={themeColors.card_title}>
-                     <Picker.Item
-                        label={t("expense.selectCategory")}
-                        value={0}
-                        enabled={false}
-                        color={themeColors.card_description}
-                        style={{ fontSize: 14 }}
-                     />
-                     {categories.map((category) => (
-                        <Picker.Item
-                           key={category.id}
-                           label={getTranslatedCategoryName(category.name)}
-                           value={category.id}
-                           style={{ fontSize: 14 }}
-                        />
-                     ))}
-                  </Picker>
-               </View>
-
-               <TouchableOpacity style={[styles.addButton, { backgroundColor: themeColors.green }]} onPress={handleAdd}>
-                  <Text style={styles.addButtonText}>{t("expense.addButton")}</Text>
+               <TouchableOpacity style={[styles.addButton, { backgroundColor: themeColors.green }]} onPress={handleUpdate}>
+                  <Text style={styles.addButtonText}>{t("updateIncomeButtonText")}</Text>
                </TouchableOpacity>
             </TouchableOpacity>
          </TouchableOpacity>
@@ -266,16 +215,6 @@ const styles = StyleSheet.create({
       fontSize: moderateScale(16),
       fontWeight: "500",
    },
-   pickerContainer: {
-      borderWidth: 1,
-      borderRadius: moderateScale(25),
-      marginBottom: verticalScale(20),
-      overflow: "hidden",
-   },
-   picker: {
-      height: verticalScale(50),
-      width: "100%",
-   },
    datePickerButton: {
       height: verticalScale(50),
       borderWidth: 1,
@@ -298,4 +237,4 @@ const styles = StyleSheet.create({
    },
 });
 
-export default AddExpenseModal;
+export default UpdateIncomeModal;

@@ -1,7 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { NotificationDto } from "../api/types";
 import { getNotifications, markNotificationsRead, deleteNotifications as apiDeleteNotifications } from "../api/services/notificationService";
+import { createNotificationConnection, startSignalRConnection } from "../api/services/signalRService";
+import * as signalR from "@microsoft/signalr";
 import i18n from "../i18n/config";
 
 interface NotificationContextType {
@@ -20,6 +22,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const connectionRef = useRef<signalR.HubConnection | null>(null);
 
   const fetchNotifications = useCallback(async (unreadOnly: boolean = false) => {
     setLoading(true);
@@ -57,12 +60,35 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     fetchNotifications();
     
-    // Set up an interval to refresh notifications
-    const interval = setInterval(() => {
-      fetchNotifications();
-    }, 60000); // Every minute
+    const setupSignalR = async () => {
+      // Clean up existing connection if it exists
+      if (connectionRef.current) {
+        await connectionRef.current.stop();
+        connectionRef.current = null;
+      }
 
-    return () => clearInterval(interval);
+      const connection = await createNotificationConnection();
+      if (connection) {
+        connectionRef.current = connection;
+
+        connection.on("ReceiveNotification", (notification: NotificationDto) => {
+          console.log("🔔 New Notification Received via SignalR:", notification);
+          setNotifications((prev) => [notification, ...prev]);
+          setUnreadCount((prev) => prev + 1);
+        });
+
+        await startSignalRConnection(connection);
+      }
+    };
+
+    setupSignalR();
+
+    return () => {
+      if (connectionRef.current) {
+        connectionRef.current.stop();
+        connectionRef.current = null;
+      }
+    };
   }, [fetchNotifications, i18n.language]);
 
   return (

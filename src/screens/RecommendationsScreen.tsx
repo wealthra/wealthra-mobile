@@ -239,6 +239,7 @@ const RecommendationsScreen: React.FC<RecommendationsScreenProps> = ({
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator color={theme.green} size="large" />
+            <Text style={{ color: theme.card_title, marginTop: 10 }}>{t("common.loadingRecommendations")}</Text>
           </View>
         ) : (
           <>

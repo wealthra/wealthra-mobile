@@ -315,7 +315,7 @@ const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, na
       return (
          <View style={[styles.container, styles.loadingContainer, { backgroundColor: themeColors.page_background }]}>
             <ActivityIndicator size="large" color={themeColors.card_title} />
-            <Text style={{ color: themeColors.card_title, marginTop: 10 }}>Loading goals...</Text>
+            <Text style={{ color: themeColors.card_title, marginTop: 10 }}>{t("common.loadingGoals")}</Text>
          </View>
       );
    }

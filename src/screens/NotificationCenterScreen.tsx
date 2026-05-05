@@ -210,6 +210,7 @@ const NotificationCenterScreen: React.FC<NotificationCenterScreenProps> = ({
       {loading && notifications.length === 0 ? (
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={theme.blue} />
+          <Text style={{ color: theme.card_title, marginTop: 10 }}>{t("common.loadingNotifications")}</Text>
         </View>
       ) : notifications.length === 0 ? (
         <View style={styles.centerContainer}>

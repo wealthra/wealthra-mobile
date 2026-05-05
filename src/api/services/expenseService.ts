@@ -57,6 +57,7 @@ export const addExpense = async (expense: {
   paymentMethod: string;
   isRecurring: boolean;
   categoryId: number;
+  transactionDate?: string;
   currency?: string;
 }): Promise<number> => {
   try {
@@ -69,7 +70,8 @@ export const addExpense = async (expense: {
       paymentMethod: expense.paymentMethod,
       isRecurring: Boolean(expense.isRecurring),
       categoryId: Number(expense.categoryId),
-      currency: expense.currency,
+      transactionDate: expense.transactionDate || new Date().toISOString(),
+      currency: expense.currency || await getStoredCurrency(),
     };
 
     console.log(
@@ -253,9 +255,16 @@ export const bulkAddExpenses = async (
     const token = await getStoredToken();
     if (!token) throw new Error("No authentication token found");
 
-    console.log(`Adding ${expenses.length} expenses in bulk`);
+    const preferredCurrency = await getStoredCurrency();
+    const preparedExpenses = expenses.map(expense => ({
+      ...expense,
+      currency: expense.currency || preferredCurrency,
+      transactionDate: expense.transactionDate || new Date().toISOString()
+    }));
 
-    const response = await axiosInstance.post(`/api/Expenses/bulk`, expenses, {
+    console.log(`Adding ${preparedExpenses.length} expenses in bulk`);
+
+    const response = await axiosInstance.post(`/api/Expenses/bulk`, preparedExpenses, {
       headers: {
         "Content-Type": "application/json",
       },

@@ -120,11 +120,13 @@ function DashboardScreen({
     method: string;
     isRecurring: boolean;
     categoryId: number;
+    transactionDate: string;
   }) => {
     try {
       await addExpense({
         ...newExpense,
         paymentMethod: newExpense.method,
+        currency: preferredCurrency,
       });
       // Refresh financial data
       const finData = await getFinancialSummary();
@@ -431,8 +433,9 @@ function DashboardScreen({
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={themeColors.green} />
+        <Text style={{ color: themeColors.card_title, marginTop: 10 }}>{t("common.loadingDashboard")}</Text>
       </View>
     );
   }

@@ -279,8 +279,9 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
          </View>
 
          {isLoading ? (
-            <View style={styles.loadingContainer}>
+            <View style={[styles.loadingContainer, { flex: 1, justifyContent: "center", alignItems: "center" }]}>
                <ActivityIndicator size="large" color={themeColors.green} />
+               <Text style={{ color: themeColors.card_title, marginTop: 10 }}>{t("common.loadingAnalytics")}</Text>
             </View>
          ) : (
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>

@@ -135,13 +135,19 @@ const AddIncomeModal: React.FC<AddIncomeModalProps> = ({ visible, onClose, onAdd
 
                <View style={styles.typeContainer}>
                   <TouchableOpacity
-                     style={[styles.typeButton, isRecurring && styles.selectedType, { borderColor: themeColors.frame_stroke }]}
+                     style={[
+                        styles.typeButton,
+                        isRecurring ? { backgroundColor: themeColors.green, borderColor: themeColors.green } : { borderColor: themeColors.frame_stroke },
+                     ]}
                      onPress={() => setIsRecurring(true)}>
                      <Text style={[styles.typeText, { color: isRecurring ? "white" : themeColors.card_title }]}>{t("periodic")}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                     style={[styles.typeButton, !isRecurring && styles.selectedType, { borderColor: themeColors.frame_stroke }]}
+                     style={[
+                        styles.typeButton,
+                        !isRecurring ? { backgroundColor: themeColors.green, borderColor: themeColors.green } : { borderColor: themeColors.frame_stroke },
+                     ]}
                      onPress={() => setIsRecurring(false)}>
                      <Text style={[styles.typeText, { color: !isRecurring ? "white" : themeColors.card_title }]}>{t("oneTime")}</Text>
                   </TouchableOpacity>

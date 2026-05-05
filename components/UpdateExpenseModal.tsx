@@ -1,40 +1,53 @@
 import React, { useState, useEffect } from "react";
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from "react-native";
 import { getThemeColors } from "../src/utils/getThemeColors";
 import { useTranslation } from "react-i18next";
 import { Picker } from "@react-native-picker/picker";
 import { horizontalScale, verticalScale, moderateScale } from "../src/utils/scaling";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Platform } from "react-native";
 
-interface AddExpenseModalProps {
+interface UpdateExpenseModalProps {
    visible: boolean;
    onClose: () => void;
-   onAdd: (expense: { description: string; amount: number; method: string; isRecurring: boolean; categoryId: number; transactionDate: string }) => void;
+   onUpdate: (id: number, expense: { description: string; amount: number; method: string; isRecurring: boolean; categoryId: number; transactionDate: string }) => void;
    isDarkMode: boolean;
-   categories: { id: number; name: string }[]; // Update to match API structure - just simple string
+   categories: { id: number; name: string }[];
+   initialExpense: {
+      id: number;
+      description: string;
+      amount: number;
+      paymentMethod: string;
+      isRecurring: boolean;
+      categoryId: number;
+      transactionDate: string;
+   } | null;
 }
 
-const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, onAdd, isDarkMode, categories }) => {
+const UpdateExpenseModal: React.FC<UpdateExpenseModalProps> = ({ visible, onClose, onUpdate, isDarkMode, categories, initialExpense }) => {
    const themeColors = getThemeColors(isDarkMode);
    const { t, i18n } = useTranslation();
    const [description, setDescription] = useState("");
    const [amount, setAmount] = useState("");
    const [method, setMethod] = useState("");
    const [isRecurring, setIsRecurring] = useState(true);
-   const [categoryId, setCategoryId] = useState(categories[0]?.id || 0);
+   const [categoryId, setCategoryId] = useState(0);
    const [transactionDate, setTransactionDate] = useState(new Date());
    const [showDatePicker, setShowDatePicker] = useState(false);
 
-   // Update component state when language changes
    useEffect(() => {
-      // This will force a re-render when language changes
-      console.log("Language changed to:", i18n.language);
-   }, [i18n.language]);
+      if (initialExpense) {
+         setDescription(initialExpense.description || "");
+         setAmount(initialExpense.amount?.toString() || "");
+         setMethod(initialExpense.paymentMethod || "");
+         setIsRecurring(initialExpense.isRecurring ?? true);
+         setCategoryId(initialExpense.categoryId || 0);
+         setTransactionDate(initialExpense.transactionDate ? new Date(initialExpense.transactionDate) : new Date());
+      }
+   }, [initialExpense, visible]);
 
-   const handleAdd = () => {
-      if (description && amount && method && categoryId > 0) {
-         onAdd({
+   const handleUpdate = () => {
+      if (initialExpense && description && amount && method && categoryId > 0) {
+         onUpdate(initialExpense.id, {
             description,
             amount: Number(amount),
             method,
@@ -42,23 +55,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, onA
             categoryId,
             transactionDate: transactionDate.toISOString(),
          });
-         resetForm();
          onClose();
       }
-   };
-
-   const resetForm = () => {
-      setDescription("");
-      setAmount("");
-      setMethod("");
-      setIsRecurring(true);
-      setCategoryId(categories[0]?.id || 0);
-      setTransactionDate(new Date());
-   };
-
-   const handleClose = () => {
-      resetForm();
-      onClose();
    };
 
    const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -76,27 +74,21 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, onA
       });
    };
 
-   // Get translated category names based on the original English names
    const getTranslatedCategoryName = (categoryName: string) => {
-      // Add safety check for undefined/null names
       if (!categoryName) return t("categories.miscellaneous");
-
-      // Use the original name as the translation key
       const translationKey = `categories.${categoryName.toLowerCase().replace(/\s+/g, "_")}`;
       const translated = t(translationKey);
-
-      // If no translation found (returns the key), use the original name
       return translated === translationKey ? categoryName : translated;
    };
 
    return (
-      <Modal visible={visible} transparent={true} animationType="fade" onRequestClose={handleClose} statusBarTranslucent={true}>
-         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={handleClose}>
+      <Modal visible={visible} transparent={true} animationType="fade" onRequestClose={onClose} statusBarTranslucent={true}>
+         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
             <TouchableOpacity
                activeOpacity={1}
                onPress={(e) => e.stopPropagation()}
                style={[styles.modalContent, { backgroundColor: themeColors.page_background }]}>
-               <Text style={[styles.modalTitle, { color: themeColors.card_title }]}>{t("addExpenseModalTitle")}</Text>
+               <Text style={[styles.modalTitle, { color: themeColors.card_title }]}>{t("expense.updateExpenseTitle")}</Text>
 
                <TextInput
                   style={[
@@ -139,7 +131,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, onA
                         isRecurring ? { backgroundColor: themeColors.green, borderColor: themeColors.green } : { borderColor: themeColors.frame_stroke },
                      ]}
                      onPress={() => setIsRecurring(true)}>
-                     <Text style={[styles.typeText, { color: isRecurring ? "white" : themeColors.card_title }]}>{t("periodic")}</Text>
+                     <Text style={[styles.typeText, { color: isRecurring ? "white" : themeColors.card_title }]}>{t("expense.periodic")}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -148,7 +140,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, onA
                         !isRecurring ? { backgroundColor: themeColors.green, borderColor: themeColors.green } : { borderColor: themeColors.frame_stroke },
                      ]}
                      onPress={() => setIsRecurring(false)}>
-                     <Text style={[styles.typeText, { color: !isRecurring ? "white" : themeColors.card_title }]}>{t("oneTime")}</Text>
+                     <Text style={[styles.typeText, { color: !isRecurring ? "white" : themeColors.card_title }]}>{t("expense.oneTime")}</Text>
                   </TouchableOpacity>
                </View>
 
@@ -205,8 +197,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ visible, onClose, onA
                   </Picker>
                </View>
 
-               <TouchableOpacity style={[styles.addButton, { backgroundColor: themeColors.green }]} onPress={handleAdd}>
-                  <Text style={styles.addButtonText}>{t("expense.addButton")}</Text>
+               <TouchableOpacity style={[styles.addButton, { backgroundColor: themeColors.green }]} onPress={handleUpdate}>
+                  <Text style={styles.addButtonText}>{t("expense.updateButton")}</Text>
                </TouchableOpacity>
             </TouchableOpacity>
          </TouchableOpacity>
@@ -298,4 +290,4 @@ const styles = StyleSheet.create({
    },
 });
 
-export default AddExpenseModal;
+export default UpdateExpenseModal;

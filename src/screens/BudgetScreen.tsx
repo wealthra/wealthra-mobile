@@ -8,7 +8,8 @@ import { useTranslation } from "react-i18next";
 import ScreenHeader from "../../components/ScreenHeader";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
 import AddBudgetModal from "../../components/AddBudgetModal";
-import { getBudgets, addBudget, deleteBudget, getUserCategories } from "../services/api";
+import UpdateBudgetModal from "../../components/UpdateBudgetModal";
+import { getBudgets, addBudget, updateBudget, deleteBudget, getUserCategories } from "../services/api";
 import type { BudgetDto } from "../services/api";
 import { getCategoryColor } from "../utils/getCategoryColor";
 import ActionFAB from "../../components/ActionFAB";
@@ -41,6 +42,8 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
    const { t } = useTranslation();
    const [profileImage, setProfileImage] = useState<string | null>(null);
    const [isModalVisible, setIsModalVisible] = useState(false);
+   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
+   const [selectedBudget, setSelectedBudget] = useState<BudgetCategory | null>(null);
    const [budgetCategories, setBudgetCategories] = useState<BudgetCategory[]>([]);
    const [isLoading, setIsLoading] = useState(true);
    const [isRefreshing, setIsRefreshing] = useState(false);
@@ -257,7 +260,13 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
             renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, category.id)}
             overshootRight={false}
             onSwipeableOpen={() => handleDelete(category.id)}>
-            <View style={[styles.categoryItem, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
+            <TouchableOpacity
+               activeOpacity={0.7}
+               onPress={() => {
+                  setSelectedBudget(category);
+                  setIsUpdateModalVisible(true);
+               }}
+               style={[styles.categoryItem, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
                <View style={styles.categoryHeader}>
                   <Text style={[styles.categoryName, { color: themeColors.card_title }]}>{translatedCategoryName}</Text>
                   <Text style={[styles.percentageIndicator, { color: themeColors.card_title }]}>{percentSpent}%</Text>
@@ -281,7 +290,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
                      ]}
                   />
                </View>
-            </View>
+            </TouchableOpacity>
          </Swipeable>
       );
    };
@@ -318,6 +327,37 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
       }
    };
 
+   const handleUpdateBudget = async (id: number, budgetLimit: number) => {
+      try {
+         setIsLoading(true);
+         await updateBudget(id, {
+            budgetLimit: budgetLimit,
+            currency: preferredCurrency,
+         });
+
+         // Update local state
+         setBudgetCategories((prev) =>
+            prev.map((b) =>
+               b.apiId === id
+                  ? {
+                       ...b,
+                       budgeted: budgetLimit,
+                    }
+                  : b
+            )
+         );
+
+         showAlert(t("common.success") || "Success", t("budget.updated") || "Budget updated successfully", "success");
+         setIsUpdateModalVisible(false);
+         setSelectedBudget(null);
+      } catch (err: any) {
+         console.error("Error updating budget:", err);
+         showAlert(t("common.error") || "Error", t("budget.updateFailed") || "Failed to update budget", "error");
+      } finally {
+         setIsLoading(false);
+      }
+   };
+
    // Removed local getColorForCategory in favor of getCategoryColor utility
 
 
@@ -326,7 +366,7 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
       return (
          <View style={[styles.container, styles.loadingContainer, { backgroundColor: themeColors.page_background }]}>
             <ActivityIndicator size="large" color={themeColors.card_title} />
-            <Text style={{ color: themeColors.card_title, marginTop: 10 }}>Loading budgets...</Text>
+            <Text style={{ color: themeColors.card_title, marginTop: 10 }}>{t("common.loadingBudgets")}</Text>
          </View>
       );
    }
@@ -398,6 +438,20 @@ const BudgetScreen: React.FC<BudgetScreenProps> = ({ isDarkMode, onToggleTheme, 
             </View>
          </View>
 
+         <UpdateBudgetModal
+            visible={isUpdateModalVisible}
+            onClose={() => {
+               setIsUpdateModalVisible(false);
+               setSelectedBudget(null);
+            }}
+            onUpdate={handleUpdateBudget}
+            isDarkMode={isDarkMode}
+            initialBudget={selectedBudget ? {
+               id: selectedBudget.apiId!,
+               categoryName: selectedBudget.name,
+               budgetLimit: selectedBudget.budgeted
+            } : null}
+         />
          <AddBudgetModal
             visible={isModalVisible}
             onClose={() => setIsModalVisible(false)}
