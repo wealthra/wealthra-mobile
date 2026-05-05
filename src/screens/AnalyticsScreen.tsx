@@ -209,7 +209,7 @@ const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ isDarkMode, navigatio
 
    return (
       <View style={[styles.container, { backgroundColor: themeColors.page_background }]}>
-         <ScreenHeader isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="analytics" />
+         <ScreenHeader isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Analytics" />
 
          {/* Date Picker */}
          <View style={styles.datePickerContainer}>
