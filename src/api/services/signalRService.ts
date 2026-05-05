@@ -2,31 +2,36 @@ import * as signalR from "@microsoft/signalr";
 import { API_URL } from "../axiosInstance";
 import { getStoredToken } from "./authService";
 
-export const createNotificationConnection = async (): Promise<signalR.HubConnection | null> => {
-  const token = await getStoredToken();
-  if (!token) {
-    console.warn("SignalR: No token found, cannot create connection.");
-    return null;
-  }
+export const createNotificationConnection =
+  async (): Promise<signalR.HubConnection | null> => {
+    const token = await getStoredToken();
+    if (!token) {
+      console.warn("SignalR: No token found, cannot create connection.");
+      return null;
+    }
 
-  // Ensure the URL is absolute
-  const hubUrl = `${API_URL}/hubs/notifications`;
+    // Ensure the URL is absolute
+    const hubUrl = `${API_URL}/hubs/notifications`;
 
-  const connection = new signalR.HubConnectionBuilder()
-    .withUrl(hubUrl, {
-      accessTokenFactory: async () => {
-         const token = await getStoredToken();
-         return token || "";
-      },
-    })
-    .withAutomaticReconnect()
-    .configureLogging(signalR.LogLevel.Information)
-    .build();
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(hubUrl, {
+        transport: signalR.HttpTransportType.WebSockets,
+        skipNegotiation: true,
+        accessTokenFactory: async () => {
+          const token = await getStoredToken();
+          return token || "";
+        },
+      })
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.Information)
+      .build();
 
-  return connection;
-};
+    return connection;
+  };
 
-export const startSignalRConnection = async (connection: signalR.HubConnection) => {
+export const startSignalRConnection = async (
+  connection: signalR.HubConnection,
+) => {
   if (connection.state === signalR.HubConnectionState.Disconnected) {
     try {
       await connection.start();

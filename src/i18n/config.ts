@@ -154,8 +154,10 @@ const resources = {
         updated: "Budget updated successfully",
       },
       goal: {
+        enterGoalName: "Enter goal name",
         enterTargetAmount: "Enter target amount",
         enterCurrentAmount: "Enter current amount",
+        enterCurrency: "Enter currency (e.g. USD, EUR)",
         updateButton: "Update Goal",
       },
 
@@ -596,8 +598,10 @@ const resources = {
         update: "Bütçe başarıyla güncellendi",
       },
       goal: {
+        enterGoalName: "Hedef adını girin",
         enterTargetAmount: "Hedef tutarını girin",
         enterCurrentAmount: "Mevcut tutarı girin",
+        enterCurrency: "Para birimini girin (örn. USD, TRY)",
         updateButton: "Hedefi Güncelle",
       },
 

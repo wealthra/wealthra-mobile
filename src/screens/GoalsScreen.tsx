@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, FlatList, ActivityIndicator } from "react-native";
-import ConfirmationModal, { ModalButton } from "../../components/ConfirmationModal";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Dimensions,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
+import ConfirmationModal, {
+  ModalButton,
+} from "../../components/ConfirmationModal";
 import { getThemeColors } from "../utils/getThemeColors";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
@@ -8,8 +19,18 @@ import ScreenHeader from "../../components/ScreenHeader";
 import { Swipeable, RectButton } from "react-native-gesture-handler";
 import AddGoalModal from "../../components/AddGoalModal";
 import UpdateGoalModal from "../../components/UpdateGoalModal";
-import { horizontalScale, verticalScale, moderateScale } from "../utils/scaling";
-import { getGoals, addGoal, deleteGoal, updateGoal, calculateDaysRemaining } from "../services/api";
+import {
+  horizontalScale,
+  verticalScale,
+  moderateScale,
+} from "../utils/scaling";
+import {
+  getGoals,
+  addGoal,
+  deleteGoal,
+  updateGoal,
+  calculateDaysRemaining,
+} from "../services/api";
 import type { GoalHistoryDto as Goal } from "../api/types/goal.types.ts";
 import ActionFAB from "../../components/ActionFAB";
 import { usePrivacy } from "../context/PrivacyContext";
@@ -17,534 +38,683 @@ import { getCurrencySymbol } from "../utils/currencyUtils";
 import { useUser } from "../context/UserContext";
 
 interface GoalsScreenProps {
-   isDarkMode: boolean;
-   onToggleTheme: () => void;
-   navigation: any;
+  isDarkMode: boolean;
+  onToggleTheme: () => void;
+  navigation: any;
 }
 
 interface SavingGoal {
-   id: string;
-   apiId?: number; // To store the API ID for deletion
-   name: string;
-   saved: number;
-   target: number;
-   daysLeft: number;
-   color: string;
-   currency?: string;
+  id: number;
+  name: string;
+  saved: number;
+  target: number;
+  daysLeft: number;
+  color: string;
+  currency?: string;
 }
 
 const { width: windowWidth } = Dimensions.get("window");
 
-const GoalsScreen: React.FC<GoalsScreenProps> = ({ isDarkMode, onToggleTheme, navigation }) => {
-   const themeColors = getThemeColors(isDarkMode);
-   const { isPrivacyMode } = usePrivacy();
-   const { preferredCurrency } = useUser();
-   const { t } = useTranslation();
-   const [profileImage, setProfileImage] = useState<string | null>(null);
-   const [isModalVisible, setIsModalVisible] = useState(false);
-   const [savingGoals, setSavingGoals] = useState<SavingGoal[]>([]);
-   const [isLoading, setIsLoading] = useState(true);
-   const [isRefreshing, setIsRefreshing] = useState(false);
-   const [error, setError] = useState<string | null>(null);
-   const [selectedGoal, setSelectedGoal] = useState<SavingGoal | null>(null);
-   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
-   const [currentPage, setCurrentPage] = useState(1);
-   const [isLoadingMore, setIsLoadingMore] = useState(false);
-   const [hasMoreData, setHasMoreData] = useState(true);
-   const [alertConfig, setAlertConfig] = useState<{
-      visible: boolean;
-      title: string;
-      message: string;
-      type: "success" | "error" | "warning" | "info";
-      onConfirm?: () => void;
-      buttons?: ModalButton[];
-   }>({
-      visible: false,
-      title: "",
-      message: "",
-      type: "info",
-   });
+const GoalsScreen: React.FC<GoalsScreenProps> = ({
+  isDarkMode,
+  onToggleTheme,
+  navigation,
+}) => {
+  const themeColors = getThemeColors(isDarkMode);
+  const { isPrivacyMode } = usePrivacy();
+  const { preferredCurrency } = useUser();
+  const { t } = useTranslation();
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [savingGoals, setSavingGoals] = useState<SavingGoal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedGoal, setSelectedGoal] = useState<SavingGoal | null>(null);
+  const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreData, setHasMoreData] = useState(true);
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+    onConfirm?: () => void;
+    buttons?: ModalButton[];
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
 
-   // Calculate totals for goal overview
-   const totalTarget = savingGoals.reduce((sum, goal) => sum + goal.target, 0);
-   const totalSaved = savingGoals.reduce((sum, goal) => sum + goal.saved, 0);
-   const savingPercentage = totalTarget > 0 ? Math.round((totalSaved / totalTarget) * 100) : 0;
+  // Calculate totals for goal overview
+  const totalTarget = savingGoals.reduce((sum, goal) => sum + goal.target, 0);
+  const totalSaved = savingGoals.reduce((sum, goal) => sum + goal.saved, 0);
+  const savingPercentage =
+    totalTarget > 0 ? Math.round((totalSaved / totalTarget) * 100) : 0;
 
-   const showAlert = (
-      title: string, 
-      message: string, 
-      type: "success" | "error" | "warning" | "info" = "info", 
-      onConfirm?: () => void,
-      buttons?: ModalButton[]
-   ) => {
-      setAlertConfig({
-         visible: true,
-         title,
-         message,
-         type,
-         onConfirm: onConfirm || (() => setAlertConfig(prev => ({ ...prev, visible: false }))),
-         buttons,
+  const showAlert = (
+    title: string,
+    message: string,
+    type: "success" | "error" | "warning" | "info" = "info",
+    onConfirm?: () => void,
+    buttons?: ModalButton[],
+  ) => {
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      type,
+      onConfirm:
+        onConfirm ||
+        (() => setAlertConfig((prev) => ({ ...prev, visible: false }))),
+      buttons,
+    });
+  };
+
+  // Fetch goals from API
+  const fetchGoals = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await getGoals(1, 10, preferredCurrency); // Get up to 10 goals
+      console.log("Fetched goals:", response);
+
+      // Transform API data to our component format
+      const items = response.items || [];
+      const transformedGoals = items.map((goal: Goal) => ({
+        id: goal.id,
+        name: goal.name || "Untitled Goal",
+        saved: goal.currentAmount || 0,
+        target: goal.targetAmount,
+        currency: goal.currency,
+        daysLeft: calculateDaysRemaining(
+          goal.deadline || new Date().toISOString(),
+        ),
+        color: getColorForGoal(Math.floor(Math.random() * 3)), // Random color for now
+      }));
+
+      setSavingGoals(transformedGoals);
+      // Check if we have more data to load
+      setHasMoreData(response.hasNextPage ?? false);
+    } catch (err: any) {
+      console.error("Error fetching goals:", err);
+      setError("Failed to load goals. Please try again.");
+      showAlert("Error", "Failed to load goals. Please try again.", "error");
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchGoals();
+  }, [preferredCurrency]);
+
+  const handleNavigate = (screen: string) => {
+    navigation.navigate(screen);
+  };
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchGoals();
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      const goalToDelete = savingGoals.find((g) => g.id === id);
+
+      if (!goalToDelete) {
+        console.error("Cannot delete goal: Invalid ID");
+        return;
+      }
+
+      // Show a confirmation dialog before deletion
+      showAlert(
+        t("alert.deletionTitle") || "Delete Goal",
+        t("alert.deletionMessage") ||
+          "Are you sure you want to delete this goal?",
+        "warning",
+        undefined,
+        [
+          {
+            text: t("alert.cancel") || "Cancel",
+            onPress: () =>
+              setAlertConfig((prev) => ({ ...prev, visible: false })),
+            type: "cancel",
+          },
+          {
+            text: t("alert.confirm") || "Delete",
+            onPress: async () => {
+              setAlertConfig((prev) => ({ ...prev, visible: false }));
+              try {
+                // Delete from API
+                await deleteGoal(goalToDelete.id);
+
+                // Re-fetch data from API
+                await fetchGoals();
+              } catch (err: any) {
+                console.error("Error deleting goal:", err);
+                showAlert(
+                  t("alert.genericErrorTitle") || "Error",
+                  t("alert.failedToDelete") || "Failed to delete goal",
+                  "error",
+                );
+              }
+            },
+            type: "confirm",
+            color: themeColors.red,
+          },
+        ],
+      );
+    } catch (error) {
+      console.error("Error in handleDelete:", error);
+      showAlert(
+        t("alerts.titles.error") || "Error",
+        t("alerts.error.generic") || "An unexpected error occurred.",
+        "error",
+      );
+    }
+  };
+
+  const renderRightActions = (progress: any, dragX: any, id: number) => {
+    return (
+      <RectButton
+        style={[
+          styles.deleteButton,
+          { backgroundColor: themeColors.red || "#FF3B30" },
+        ]}
+        onPress={() => handleDelete(id)}
+      >
+        <View style={styles.deleteButtonInner}>
+          <Text style={styles.deleteButtonText}>X</Text>
+        </View>
+      </RectButton>
+    );
+  };
+
+  const renderGoalItem = ({ item: goal }: { item: SavingGoal }) => (
+    <Swipeable
+      key={goal.id}
+      renderRightActions={(progress, dragX) =>
+        renderRightActions(progress, dragX, goal.id)
+      }
+      overshootRight={false}
+      onSwipeableOpen={() => handleDelete(goal.id)}
+    >
+      <TouchableOpacity
+        style={[
+          styles.goalItem,
+          {
+            backgroundColor: themeColors.card_background,
+            borderColor: themeColors.frame_stroke,
+          },
+        ]}
+        onPress={() => handleGoalSelect(goal)}
+      >
+        <View style={styles.goalHeaderContainer}>
+          <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={[
+              styles.goalName,
+              { color: themeColors.card_title, flex: 1, marginRight: 10 },
+            ]}
+          >
+            {goal.name}
+          </Text>
+          <Text
+            style={[styles.daysLeftText, { color: themeColors.card_title }]}
+          >
+            {goal.daysLeft} {t("daysLeft")}
+          </Text>
+        </View>
+        <Text
+          style={[styles.goalAmounts, { color: themeColors.card_description }]}
+        >
+          {isPrivacyMode
+            ? "****"
+            : `${getCurrencySymbol(preferredCurrency || goal.currency)}${goal.saved.toLocaleString()}`}{" "}
+          /{" "}
+          {isPrivacyMode
+            ? "****"
+            : `${getCurrencySymbol(preferredCurrency || goal.currency)}${goal.target.toLocaleString()}`}
+        </Text>
+        <View
+          style={[
+            styles.goalProgressContainer,
+            { backgroundColor: themeColors.card_background },
+            { borderColor: themeColors.frame_stroke },
+          ]}
+        >
+          <View
+            style={[
+              styles.goalProgress,
+              {
+                width: `${Math.min(100, (goal.saved / goal.target) * 100)}%`,
+                backgroundColor: goal.color,
+              },
+            ]}
+          />
+        </View>
+      </TouchableOpacity>
+    </Swipeable>
+  );
+
+  const handleAddGoal = async (goal: {
+    name: string;
+    targetAmount: number;
+    initialDeposit: number;
+    daysToTarget: number;
+  }) => {
+    try {
+      console.log("Adding new goal:", goal);
+
+      // Add goal to API
+      const newGoalId = await addGoal({
+        name: goal.name,
+        targetAmount: goal.targetAmount,
+        initialAmount: goal.initialDeposit,
+        daysToTarget: goal.daysToTarget,
       });
-   };
 
-   // Fetch goals from API
-   const fetchGoals = async () => {
-      try {
-         setIsLoading(true);
-         setError(null);
-
-         const response = await getGoals(1, 10, preferredCurrency); // Get up to 10 goals
-         console.log("Fetched goals:", response);
-
-         // Transform API data to our component format
-         const items = response.items || [];
-         const transformedGoals = items.map((goal: Goal) => ({
-            id: goal.id.toString(),
-            apiId: goal.id, // Store API ID for future operations
-            name: goal.name || "Untitled Goal",
-            saved: goal.currentAmount || 0,
-            target: goal.targetAmount,
-            currency: goal.currency,
-            daysLeft: calculateDaysRemaining(goal.deadline || new Date().toISOString()),
-            color: getColorForGoal(Math.floor(Math.random() * 3)), // Random color for now
-         }));
-
-         setSavingGoals(transformedGoals);
-         // Check if we have more data to load
-         setHasMoreData(response.hasNextPage ?? false);
-      } catch (err: any) {
-         console.error("Error fetching goals:", err);
-         setError("Failed to load goals. Please try again.");
-         showAlert("Error", "Failed to load goals. Please try again.", "error");
-      } finally {
-         setIsLoading(false);
-         setIsRefreshing(false);
-      }
-   };
-
-   // Initial data fetch
-   useEffect(() => {
-      fetchGoals();
-   }, [preferredCurrency]);
-
-   const handleNavigate = (screen: string) => {
-      navigation.navigate(screen);
-   };
-
-   const handleRefresh = () => {
-      setIsRefreshing(true);
-      fetchGoals();
-   };
-
-   const handleDelete = async (id: string) => {
-      try {
-         const goalToDelete = savingGoals.find((g) => g.id === id);
-
-         if (!goalToDelete || !goalToDelete.apiId) {
-            console.error("Cannot delete goal: Invalid ID or missing API ID");
-            return;
-         }
-
-         // Show a confirmation dialog before deletion
-         showAlert(
-            t("alert.deletionTitle") || "Delete Goal",
-            t("alert.deletionMessage") || "Are you sure you want to delete this goal?",
-            "warning",
-            undefined,
-            [
-               {
-                  text: t("alert.cancel") || "Cancel",
-                  onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })),
-                  type: "cancel"
-               },
-               {
-                  text: t("alert.confirm") || "Delete",
-                  onPress: async () => {
-                     setAlertConfig(prev => ({ ...prev, visible: false }));
-                     try {
-                        // Delete from API
-                        await deleteGoal(goalToDelete.apiId!);
-
-                        // Re-fetch data from API
-                        await fetchGoals();
-                     } catch (err: any) {
-                        console.error("Error deleting goal:", err);
-                        showAlert(t("alert.genericErrorTitle") || "Error", t("alert.failedToDelete") || "Failed to delete goal", "error");
-                     }
-                  },
-                  type: "confirm",
-                  color: themeColors.red
-               },
-            ]
-         );
-      } catch (error) {
-         console.error("Error in handleDelete:", error);
-         showAlert(t("alerts.titles.error") || "Error", t("alerts.error.generic") || "An unexpected error occurred.", "error");
-      }
-   };
-
-   const renderRightActions = (progress: any, dragX: any, id: string) => {
-      return (
-         <RectButton style={[styles.deleteButton, { backgroundColor: themeColors.red || "#FF3B30" }]} onPress={() => handleDelete(id)}>
-            <View style={styles.deleteButtonInner}>
-               <Text style={styles.deleteButtonText}>X</Text>
-            </View>
-         </RectButton>
+      // Re-fetch data from API
+      await fetchGoals();
+      setIsModalVisible(false);
+      showAlert(
+        t("common.success") || "Success",
+        t("goal.added") || "Goal added successfully",
+        "success",
       );
-   };
+    } catch (err: any) {
+      console.error("Error adding goal:", err);
+      showAlert("Error", "Failed to add goal. Please try again.", "error");
+    }
+  };
 
-   const renderGoalItem = ({ item: goal }: { item: SavingGoal }) => (
-      <Swipeable
-         key={goal.id}
-         renderRightActions={(progress, dragX) => renderRightActions(progress, dragX, goal.id)}
-         overshootRight={false}
-         onSwipeableOpen={() => handleDelete(goal.id)}>
-         <TouchableOpacity
-            style={[styles.goalItem, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}
-            onPress={() => handleGoalSelect(goal)}>
-            <View style={styles.goalHeaderContainer}>
-               <Text style={[styles.goalName, { color: themeColors.card_title }]}>{goal.name}</Text>
-               <Text style={[styles.daysLeftText, { color: themeColors.card_title }]}>
-                  {goal.daysLeft} {t("daysLeft")}
-               </Text>
-            </View>
-            <Text style={[styles.goalAmounts, { color: themeColors.card_description }]}>
-               {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency || goal.currency)}${goal.saved.toLocaleString()}`} / {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency || goal.currency)}${goal.target.toLocaleString()}`}
-            </Text>
-            <View style={[styles.goalProgressContainer, { backgroundColor: themeColors.card_background }, { borderColor: themeColors.frame_stroke }]}>
-               <View
-                  style={[
-                     styles.goalProgress,
-                     {
-                        width: `${Math.min(100, (goal.saved / goal.target) * 100)}%`,
-                        backgroundColor: goal.color,
-                     },
-                  ]}
-               />
-            </View>
-         </TouchableOpacity>
-      </Swipeable>
-   );
+  const handleGoalSelect = (goal: SavingGoal) => {
+    setSelectedGoal(goal);
+    setIsUpdateModalVisible(true);
+  };
 
-   const handleAddGoal = async (goal: { name: string; targetAmount: number; initialDeposit: number; daysToTarget: number }) => {
-      try {
-         console.log("Adding new goal:", goal);
+  const handleUpdateGoal = async (updatedGoalData: {
+    id: number;
+    name: string;
+    targetAmount: number;
+    currentAmount: number;
+    deadline: string;
+    currency?: string;
+  }) => {
+    try {
+      console.log("Updating goal:", updatedGoalData.id, updatedGoalData);
 
-         // Add goal to API
-         const newGoalId = await addGoal({
-            name: goal.name,
-            targetAmount: goal.targetAmount,
-            initialAmount: goal.initialDeposit,
-            daysToTarget: goal.daysToTarget,
-         });
+      // Call the API to update the goal with the new schema
+      await updateGoal({
+        id: updatedGoalData.id,
+        name: updatedGoalData.name,
+        targetAmount: updatedGoalData.targetAmount,
+        currentAmount: updatedGoalData.currentAmount,
+        deadline: updatedGoalData.deadline,
+        currency: updatedGoalData.currency,
+      });
 
-         // Re-fetch data from API
-         await fetchGoals();
-         setIsModalVisible(false);
-         showAlert(t("common.success") || "Success", t("goal.added") || "Goal added successfully", "success");
-      } catch (err: any) {
-         console.error("Error adding goal:", err);
-         showAlert("Error", "Failed to add goal. Please try again.", "error");
-      }
-   };
+      // Re-fetch data from API
+      await fetchGoals();
 
-   const handleGoalSelect = (goal: SavingGoal) => {
-      setSelectedGoal(goal);
-      setIsUpdateModalVisible(true);
-   };
+      // Close the modal and clear the selected goal
+      setIsUpdateModalVisible(false);
+      setSelectedGoal(null);
+    } catch (err: any) {
+      console.error("Error updating goal:", err);
+      showAlert("Error", "Failed to update goal. Please try again.", "error");
+    }
+  };
 
-   const handleUpdateGoal = async (updatedGoalData: { name: string; targetAmount: number; initialDeposit: number; daysToTarget: number }) => {
-      try {
-         if (!selectedGoal || !selectedGoal.apiId) {
-            console.error("Cannot update goal: No goal selected or missing API ID");
-            return;
-         }
+  const getColorForGoal = (index: number) => {
+    const colors = [
+      themeColors.green || "#4CAF50",
+      themeColors.blue || "#2196F3",
+      themeColors.yellow || "#FFC107",
+    ];
+    return colors[index % colors.length];
+  };
 
-         console.log("Updating goal:", selectedGoal.id, updatedGoalData);
-
-         // Call the API to update the goal with all properties except name
-         await updateGoal(selectedGoal.apiId, {
-            name: selectedGoal.name, // Keep the original name instead of using updatedGoalData.name
-            targetAmount: updatedGoalData.targetAmount,
-            initialAmount: updatedGoalData.initialDeposit,
-            daysToTarget: updatedGoalData.daysToTarget,
-         });
-
-         // Re-fetch data from API
-         await fetchGoals();
-
-         // Close the modal and clear the selected goal
-         setIsUpdateModalVisible(false);
-         setSelectedGoal(null);
-      } catch (err: any) {
-         console.error("Error updating goal:", err);
-         showAlert("Error", "Failed to update goal. Please try again.", "error");
-      }
-   };
-
-   const getColorForGoal = (index: number) => {
-      const colors = [themeColors.green || "#4CAF50", themeColors.blue || "#2196F3", themeColors.yellow || "#FFC107"];
-      return colors[index % colors.length];
-   };
-
-   // Show loading indicator while fetching data
-   if (isLoading && !isRefreshing) {
-      return (
-         <View style={[styles.container, styles.loadingContainer, { backgroundColor: themeColors.page_background }]}>
-            <ActivityIndicator size="large" color={themeColors.card_title} />
-            <Text style={{ color: themeColors.card_title, marginTop: 10 }}>{t("common.loadingGoals")}</Text>
-         </View>
-      );
-   }
-
-   return (
-      <View style={[styles.container, { backgroundColor: themeColors.page_background }]}>
-         <ScreenHeader isDarkMode={isDarkMode} onNavigate={handleNavigate} currentRoute="Goals" />
-
-         <View style={styles.content}>
-            <View style={[styles.overviewCard, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
-               <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>{t("totalSavingProgress")}</Text>
-               <Text style={[styles.percentageText, { color: themeColors.card_title }]}>{savingPercentage}%</Text>
-               <View
-                  style={[styles.progressBarContainer, { backgroundColor: themeColors.card_background }, { borderColor: themeColors.frame_stroke }]}>
-                  <View style={[styles.progressBar, { width: `${savingPercentage}%`, backgroundColor: themeColors.green || "#4CAF50" }]} />
-               </View>
-               <View style={styles.budgetAmountsContainer}>
-                  <Text style={[styles.currentAmount, { color: themeColors.card_title }]}>{isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency)}${totalSaved.toLocaleString()}`}</Text>
-                  <Text style={[styles.targetAmount, { color: themeColors.card_title }]}>{isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency)}${totalTarget.toLocaleString()}`}</Text>
-               </View>
-            </View>
-
-            <View style={[styles.goalsCard, { backgroundColor: themeColors.card_background, borderColor: themeColors.frame_stroke }]}>
-               <View style={styles.goalsHeader}>
-                  <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>{t("activeGoals")}</Text>
-               </View>
-               <FlatList
-                  data={savingGoals}
-                  renderItem={renderGoalItem}
-                  keyExtractor={(item) => item.id}
-                  showsVerticalScrollIndicator={false}
-                  initialNumToRender={3}
-                  maxToRenderPerBatch={3}
-                  windowSize={3}
-                  refreshing={isRefreshing}
-                  onRefresh={handleRefresh}
-                  getItemLayout={(data, index) => ({
-                     length: 110,
-                     offset: 110 * index,
-                     index,
-                  })}
-                  style={styles.goalList}
-               />
-            </View>
-         </View>
-
-         <AddGoalModal visible={isModalVisible} onClose={() => setIsModalVisible(false)} onAdd={handleAddGoal} isDarkMode={isDarkMode} />
-         <UpdateGoalModal
-            visible={isUpdateModalVisible}
-            onClose={() => {
-               setIsUpdateModalVisible(false);
-               setSelectedGoal(null);
-            }}
-            onUpdate={handleUpdateGoal}
-            initialValues={selectedGoal || undefined}
-            isDarkMode={isDarkMode}
-         />
-         <ActionFAB isDarkMode={isDarkMode} onPress={() => setIsModalVisible(true)} />
-
-         <ConfirmationModal
-            visible={alertConfig.visible}
-            title={alertConfig.title}
-            message={alertConfig.message}
-            type={alertConfig.type}
-            isDarkMode={isDarkMode}
-            buttons={alertConfig.buttons}
-            onConfirm={() => {
-               if (alertConfig.onConfirm) alertConfig.onConfirm();
-               setAlertConfig(prev => ({ ...prev, visible: false }));
-            }}
-            onCancel={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
-         />
+  // Show loading indicator while fetching data
+  if (isLoading && !isRefreshing) {
+    return (
+      <View
+        style={[
+          styles.container,
+          styles.loadingContainer,
+          { backgroundColor: themeColors.page_background },
+        ]}
+      >
+        <ActivityIndicator size="large" color={themeColors.card_title} />
+        <Text style={{ color: themeColors.card_title, marginTop: 10 }}>
+          {t("common.loadingGoals")}
+        </Text>
       </View>
-   );
+    );
+  }
+
+  return (
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: themeColors.page_background },
+      ]}
+    >
+      <ScreenHeader
+        isDarkMode={isDarkMode}
+        onNavigate={handleNavigate}
+        currentRoute="Goals"
+      />
+
+      <View style={styles.content}>
+        <View
+          style={[
+            styles.overviewCard,
+            {
+              backgroundColor: themeColors.card_background,
+              borderColor: themeColors.frame_stroke,
+            },
+          ]}
+        >
+          <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>
+            {t("totalSavingProgress")}
+          </Text>
+          <Text
+            style={[styles.percentageText, { color: themeColors.card_title }]}
+          >
+            {savingPercentage}%
+          </Text>
+          <View
+            style={[
+              styles.progressBarContainer,
+              { backgroundColor: themeColors.card_background },
+              { borderColor: themeColors.frame_stroke },
+            ]}
+          >
+            <View
+              style={[
+                styles.progressBar,
+                {
+                  width: `${savingPercentage}%`,
+                  backgroundColor: themeColors.green || "#4CAF50",
+                },
+              ]}
+            />
+          </View>
+          <View style={styles.budgetAmountsContainer}>
+            <Text
+              style={[styles.currentAmount, { color: themeColors.card_title }]}
+            >
+              {isPrivacyMode
+                ? "****"
+                : `${getCurrencySymbol(preferredCurrency)}${totalSaved.toLocaleString()}`}
+            </Text>
+            <Text
+              style={[styles.targetAmount, { color: themeColors.card_title }]}
+            >
+              {isPrivacyMode
+                ? "****"
+                : `${getCurrencySymbol(preferredCurrency)}${totalTarget.toLocaleString()}`}
+            </Text>
+          </View>
+        </View>
+
+        <View
+          style={[
+            styles.goalsCard,
+            {
+              backgroundColor: themeColors.card_background,
+              borderColor: themeColors.frame_stroke,
+            },
+          ]}
+        >
+          <View style={styles.goalsHeader}>
+            <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>
+              {t("activeGoals")}
+            </Text>
+          </View>
+          <FlatList
+            data={savingGoals}
+            renderItem={renderGoalItem}
+            keyExtractor={(item) => item.id.toString()}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={3}
+            maxToRenderPerBatch={3}
+            windowSize={3}
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            getItemLayout={(data, index) => ({
+              length: 110,
+              offset: 110 * index,
+              index,
+            })}
+            style={styles.goalList}
+          />
+        </View>
+      </View>
+
+      <AddGoalModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onAdd={handleAddGoal}
+        isDarkMode={isDarkMode}
+      />
+      <UpdateGoalModal
+        visible={isUpdateModalVisible}
+        onClose={() => {
+          setIsUpdateModalVisible(false);
+          setSelectedGoal(null);
+        }}
+        onUpdate={handleUpdateGoal}
+        initialValues={selectedGoal || undefined}
+        isDarkMode={isDarkMode}
+      />
+      <ActionFAB
+        isDarkMode={isDarkMode}
+        onPress={() => setIsModalVisible(true)}
+      />
+
+      <ConfirmationModal
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        isDarkMode={isDarkMode}
+        buttons={alertConfig.buttons}
+        onConfirm={() => {
+          if (alertConfig.onConfirm) alertConfig.onConfirm();
+          setAlertConfig((prev) => ({ ...prev, visible: false }));
+        }}
+        onCancel={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
+      />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-   container: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "flex-start",
-   },
-   loadingContainer: {
-      justifyContent: "center",
-   },
-   content: {
-      flex: 1,
-      width: "100%",
-      paddingHorizontal: 20,
-   },
-   profilePhotoContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      borderWidth: 1,
-      overflow: "hidden",
-   },
-   profilePhoto: {
-      width: "100%",
-      height: "100%",
-      resizeMode: "cover",
-   },
-   profilePhotoPlaceholder: {
-      width: "100%",
-      height: "100%",
-      opacity: 0.5,
-   },
-   goalHeaderContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: verticalScale(10),
-   },
-   goalTitle: {
-      fontSize: moderateScale(28),
-      fontWeight: "bold",
-   },
-   overviewCard: {
-      width: "100%",
-      borderRadius: moderateScale(15),
-      padding: moderateScale(20),
-      marginBottom: verticalScale(10),
-      borderWidth: 1,
-   },
-   cardTitle: {
-      fontSize: moderateScale(20),
-      fontWeight: "600",
-      marginBottom: verticalScale(15),
-   },
-   percentageText: {
-      fontSize: moderateScale(28),
-      fontWeight: "bold",
-      alignSelf: "flex-end",
-   },
-   progressBarContainer: {
-      height: verticalScale(16),
-      borderRadius: moderateScale(8),
-      width: "100%",
-      overflow: "hidden",
-      marginVertical: verticalScale(10),
-      borderWidth: 1,
-   },
-   progressBar: {
-      height: "100%",
-   },
-   budgetAmountsContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginTop: verticalScale(5),
-   },
-   currentAmount: {
-      fontSize: moderateScale(18),
-      fontWeight: "500",
-   },
-   targetAmount: {
-      fontSize: moderateScale(18),
-      fontWeight: "500",
-   },
-   goalsCard: {
-      flex: 1,
-      width: "100%",
-      borderRadius: moderateScale(24),
-      padding: moderateScale(16),
-      marginBottom: verticalScale(20),
-      borderWidth: 1,
-   },
-   goalsHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: verticalScale(8),
-   },
-   addButton: {
-      width: horizontalScale(40),
-      height: horizontalScale(40),
-      borderRadius: horizontalScale(20),
-      justifyContent: "center",
-      alignItems: "center",
-      elevation: 4,
-      borderWidth: 1,
-   },
-   addButtonText: {
-      fontSize: moderateScale(24),
-      fontWeight: "400",
-   },
-   goalList: {
-      maxHeight: verticalScale(450),
-   },
-   goalItem: {
-      height: verticalScale(110),
-      marginBottom: verticalScale(15),
-      padding: moderateScale(10),
-      borderRadius: moderateScale(16),
-      borderWidth: 1,
-   },
-   goalHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginBottom: verticalScale(5),
-   },
-   goalName: {
-      fontSize: moderateScale(18),
-      fontWeight: "500",
-   },
-   daysLeftText: {
-      fontSize: moderateScale(16),
-      fontWeight: "normal",
-   },
-   goalAmounts: {
-      fontSize: moderateScale(14),
-      marginBottom: verticalScale(5),
-   },
-   goalProgressContainer: {
-      height: 12,
-      borderRadius: 6,
-      width: "100%",
-      overflow: "hidden",
-      borderWidth: 1,
-   },
-   goalProgress: {
-      height: "100%",
-      borderRadius: 6,
-   },
-   deleteButton: {
-      width: 80,
-      height: 110,
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: 16,
-      marginBottom: 15,
-   },
-   deleteButtonInner: {
-      height: "100%",
-      width: "100%",
-      justifyContent: "center",
-      alignItems: "center",
-   },
-   deleteButtonText: {
-      color: "white",
-      fontSize: 24,
-      fontWeight: "600",
-   },
-   emptyState: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      paddingVertical: 40,
-   },
-   emptyStateText: {
-      fontSize: 16,
-      textAlign: "center",
-   },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  loadingContainer: {
+    justifyContent: "center",
+  },
+  content: {
+    flex: 1,
+    width: "100%",
+    paddingHorizontal: 20,
+  },
+  profilePhotoContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  profilePhoto: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  profilePhotoPlaceholder: {
+    width: "100%",
+    height: "100%",
+    opacity: 0.5,
+  },
+  goalHeaderContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: verticalScale(10),
+  },
+  goalTitle: {
+    fontSize: moderateScale(28),
+    fontWeight: "bold",
+  },
+  overviewCard: {
+    width: "100%",
+    borderRadius: moderateScale(15),
+    padding: moderateScale(20),
+    marginBottom: verticalScale(10),
+    borderWidth: 1,
+  },
+  cardTitle: {
+    fontSize: moderateScale(20),
+    fontWeight: "600",
+    marginBottom: verticalScale(15),
+  },
+  percentageText: {
+    fontSize: moderateScale(28),
+    fontWeight: "bold",
+    alignSelf: "flex-end",
+  },
+  progressBarContainer: {
+    height: verticalScale(16),
+    borderRadius: moderateScale(8),
+    width: "100%",
+    overflow: "hidden",
+    marginVertical: verticalScale(10),
+    borderWidth: 1,
+  },
+  progressBar: {
+    height: "100%",
+  },
+  budgetAmountsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: verticalScale(5),
+  },
+  currentAmount: {
+    fontSize: moderateScale(18),
+    fontWeight: "500",
+  },
+  targetAmount: {
+    fontSize: moderateScale(18),
+    fontWeight: "500",
+  },
+  goalsCard: {
+    flex: 1,
+    width: "100%",
+    borderRadius: moderateScale(24),
+    padding: moderateScale(16),
+    marginBottom: verticalScale(20),
+    borderWidth: 1,
+  },
+  goalsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: verticalScale(8),
+  },
+  addButton: {
+    width: horizontalScale(40),
+    height: horizontalScale(40),
+    borderRadius: horizontalScale(20),
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 4,
+    borderWidth: 1,
+  },
+  addButtonText: {
+    fontSize: moderateScale(24),
+    fontWeight: "400",
+  },
+  goalList: {
+    maxHeight: verticalScale(450),
+  },
+  goalItem: {
+    height: verticalScale(110),
+    marginBottom: verticalScale(15),
+    padding: moderateScale(10),
+    borderRadius: moderateScale(16),
+    borderWidth: 1,
+  },
+  goalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: verticalScale(5),
+  },
+  goalName: {
+    fontSize: moderateScale(18),
+    fontWeight: "500",
+  },
+  daysLeftText: {
+    fontSize: moderateScale(16),
+    fontWeight: "normal",
+  },
+  goalAmounts: {
+    fontSize: moderateScale(14),
+    marginBottom: verticalScale(5),
+  },
+  goalProgressContainer: {
+    height: 12,
+    borderRadius: 6,
+    width: "100%",
+    overflow: "hidden",
+    borderWidth: 1,
+  },
+  goalProgress: {
+    height: "100%",
+    borderRadius: 6,
+  },
+  deleteButton: {
+    width: 80,
+    height: 110,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 16,
+    marginBottom: 15,
+  },
+  deleteButtonInner: {
+    height: "100%",
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "white",
+    fontSize: 24,
+    fontWeight: "600",
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    textAlign: "center",
+  },
 });
 
 export default GoalsScreen;

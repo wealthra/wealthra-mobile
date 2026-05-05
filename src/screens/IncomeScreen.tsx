@@ -9,7 +9,9 @@ import {
 } from "react-native";
 import { RectButton, Swipeable } from "react-native-gesture-handler";
 import { getThemeColors } from "../utils/getThemeColors";
-import ConfirmationModal, { ModalButton } from "../../components/ConfirmationModal";
+import ConfirmationModal, {
+  ModalButton,
+} from "../../components/ConfirmationModal";
 import ScreenHeader from "../../components/ScreenHeader";
 import {
   addIncome,
@@ -52,6 +54,7 @@ interface IncomeSource {
 }
 
 interface Transaction {
+  id: number;
   date: string;
   source: string;
   amount: number;
@@ -71,7 +74,9 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
-  const [selectedIncome, setSelectedIncome] = useState<IncomeSource | null>(null);
+  const [selectedIncome, setSelectedIncome] = useState<IncomeSource | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [financialData, setFinancialData] = useState<FinancialSummary | null>(
     null,
@@ -95,18 +100,20 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
   const pageSize = 10;
 
   const showAlert = (
-    title: string, 
-    message: string, 
-    type: "success" | "error" | "warning" | "info" = "info", 
+    title: string,
+    message: string,
+    type: "success" | "error" | "warning" | "info" = "info",
     onConfirm?: () => void,
-    buttons?: ModalButton[]
+    buttons?: ModalButton[],
   ) => {
     setAlertConfig({
       visible: true,
       title,
       message,
       type,
-      onConfirm: onConfirm || (() => setAlertConfig(prev => ({ ...prev, visible: false }))),
+      onConfirm:
+        onConfirm ||
+        (() => setAlertConfig((prev) => ({ ...prev, visible: false }))),
       buttons,
     });
   };
@@ -123,6 +130,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
 
       // Map to transaction format
       const newTransactions = recentIncomes.map((income) => ({
+        id: income.id,
         date: new Date().toISOString().split("T")[0],
         source: income.title,
         amount: income.amount,
@@ -155,8 +163,10 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         currency: income.currency,
         transactionDate: income.transactionDate,
         // Use a fake timestamp to simulate recency for existing items
-        // Each item gets a timestamp 1 minute apart, with newer items being more recent
-        addedAt: new Date(Date.now() - index * 60000).toISOString(),
+        // Incorporate page number to ensure page 1 items are always "newer" than page 2
+        addedAt: new Date(
+          Date.now() - ((page - 1) * pageSize + index) * 60000,
+        ).toISOString(),
       }));
 
       // Check if we have more data to load
@@ -179,6 +189,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
 
         // Create new transactions from these incomes
         const newTransactions = recentIncomes.map((income) => ({
+          id: income.id,
           date: new Date().toISOString().split("T")[0],
           source: income.title,
           amount: income.amount,
@@ -190,12 +201,18 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
 
       // Also fetch financial summary if needed
       if (page === 1) {
-        const financialSummaryData = await getFinancialSummary(preferredCurrency);
+        const financialSummaryData =
+          await getFinancialSummary(preferredCurrency);
         setFinancialData(financialSummaryData);
       }
     } catch (error) {
       console.error("Error fetching income data:", error);
-      showAlert(t("common.error") || "Error", t("income.loadError") || "Failed to load income data. Please try again.", "error");
+      showAlert(
+        t("common.error") || "Error",
+        t("income.loadError") ||
+          "Failed to load income data. Please try again.",
+        "error",
+      );
       setHasMoreData(false);
     } finally {
       setLoading(false);
@@ -206,6 +223,7 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
   const updateRecentTransactions = (newIncome: IncomeSource) => {
     // Create a new transaction for the newly added income
     const newTransaction = {
+      id: newIncome.id,
       date: new Date().toISOString().split("T")[0],
       source: newIncome.title,
       amount: newIncome.amount,
@@ -248,10 +266,18 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
 
       // Close the modal
       setIsAddModalVisible(false);
-      showAlert(t("common.success") || "Success", t("income.added") || "Income added successfully", "success");
+      showAlert(
+        t("common.success") || "Success",
+        t("income.added") || "Income added successfully",
+        "success",
+      );
     } catch (error) {
       console.error("Error adding income:", error);
-      showAlert(t("common.error") || "Error", t("alert.failedtoAdd") || "Failed to add income", "error");
+      showAlert(
+        t("common.error") || "Error",
+        t("alert.failedtoAdd") || "Failed to add income",
+        "error",
+      );
     }
   };
 
@@ -265,27 +291,27 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
       // Show a confirmation dialog before deletion
       showAlert(
         t("alert.deletionTitle") || "Delete Income",
-        t("alert.deletionMessage") || "Are you sure you want to delete this income?",
+        t("alert.deletionMessage") ||
+          "Are you sure you want to delete this income?",
         "warning",
         undefined,
         [
           {
             text: t("alert.cancel") || "Cancel",
-            onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })),
-            type: "cancel"
+            onPress: () =>
+              setAlertConfig((prev) => ({ ...prev, visible: false })),
+            type: "cancel",
           },
           {
             text: t("alert.confirm") || "Delete",
             onPress: async () => {
-              setAlertConfig(prev => ({ ...prev, visible: false }));
+              setAlertConfig((prev) => ({ ...prev, visible: false }));
               try {
                 // Delete from API
                 await deleteIncome(id);
 
                 // Re-fetch data from API
                 await fetchIncomeData(1, false);
-
-
 
                 // Update financial summary in the background
                 getFinancialSummary(preferredCurrency)
@@ -303,18 +329,22 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
                 showAlert(
                   t("alert.genericErrorTitle") || "Error",
                   t("alert.failedtoDelete") || "Failed to delete income",
-                  "error"
+                  "error",
                 );
               }
             },
             type: "confirm",
-            color: themeColors.red
-          }
-        ]
+            color: themeColors.red,
+          },
+        ],
       );
     } catch (error) {
       console.error("Error in handleDeleteIncome:", error);
-      showAlert(t("common.error") || "Error", "An unexpected error occurred. Please try again.", "error");
+      showAlert(
+        t("common.error") || "Error",
+        "An unexpected error occurred. Please try again.",
+        "error",
+      );
     }
   };
 
@@ -359,8 +389,12 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         }}
       >
         <View style={styles.incomeDetails}>
-          <Text style={[styles.incomeTitle, { color: themeColors.card_title }]}>
-            {source?.title || "Untitled"}
+          <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={[styles.incomeTitle, { color: themeColors.card_title }]}
+          >
+            {source.title}
           </Text>
           <Text
             style={[styles.incomeSubtext, { color: themeColors.card_title }]}
@@ -370,7 +404,9 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
           </Text>
         </View>
         <Text style={[styles.incomeAmount, { color: themeColors.green }]}>
-          {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency || source?.currency)}${typeof source?.amount === "number" ? source.amount : "0"}`}
+          {isPrivacyMode
+            ? "****"
+            : `${getCurrencySymbol(preferredCurrency || source?.currency)}${typeof source?.amount === "number" ? source.amount : "0"}`}
         </Text>
       </TouchableOpacity>
     </Swipeable>
@@ -391,23 +427,32 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
     // Create a copy to avoid modifying the original array
     return [...sources]
       .sort((a, b) => {
-        // Sort by addedAt if available
+        // Prefer sorting by transactionDate from backend
+        if (a.transactionDate && b.transactionDate) {
+          return (
+            new Date(b.transactionDate).getTime() -
+            new Date(a.transactionDate).getTime()
+          );
+        }
+        // Fallback to addedAt if transactionDate is missing
         if (a.addedAt && b.addedAt) {
           return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
         }
-        // Otherwise, assume newer items are at the beginning of the array
         return 0;
       })
       .slice(0, count);
   };
 
-  const handleUpdateIncome = async (id: number, updatedIncome: {
-    name: string;
-    amount: number;
-    method: string;
-    isRecurring: boolean;
-    transactionDate: string;
-  }) => {
+  const handleUpdateIncome = async (
+    id: number,
+    updatedIncome: {
+      name: string;
+      amount: number;
+      method: string;
+      isRecurring: boolean;
+      transactionDate: string;
+    },
+  ) => {
     try {
       setLoading(true);
       await updateIncome(id, {
@@ -428,13 +473,17 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
 
       setIsUpdateModalVisible(false);
       setSelectedIncome(null);
-      showAlert(t("common.success") || "Success", t("income.updated") || "Income updated successfully", "success");
+      showAlert(
+        t("common.success") || "Success",
+        t("income.updated") || "Income updated successfully",
+        "success",
+      );
     } catch (error: any) {
       console.error("Error updating income:", error);
       showAlert(
         t("common.error") || "Error",
         error.message || t("income.updateFailed") || "Failed to update income",
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
@@ -453,16 +502,25 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color={themeColors.green} />
+        <Text style={{ color: themeColors.card_title, marginLeft: 8 }}>
           {t("common.loadingMore")}
+        </Text>
       </View>
     );
   };
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <ActivityIndicator size="large" color={themeColors.green} />
-        <Text style={{ color: themeColors.card_title, marginTop: 10 }}>{t("common.loadingIncomes")}</Text>
+        <Text style={{ color: themeColors.card_title, marginTop: 10 }}>
+          {t("common.loadingIncomes")}
+        </Text>
       </View>
     );
   }
@@ -487,7 +545,12 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         <>
           <DashboardCarousel
             isDarkMode={isDarkMode}
-            data={transformFinancialData(financialData, isDarkMode, isPrivacyMode, preferredCurrency)}
+            data={transformFinancialData(
+              financialData,
+              isDarkMode,
+              isPrivacyMode,
+              preferredCurrency,
+            )}
           />
         </>
       )}
@@ -546,9 +609,13 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
           <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>
             {t("recentTransactions")}
           </Text>
-          {transactions.map((transaction) => (
+          {transactions.map((transaction, index) => (
             <View
-              key={`${transaction.date}-${transaction.source}-${transaction.amount}`}
+              key={
+                transaction.id
+                  ? `transaction-${transaction.id}`
+                  : `transaction-idx-${index}`
+              }
               style={[
                 styles.transactionItem,
                 {
@@ -567,9 +634,11 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
                   {transaction.date}
                 </Text>
                 <Text
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
                   style={[
                     styles.transactionSource,
-                    { color: themeColors.card_title },
+                    { color: themeColors.card_title, flex: 1 },
                   ]}
                 >
                   {transaction.source}
@@ -581,7 +650,9 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
                   { color: themeColors.card_title },
                 ]}
               >
-                {isPrivacyMode ? "****" : `${getCurrencySymbol(preferredCurrency || transaction.currency)}${transaction.amount}`}
+                {isPrivacyMode
+                  ? "****"
+                  : `${getCurrencySymbol(preferredCurrency || transaction.currency)}${transaction.amount}`}
               </Text>
             </View>
           ))}
@@ -601,14 +672,19 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         }}
         onUpdate={handleUpdateIncome}
         isDarkMode={isDarkMode}
-        initialIncome={selectedIncome ? {
-          id: selectedIncome.id,
-          name: selectedIncome.title,
-          amount: selectedIncome.amount,
-          method: selectedIncome.paymentMethod,
-          isRecurring: selectedIncome.type === "Periodic",
-          transactionDate: selectedIncome.transactionDate || new Date().toISOString()
-        } : null}
+        initialIncome={
+          selectedIncome
+            ? {
+                id: selectedIncome.id,
+                name: selectedIncome.title,
+                amount: selectedIncome.amount,
+                method: selectedIncome.paymentMethod,
+                isRecurring: selectedIncome.type === "Periodic",
+                transactionDate:
+                  selectedIncome.transactionDate || new Date().toISOString(),
+              }
+            : null
+        }
       />
       <ActionFAB
         isDarkMode={isDarkMode}
@@ -624,9 +700,9 @@ const IncomeScreen: React.FC<IncomeScreenProps> = ({
         buttons={alertConfig.buttons}
         onConfirm={() => {
           if (alertConfig.onConfirm) alertConfig.onConfirm();
-          setAlertConfig(prev => ({ ...prev, visible: false }));
+          setAlertConfig((prev) => ({ ...prev, visible: false }));
         }}
-        onCancel={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+        onCancel={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
       />
     </View>
   );
@@ -750,33 +826,34 @@ const styles = StyleSheet.create({
   },
   transactionItem: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 20,
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: horizontalScale(16),
+    borderRadius: moderateScale(20),
     borderWidth: 1,
-
-    marginTop: 5,
+    marginTop: verticalScale(5),
+    gap: 15,
   },
   transactionInfo: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+    flexShrink: 1,
   },
   transactionDate: {
-    fontSize: 16,
+    fontSize: moderateScale(16),
     fontWeight: "500",
-    marginRight: 5,
+    marginRight: horizontalScale(5),
   },
   transactionSource: {
-    fontSize: 16,
+    fontSize: moderateScale(16),
     fontWeight: "500",
-
-    marginRight: 5,
+    marginRight: horizontalScale(5),
+    flexShrink: 1,
   },
   transactionAmount: {
-    fontSize: 16,
+    fontSize: moderateScale(16),
     fontWeight: "600",
   },
   deleteButton: {

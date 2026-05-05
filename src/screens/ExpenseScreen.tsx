@@ -69,6 +69,7 @@ interface ExpenseCategory {
 }
 
 interface Transaction {
+  id: number;
   date: string;
   source: string;
   amount: number;
@@ -185,7 +186,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
         const response = await getExpenses(1, 10, preferredCurrency);
 
         const items = response.items || [];
-        const mappedExpenses = items.map((expense: any) => ({
+        const mappedExpenses = items.map((expense: any, index: number) => ({
           id: expense.id,
           description: expense.description,
           amount: expense.amount,
@@ -194,6 +195,8 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
           categoryId: expense.categoryId,
           categoryName: expense.categoryName,
           currency: expense.currency,
+          transactionDate: expense.transactionDate,
+          addedAt: new Date(Date.now() - index * 60000).toISOString(),
         }));
 
         setExpenses(mappedExpenses);
@@ -203,7 +206,8 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
           const recentExpenses = mappedExpenses.slice(0, 2);
           setTransactions(
             recentExpenses.map((expense) => ({
-              date: new Date().toISOString().split("T")[0],
+              id: expense.id,
+              date: expense.transactionDate ? expense.transactionDate.split("T")[0] : new Date().toISOString().split("T")[0],
               source: expense.description,
               amount: expense.amount,
               currency: expense.currency,
@@ -397,6 +401,8 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
       >
         <View style={styles.expenseDetails}>
           <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
             style={[styles.expenseTitle, { color: themeColors.card_title }]}
           >
             {source?.description || t("expense.untitled")}
@@ -598,7 +604,8 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
   const updateTransactions = (newExpense: ExpenseSource) => {
     // Create transaction from new expense
     const newTransaction: Transaction = {
-      date: new Date().toISOString().split("T")[0],
+      id: newExpense.id,
+      date: newExpense.transactionDate ? newExpense.transactionDate.split("T")[0] : new Date().toISOString().split("T")[0],
       source: newExpense.description,
       amount: newExpense.amount,
       currency: newExpense.currency,
@@ -648,7 +655,7 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
       const response = await getExpenses(page, pageSize, preferredCurrency);
 
       const items = response.items || [];
-      const mappedExpenses = items.map((expense: any) => ({
+      const mappedExpenses = items.map((expense: any, index: number) => ({
         id: expense.id,
         description: expense.description,
         amount: expense.amount,
@@ -657,6 +664,8 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
         categoryId: expense.categoryId,
         categoryName: expense.categoryName,
         currency: expense.currency,
+        transactionDate: expense.transactionDate,
+        addedAt: new Date(Date.now() - ((page - 1) * pageSize + index) * 60000).toISOString(),
       }));
 
       // Check if we have more data to load
@@ -686,7 +695,8 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
 
         // Create transactions from these expenses
         const newTransactions = recentExpenses.map((expense) => ({
-          date: new Date().toISOString().split("T")[0],
+          id: expense.id,
+          date: expense.transactionDate ? expense.transactionDate.split("T")[0] : new Date().toISOString().split("T")[0],
           source: expense.description,
           amount: expense.amount,
           currency: expense.currency,
@@ -805,9 +815,9 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
           <Text style={[styles.cardTitle, { color: themeColors.card_title }]}>
             {t("recentTransactions")}
           </Text>
-          {transactions.map((transaction) => (
+          {transactions.map((transaction, index) => (
             <View
-              key={`${transaction.date}-${transaction.source}-${transaction.amount}`}
+              key={transaction.id ? `transaction-${transaction.id}` : `transaction-idx-${index}`}
               style={[
                 styles.transactionItem,
                 {
@@ -826,9 +836,11 @@ const ExpenseScreen: React.FC<ExpenseScreenProps> = ({
                   {transaction.date}
                 </Text>
                 <Text
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
                   style={[
                     styles.transactionSource,
-                    { color: themeColors.card_title },
+                    { color: themeColors.card_title, flex: 1 },
                   ]}
                 >
                   {transaction.source}
@@ -1060,19 +1072,20 @@ const styles = StyleSheet.create({
   },
   transactionItem: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     paddingVertical: verticalScale(10),
-    paddingHorizontal: horizontalScale(24),
+    paddingHorizontal: horizontalScale(16),
     borderRadius: moderateScale(20),
     borderWidth: 1,
-
     marginTop: verticalScale(5),
+    gap: 15,
   },
   transactionInfo: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+    flexShrink: 1,
   },
   transactionDate: {
     fontSize: 16,
@@ -1082,8 +1095,8 @@ const styles = StyleSheet.create({
   transactionSource: {
     fontSize: 16,
     fontWeight: "500",
-
     marginRight: 5,
+    flexShrink: 1,
   },
   transactionAmount: {
     fontSize: 16,

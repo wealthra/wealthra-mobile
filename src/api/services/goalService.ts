@@ -139,13 +139,12 @@ export const deleteGoal = async (id: number): Promise<void> => {
 };
 
 export const updateGoal = async (
-   id: number,
    goal: {
+      id: number;
       name: string;
       targetAmount: number;
-      initialAmount: number;
-      daysToTarget?: number;
-      currentAmount?: number;
+      currentAmount: number;
+      deadline: string;
       currency?: string;
    }
 ): Promise<void> => {
@@ -153,41 +152,24 @@ export const updateGoal = async (
       const token = await getStoredToken();
       if (!token) throw new Error("No authentication token found");
 
-      let deadlineDate: Date;
-      if (goal.daysToTarget !== undefined) {
-         deadlineDate = new Date();
-         deadlineDate.setDate(deadlineDate.getDate() + goal.daysToTarget);
-      } else {
-         try {
-            const currentGoalResponse = await axiosInstance.get<GoalDto>(`/api/Goals/${id}`);
-            deadlineDate = new Date(currentGoalResponse.data.deadline || new Date().toISOString());
-         } catch (err) {
-            console.error("Failed to fetch current goal deadline:", err);
-            deadlineDate = new Date();
-            deadlineDate.setDate(deadlineDate.getDate() + 30);
-         }
-      }
-
-      const formattedDeadline = deadlineDate.toISOString().split("T")[0];
-
       const requestData: UpdateGoalCommand = {
-         id,
+         id: goal.id,
          name: goal.name,
          targetAmount: goal.targetAmount,
-         currentAmount: goal.currentAmount !== undefined ? goal.currentAmount : goal.initialAmount,
-         deadline: formattedDeadline,
+         currentAmount: goal.currentAmount,
+         deadline: goal.deadline,
          currency: goal.currency,
       };
 
-      console.log(`Updating goal ${id}:`, JSON.stringify(requestData, null, 2));
+      console.log(`Updating goal ${goal.id}:`, JSON.stringify(requestData, null, 2));
 
-      await axiosInstance.put(`/api/Goals/${id}`, requestData, {
+      await axiosInstance.put(`/api/Goals/${goal.id}`, requestData, {
          headers: {
             "Content-Type": "application/json",
          },
       });
 
-      console.log(`Successfully updated goal with ID: ${id}`);
+      console.log(`Successfully updated goal with ID: ${goal.id}`);
    } catch (error: any) {
       console.error("Failed to update goal:", {
          error: error.message,
