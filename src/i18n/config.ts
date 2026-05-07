@@ -112,6 +112,8 @@ const resources = {
         updateExpenseTitle: "Update Expense",
         updateButton: "Update Expense",
         updated: "Expense updated successfully",
+        added: "Expense added successfully",
+        addedCount: "{{count}} expenses added successfully",
       },
       income: {
         added: "Income added successfully",
@@ -555,7 +557,9 @@ const resources = {
         errorAddMessage: "Gider eklenirken bir hata oluştu",
         updateExpenseTitle: "Gideri Güncelle",
         updateButton: "Gideri Güncelle",
-        update: "Gider başarıyla güncellendi",
+        updated: "Gider başarıyla güncellendi",
+        added: "Gider başarıyla eklendi",
+        addedCount: "{{count}} gider başarıyla eklendi",
       },
       income: {
         added: "Gelir başarıyla eklendi",
@@ -595,7 +599,7 @@ const resources = {
         addButton: "Bütçe Ekle",
         enterBudgetAmount: "Bütçe tutarını girin",
         enterCurrentAmount: "Mevcut tutarı girin",
-        update: "Bütçe başarıyla güncellendi",
+        updated: "Bütçe başarıyla güncellendi",
       },
       goal: {
         enterGoalName: "Hedef adını girin",
